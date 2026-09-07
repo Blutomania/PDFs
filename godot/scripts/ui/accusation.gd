@@ -88,7 +88,43 @@ func _is_culprit(accused: String, culprit_field: String, all_suspects: Array) ->
 			return false
 	return true
 
+## IN A ROOM THE SERVER DECIDES, and it has to. First CORRECT accusation wins,
+## and only the server can adjudicate that -- two players can both be right
+## within a second of each other, and a client comparing locally would tell them
+## both they won. It is also the only side that has the solution: /mystery-brief
+## deliberately withholds it, so a phone client could not compare even if it
+## wanted to.
+##
+## Single player keeps the local comparison. There is no race, no server-held
+## solution to consult, and no room to broadcast to.
 func _on_confirmed() -> void:
+	if GameState.game_id.is_empty():
+		_finish_locally()
+		return
+	submit_button.disabled = true
+	status_label.text = "Making the accusation…"
+	ApiClient.accuse(GameState.game_id, GameState.player_id, _selected_suspect, _on_accused)
+
+func _on_accused(error: String, data: Dictionary) -> void:
+	## A network failure must not swallow the accusation. Falling back to the
+	## local comparison still reaches the result screen, which is the stage-1
+	## test -- it just cannot say who got there first.
+	if error:
+		status_label.text = "The table did not answer (" + error + ") — scoring locally."
+		status_label.add_theme_color_override("font_color", Palette.CAUTION)
+		_finish_locally()
+		return
+	var solution: Dictionary = GameState.current_mystery.get("solution", {})
+	GameState.accusation_result = {
+		"correct": bool(data.get("correct", false)),
+		"won": bool(data.get("won", false)),
+		"suspect_guessed": _selected_suspect,
+		"culprit": solution.get("culprit", ""),
+		"solution": solution,
+	}
+	_go_result()
+
+func _finish_locally() -> void:
 	var solution: Dictionary = GameState.current_mystery.get("solution", {})
 	var culprit: String = solution.get("culprit", "")
 	var correct: bool = _is_culprit(_selected_suspect, culprit, _mystery.suspect_names())
@@ -99,6 +135,9 @@ func _on_confirmed() -> void:
 		"culprit": culprit,
 		"solution": solution,
 	}
+	_go_result()
+
+func _go_result() -> void:
 	GameState.game_phase = GameState.Phase.RESULT
 	get_tree().change_scene_to_file("res://scenes/ui/ResultScreen.tscn")
 

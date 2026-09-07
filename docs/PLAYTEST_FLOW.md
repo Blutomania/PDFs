@@ -130,6 +130,35 @@ is the number of findings per player. Under the rhythm that length *is* the roun
 existing deal machinery covers this without new constraint code — `best_deal()`, feasibility and
 the hoarding analysis all work unchanged at four.
 
+### [Session 42] Built — where each sentence above now lives
+
+| The rule | Where it is |
+|---|---|
+| Rounds = findings ÷ players | `apf.round_count()` |
+| The hand spec's length is the round count | `apf.hand_spec_for()` |
+| Round 1 has no checkpoint | `apf.FIRST_CHECKPOINT_ROUND`, and `required_now()` returns 0 below it |
+| A shared finding stays in the hand | `apf.share()` appends and removes nothing |
+| The requirement is cumulative | `apf.share_ladder()`, precomputed at session open |
+| The ladder is announced up front | returned by the `/apf/open` route |
+| The board greys on `exonerates`, never on `narrows` | `apf.board()` |
+| Full disclosure | `apf.disclose()` |
+
+**One thing the arithmetic gave back that this document did not ask for.** The private stash is not
+only a difficulty setting — it *is* the deal's `hoard_allowance`, because it defines exactly how
+much a player is permitted to withhold. `apf.stash_allowance()` derives it from the ladder, and
+doing so exposed a defect in `best_deal()`: it constrained proof-survival at the allowance it was
+given and then chose its seed by a monopoly measured at `deal.py`'s constant of 1. Two hoarding
+models, one of which the rules do not permit.
+
+**The share rule is injected, never reimplemented.** `_min_share_required()` in `server/main.py`
+stays its only definition; `apf.py` takes it as a callable. `scripts/test_share_rule.py` now guards
+`apf_round.gd` as well, because the rule moved with the mechanic — a rule defended on the screen it
+left is a rule nobody is defending.
+
+**Not verified: nobody has played it, and it has never run in Godot.** Every number in the ladder is
+arithmetic. Whether a two-finding stash at HARD *feels* like a decision is a question only a table
+answers.
+
 > **On the "75% mechanic".** The line that used to sit at step 5 called this *the 75% mechanic*.
 > There has never been one — see `CLAUDE.md`, item 11. What exists is a player-chosen share level
 > against a per-difficulty minimum, with no randomness anywhere.
@@ -279,6 +308,12 @@ and cost stage-3 money to say so.
 ---
 
 ## The flow
+
+> **[Session 42] This table describes the GATHER loop, which APF replaces.** It is kept because
+> its decisions still hold (four suspects, lies off, the one-call shape) and because the screens it
+> names still exist. The APF path is: **Lobby → CaseDisplay** (the crime, told; the host deals from
+> here) **→ ApfRound** (hand, board, shared pool, the share decision, four rounds) **→ Accusation →
+> ResultScreen** (verdict, solution, full disclosure). Steps 2, 3, 4 and 5 below are not on it.
 
 | # | Screen | What happens | State |
 |---|---|---|---|

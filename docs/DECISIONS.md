@@ -724,7 +724,7 @@ that the superseded text has become history and belongs here instead.
     Plus one gap inside a passing step: the Smurf negative case (accusing Smurfodex, which must
     read *wrong*) was not run. The procedure and its live Status line are `docs/F5_CHECKLIST.md`.
 
-23. **[IN PROGRESS — at step 3] Build APF.** The playtest shape is agreed and written down:
+23. **[STEPS 1-4 BUILT, Session 42 — what is left is a table, not code] Build APF.** The playtest shape is agreed and written down:
     `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)". Findings are **dealt, not gathered**; the
     only decision is which to share and which to keep, which is the mechanic this file's first
     paragraph calls the core innovation. It deletes exploration, the block pool, the phase gates
@@ -734,8 +734,50 @@ that the superseded text has become history and belongs here instead.
        schema half landed Session 38 with the backwards-writing reorder (item 26).
     2. ~~the constrained deal — pure computation, re-dealable at zero cost~~ — **[Session 39]
        built as `deal.py`.** See below.
-    3. the share decision, the suspect board, the reveal — **now the start point**
-    4. `cinematic_brief: bool = True` for the paced text opening
+    3. ~~the share decision, the suspect board, the reveal~~ — **[Session 42] built.** See below.
+    4. ~~`cinematic_brief: bool = True` for the paced text opening~~ — **[Session 40]**
+       `_generate_opening_narration()` writes it, on by default. Pacing the beats is client-side
+       and free; that screen is unbuilt.
+
+    **[Session 42] Step 3, and the shape it took.** `apf.py` owns the RHYTHM; `deal.py` still owns
+    the DEAL. That split is the whole design: which findings land in whose hand is a solvability
+    question with a proof attached, and when each is turned face up is a pacing question with none.
+    Six `/apf/` routes serve it, all set arithmetic over an already-generated mystery, so a whole
+    game costs exactly what its one generation call cost.
+
+    **The share and the board are ONE screen, and that was a decision.** `ShareSelection.tscn` was
+    already built as a separate screen for the gather loop and it is untouched. Under the rhythm the
+    share belongs beside the board, because the board is what makes withholding legible without a
+    word of explanation: a face stays lit that you could have darkened, and everyone can see you
+    didn't. A separate screen hides the one thing that gives the decision weight.
+
+    **The board greys on `exonerates` and NEVER on `narrows`, even though `deal.solves()` counts
+    both.** Item 27 is explicit that a narrowing must never surface as "the culprit is one of these
+    two" — the clue says *man's size large* and the player looks at the cast and draws the line. A
+    board that greys a face on a narrowing does that reasoning for them and deletes the mechanic it
+    was built to serve. Asserted by a fixture, not left to a comment.
+
+    **Two defects found by RUNNING it, which no reading would have caught.** (a) `best_deal()`
+    forwarded `hoard_allowance` into `deal()` but not into the `prover_counts()` call it *selects*
+    the seed with — so a session whose rules permit a two-finding stash constrained proof-survival
+    at two and then chose its dealing by a monopoly measured at one. Only reachable once something
+    derived the allowance instead of taking the constant, which `apf.stash_allowance()` does.
+    (b) **Winning the game fired a live Claude call.** `_generate_resolution_narrative` is the last
+    play-time call site on the critical path, and a 401 took the whole win down with a 500. The
+    stage-1 test is *reach the result screen without an error*, so the reveal now degrades to the
+    mystery's own already-generated resolution prose. Build-order step 5 still has to remove the
+    call; this stops it being fatal. `_winner_findings_summary` was also reading the gather loop's
+    phase lists, which under APF are empty — it now reads the dealt hand.
+
+    **Verified two ways, both free.** `scripts/test_apf.py` proves the rules in-process (58
+    assertions, fixtures plus one pass over the accepted mystery at all three difficulties);
+    `scripts/walk_apf_game.py` plays a whole four-round game over real HTTP **with no API key at
+    all**, which is how both defects above were found.
+
+    **Not verified: it has never run in Godot, and nobody has played it.** The scene and scripts
+    pass `scripts/check_godot_wiring.py`, which reads scene files rather than loading them —
+    necessary, not sufficient. And every number in the difficulty ladder is arithmetic: whether a
+    two-finding stash at HARD *feels* like a decision is a question only a table answers.
 
     **[Session 39] Step 2's blocker was real and pointed at the wrong code.** Session 38 recorded
     it as *"a finding carries no evidence ID"* in the three finding constructors — but those are

@@ -63,6 +63,13 @@ autowrap_mode = 3
 [node name="Buttons" type="HBoxContainer" parent="ScrollContainer/MainVBox"]
 layout_mode = 2
 
+[node name="BeginRoundsButton" type="Button" parent="ScrollContainer/MainVBox/Buttons"]
+theme_type_variation = &"PrimaryButton"
+layout_mode = 2
+text = "Begin the investigation"
+custom_minimum_size = Vector2(190, 0)
+visible = false
+
 [node name="InterrogateButton" type="Button" parent="ScrollContainer/MainVBox/Buttons"]
 theme_type_variation = &"PrimaryButton"
 layout_mode = 2

@@ -144,6 +144,9 @@ func _on_game_created(error: String, data: Dictionary) -> void:
 		return
 	GameState.game_id = data.get("game_id", "")
 	GameState.player_id = data.get("player_id", "")
+	## Whoever created the room is its host. Only the host may deal a round or
+	## close the case, so the round screen needs to know which one this is.
+	GameState.is_host = true
 	GameState.witness_budget = data.get("witness_budget", 0)
 	GameState.investigation_budget = data.get("investigation_budget", 0)
 	GameState.share_min = data.get("share_min", 0.6)

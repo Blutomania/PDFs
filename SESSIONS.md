@@ -3103,6 +3103,127 @@ it. Porting the Aug 12 flow and then immediately rewriting it would build the sa
 
 ---
 
+## Session 42 — September 7, 2026 (CYM: the rhythm gets built, and running it finds what reading it did not)
+
+**Branch:** `claude/playtest-flow-docs-qmqlti`, level with `main` at `ca67def`. Picking up exactly
+where Session 41 left the board: item 23 step 3, built against the rhythm rather than against the
+single-deal model the screens would otherwise have been written for.
+
+Session 41 was right to build nothing. Three screens against a one-deal model would have been three
+screens to rewrite.
+
+### What was actually missing
+
+The rhythm was fully specified in `docs/PLAYTEST_FLOW.md` and implemented nowhere. `deal.py` decided
+which findings land in whose hand and proved the result winnable; there was no cadence, no share
+checkpoint, no suspect board and no reveal. The share endpoint that existed (`/share-phase`) belongs
+to the gather loop APF replaces — phases, budgets, a block pool — and none of it fits a game where
+findings are dealt.
+
+### The split, which is the design
+
+**`apf.py` owns the CADENCE. `deal.py` still owns the DEAL.** Which findings go to whom is a
+solvability question with a proof attached; when each is turned face up is a pacing question with
+none. Keeping them apart is why the round count needed no new constraint code at all — `deal.py`
+already expresses a hand as one slot per kind, and under the rhythm that hand is dealt one slot per
+round, so a spec of the right length is the whole change.
+
+Three rules that read like details and are the mechanic:
+
+- **Round 1 has no checkpoint.** The minimum's floor of 1 makes a hand of one a tax, not a decision.
+- **A shared finding stays in its holder's hand.** What is spent is exclusivity, not possession.
+  `share()` appends and removes nothing, and there is no un-share, because the room cannot unlearn.
+- **The requirement is cumulative.** Otherwise round 4 demands three new findings when one was
+  dealt.
+
+**The share rule is INJECTED, never reimplemented.** `_min_share_required()` in `server/main.py`
+stays its only definition; `apf.py` takes it as a callable and precomputes the whole ladder at
+session open — which is also what lets the game announce it before play, as the owner asked.
+
+**And the difficulty ladder separates, measured on the accepted mystery:** the private stash is 1 at
+EASY and 2 at MEDIUM/HARD by round 4, widening after. Sessions 38 and 39 both concluded that could
+not happen without a second dial. It happens because the hand grows.
+
+### The board's one hard rule
+
+**It greys on `exonerates` and NEVER on `narrows`**, even though `deal.solves()` counts both. Item 27
+is explicit that a narrowing must never surface as *"the culprit is one of these two"* — the clue
+says *man's size large* and the player looks at the cast and draws the line. A board that greys a
+face on a narrowing does that reasoning for them and deletes the mechanic it exists to serve.
+Asserted with a glove fixture rather than left to a comment.
+
+### Two defects found by running it, not by reading it
+
+Both were invisible to every in-process test, and both came out of
+`scripts/walk_apf_game.py` — a whole game driven over real HTTP with **no API key at all**.
+
+1. **`best_deal()` was selecting against a hoarding model the rules do not permit.** It forwarded
+   `hoard_allowance` into `deal()` but not into the `prover_counts()` call it *chooses the seed
+   with*. So a session whose rules allow a two-finding stash constrained proof-survival at two and
+   then picked its dealing by a monopoly measured at one. Only reachable once something derived the
+   allowance instead of taking `deal.py`'s constant — which is exactly what `apf.stash_allowance()`
+   does, because the stash IS the allowance. At allowance 2 on the accepted mystery it now examines
+   **1296 patterns instead of 256** and picks a different seed.
+
+2. **Winning the game fired a live Claude call, and a 401 took the whole win down with a 500.**
+   `_generate_resolution_narrative` is the last play-time call site on the critical path. The
+   stage-1 test is *reach the result screen without a Godot error*, and this failed it on a network
+   hiccup. The reveal now degrades to the mystery's own already-generated resolution prose — written
+   and paid for at generation time, so a plainer reveal rather than a missing one. Build-order step
+   5 still has to remove the call; this stops it being fatal. `_winner_findings_summary` was also
+   reading the gather loop's phase lists, which under APF are empty, so the reveal would have said
+   the winner found nothing.
+
+### The client
+
+**`ApfRound.tscn` puts the hand, the board, the shared pool and the share decision on one screen**,
+and that was a decision rather than a shortcut. `ShareSelection.tscn` already existed as a separate
+screen and is untouched — but under the rhythm the share belongs beside the board, because the board
+is what makes withholding legible without a word of explanation: a face stays lit that you could
+have darkened, and everyone can see you didn't. A separate screen hides the one thing that gives the
+decision its weight.
+
+Also: `CaseDisplay` is APF's opening and gained the button that deals from it; the accusation is now
+**server-authoritative in a room** (first *correct* accusation wins, and only the server can
+adjudicate that — two players can both be right within a second, and a client comparing locally
+would tell them both they won); `ResultScreen` shows full disclosure with a name against every
+finding somebody sat on.
+
+`scripts/test_share_rule.py` now guards `apf_round.gd` too. The rule moved with the mechanic, and a
+rule defended on the screen it left is a rule nobody is defending.
+
+### Verification
+
+- `scripts/test_apf.py` — **58 assertions**, zero API cost. Fixtures for the rules, plus one pass
+  over the accepted mystery at all three difficulties.
+- `scripts/walk_apf_game.py` — **47 assertions** over real HTTP against a live uvicorn, no API key.
+- The full free suite: 18 checkers plus palette, icons and rule coverage, all PASS.
+
+### NOT done — read this before assuming APF is finished
+
+**Nothing here has been loaded by Godot.** `check_godot_wiring.py` reads scene files rather than
+loading them; all three defects Session 36 found were the kind it cannot see. `VerifyScenes.gd` and
+`ApplyTheme.gd` need the owner's machine. `docs/F5_CHECKLIST.md` step 4b and its "not covered" list
+say exactly what to walk.
+
+**Nobody has played it.** Every number in the difficulty ladder is arithmetic. Whether a
+two-finding stash at HARD *feels* like a decision is a question only a table answers.
+
+**APF needs at least two players.** Constraint 2 — no single hand solves alone — is unsatisfiable at
+one, because the only hand is the whole deal. The server says so plainly rather than failing the
+deal opaquely, but a solo walk-through still has to add a seat.
+
+### Next session
+
+1. **The owner walks it in Godot.** `docs/F5_CHECKLIST.md`, steps 3, 4, 4b, then the APF path. This
+   is the only remaining unknown on the stage-1 critical path.
+2. Then build-order **step 5** — remove the six play-time call sites. The resolution narrative is
+   the one that matters, and it is now non-fatal rather than gone.
+3. The paced opening screen (step 4's client half). `_generate_opening_narration()` already writes
+   the text; pacing the five beats is client-side and free.
+
+---
+
 ## Session 41 — September 3, 2026 (CYM: the pipeline stops serving what it knows is broken, and starts counting what it costs)
 
 **Branch:** `claude/mystery-generation-narrowing-ad2xh8`, from `main` at `c296227`. Owner opened on

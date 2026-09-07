@@ -24,7 +24,11 @@ during that walk, none of which any checker could see:
 | Interrogation | `#` comment lines in the `.tscn` dropped five panels and every child under them |
 | Result screen | GDScript has no implicit string concatenation, so the script never loaded and only static nodes rendered |
 
-**Still unverified:** steps 20 and 21 (the two paid ones), and step 17's negative case.
+**Still unverified:** steps 20 and 21 (the two paid ones), step 17's negative case, and — added
+Session 42 — **the entire APF path**. `ApfRound.tscn`, the new buttons on `CaseDisplay.tscn` and the
+full-disclosure section of `ResultScreen.tscn` pass `scripts/check_godot_wiring.py` and have never
+been loaded by the engine. That checker reads scene files rather than loading them, and all three
+defects in the table above are exactly the kind it cannot see.
 
 > **Renumbering note (Session 38).** This document used to open at "sync the repo" and keep its
 > setup instructions in an appendix — including a section headed *Step 0, do this first*, which sat
@@ -112,7 +116,7 @@ Or all of them at once, plus the rest of the free suite:
 ```bash
 for s in check_godot_wiring check_mystery_playable check_doc_claims check_decisions \
          check_solvability check_narrative test_narrative_checks test_palette test_icons \
-         test_background_field test_share_rule \
+         test_background_field test_share_rule test_deal test_apf \
          test_crime_scene_map test_registry_staleness; do
   printf '%-30s ' "$s"; python3 "scripts/$s.py" >/dev/null 2>&1 && echo PASS || echo FAIL
 done
@@ -166,6 +170,23 @@ Either stop that process, or run on another port (`--port 8001`) and change `SER
 ---
 
 # Part 2 — Godot: open it, verify it, make the design visible
+
+### 4b. Play a whole APF game over HTTP, before opening Godot at all
+
+With the server up, this plays the accepted mystery end to end — create, join, deal, four rounds,
+full disclosure, accusation, result:
+
+```bash
+python3 scripts/walk_apf_game.py
+```
+
+**No API key needed**: nothing here generates, it plays the mystery already on disk. Every line
+should say PASS.
+
+**Why this is worth 20 seconds.** It exercises the entire playtest path with the client removed, so
+a failure here is the server's and a failure later is the screen's. Session 42 found two defects
+with it that every in-process test passed through — one of them was that *winning the game* fired a
+live Claude call and 500'd without one.
 
 ## 5. Launch Godot and add the project
 
@@ -503,7 +524,12 @@ the slate ground looks stark white. Anything drawing one should set `modulate`.
   warning can fire from saved data. They have no test case on disk.
 - **Multiplayer entirely** — lobby, room codes, the share mechanic, the WebSocket path, and
   `server/static/mobile.html`. Stage 3.
-- **APF** — `docs/DECISIONS.md` item 23, not built.
+- **APF's round screen** — `ApfRound.tscn` was built in Session 42 and **has never been loaded by
+  the engine.** It is the one screen on this list that is finished code with zero engine hours on
+  it, so walk it deliberately: deal, watch a face grey out when somebody shares, confirm the round
+  refuses to advance while the checkpoint is open, close the case, and check the result screen names
+  who held what back. Needs at least two players — constraint 2 is unsatisfiable at one, so a solo
+  walk has to add a seat (join from a phone at `/play`, or `POST /games/{id}/join`).
 - **Anything visual.** Whether the screens read well is a judgement only a human at the screen can
   make. Note it as you go.
 

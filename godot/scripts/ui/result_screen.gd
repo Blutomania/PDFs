@@ -19,6 +19,9 @@ extends Control
 @onready var rating_row: HBoxContainer = $ScrollContainer/MainVBox/RatingRow
 @onready var play_again_button: Button = $ScrollContainer/MainVBox/Buttons/PlayAgainButton
 @onready var review_button: Button = $ScrollContainer/MainVBox/Buttons/ReviewButton
+@onready var disclosure_title: Label = $ScrollContainer/MainVBox/DisclosureTitle
+@onready var disclosure_note: Label = $ScrollContainer/MainVBox/DisclosureNote
+@onready var disclosure_container: VBoxContainer = $ScrollContainer/MainVBox/DisclosureContainer
 
 var _rating_given: bool = false
 
@@ -30,6 +33,7 @@ func _ready() -> void:
 	review_button.pressed.connect(_go_case)
 	_populate()
 	_build_rating_buttons()
+	_load_disclosure()
 
 # ---------------------------------------------------------------------------
 # Populate
@@ -67,6 +71,71 @@ func _populate() -> void:
 		solution.get("how_to_deduce", "?"),
 	]
 	solution_label.text = sol_text
+
+# ---------------------------------------------------------------------------
+# Full disclosure (docs/PLAYTEST_FLOW.md, "Full disclosure closes the game")
+#
+# NOT A TIE-BREAKER AND NOT A RESCUE. Owner, Session 41: "so much of the fun of
+# this game is the Choose aspect of it… seeing the full disclosure is necessary
+# to reward that choice." You picked the setting and paid for the generation, so
+# you are owed the whole of it, not the fraction that happened to be shared.
+#
+# And it does a second job for free. Every finding somebody sat on appears with
+# their name against it, which is what makes withholding a real decision rather
+# than a costless one. "She was holding the ledger page the whole time" is the
+# sentence the mechanic exists to produce, and nothing before the end can
+# produce it.
+#
+# Nothing here costs an API call: it is the session's own log, reformatted.
+# ---------------------------------------------------------------------------
+func _load_disclosure() -> void:
+	if GameState.game_id.is_empty():
+		return
+	ApiClient.apf_disclosure(GameState.game_id, _on_disclosure)
+
+func _on_disclosure(error: String, data: Dictionary) -> void:
+	## A single-player or pre-APF game has no deal, so the server answers 409.
+	## That is not an error worth showing anybody — this section simply is not
+	## part of that game.
+	if error or not bool(data.get("disclosed", false)):
+		return
+
+	var withheld: Array = data.get("withheld", [])
+	disclosure_title.visible = true
+	disclosure_note.visible = true
+
+	if withheld.is_empty():
+		disclosure_note.text = "Everything found was shared. Nobody held anything back."
+		return
+
+	disclosure_note.text = (
+		"%d findings never reached the table until the case closed."
+		% withheld.size()
+	)
+
+	for entry in withheld:
+		var item: Dictionary = entry
+		var box := VBoxContainer.new()
+
+		var who := Label.new()
+		who.text = "%s held this back" % str(item.get("shared_by", "?"))
+		who.add_theme_color_override("font_color", Palette.CAUTION)
+		box.add_child(who)
+
+		var title := Label.new()
+		title.text = str(item.get("title", "?"))
+		title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		title.add_theme_color_override("font_color", Palette.INK)
+		box.add_child(title)
+
+		var body := Label.new()
+		body.text = str(item.get("body", ""))
+		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		body.add_theme_color_override("font_color", Palette.INK_MUTED)
+		box.add_child(body)
+
+		disclosure_container.add_child(box)
+		disclosure_container.add_child(HSeparator.new())
 
 # ---------------------------------------------------------------------------
 # Rating

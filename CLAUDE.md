@@ -74,6 +74,12 @@ requirement cumulative. Rounds = findings ÷ players, announced before play. Thi
 difficulty ladder that was inert at a fixed hand: what differs between EASY and HARD is how much a
 player may sit on. Full spec and the arithmetic: `docs/PLAYTEST_FLOW.md` → "The rhythm".
 
+**[Session 42] Built, in `apf.py`.** Measured over the accepted mystery at four rounds: the private
+stash is **1 at EASY, 2 at MEDIUM and HARD** — the ladder separating without a second dial, which is
+what Sessions 38 and 39 both concluded could not happen. One consequence worth knowing before
+touching the deal: the stash size **is** the right `hoard_allowance`, so it is derived from the
+ladder rather than taken from `deal.py`'s constant.
+
 ---
 
 ## Where the project is now
@@ -124,13 +130,13 @@ because it decides what counts as a blocker.
 ┌──────────────────────────────────────────────────────────────┐
 │  Godot 4.x desktop client (godot/)  — the host / TV screen    │
 │  GDScript 2.0. Four autoloads: GameState, ApiClient,          │
-│  NetworkManager, Style.  Eight .tscn screens.                 │
+│  NetworkManager, Style.  Nine .tscn screens.                  │
 └───────────────┬──────────────────────────────────────────────┘
                 │ HTTP JSON  (ApiClient.gd)
 ┌───────────────▼──────────────────────────────────────────────┐
 │  Python FastAPI server (server/)                              │
-│  31 routes. Generation, interrogation, game sessions,         │
-│  lockstep rounds, prompt voting, results, replay.             │
+│  37 routes. Generation, interrogation, game sessions,         │
+│  APF's rhythm, lockstep rounds, prompt voting, results.       │
 │  Wraps part_registry, coherence_validator, localization,      │
 │  craft_grounding.                                             │
 └───────────────┬──────────────────────────────────────────────┘
@@ -140,12 +146,15 @@ because it decides what counts as a blocker.
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Route groups in `server/main.py`** (31 total — do not assume this list is short; check the file):
+**Route groups in `server/main.py`** (37 total — do not assume this list is short; check the file):
 generation (`/generate`, `/generate/async`, `/jobs/{job_id}`), saved mysteries (`/mysteries`),
-game lifecycle (`/games/create`, `/join`, `/start`), play (`/interrogate-witness`,
-`/investigate-area`, `/follow-lead`, `/share-phase`, `/accuse`), lockstep rounds (`/round/open`,
-`/round/submit`, `/round/resolve`, `/round/status`), replay (`/prompts/submit`, `/prompts/tiebreak`,
-`/next-mystery/start`), plus `/health`, `/rate`, `/play` and the WebSocket.
+game lifecycle (`/games/create`, `/join`, `/start`), **APF's rhythm** (`/apf/open`,
+`/apf/round/next`, `/apf/state`, `/apf/share`, `/apf/disclose`, `/apf/disclosure`) — the playtest
+path, and the only group that costs nothing to call — the pre-APF gather loop
+(`/interrogate-witness`, `/investigate-area`, `/follow-lead`, `/share-phase`, `/accuse`), lockstep
+rounds (`/round/open`, `/round/submit`, `/round/resolve`, `/round/status`), replay
+(`/prompts/submit`, `/prompts/tiebreak`, `/next-mystery/start`), plus `/health`, `/rate`, `/play`
+and the WebSocket.
 
 **Two transports exist, and only one is live.**
 
@@ -173,7 +182,8 @@ game lifecycle (`/games/create`, `/join`, `/start`), play (`/interrogate-witness
 | `godot/scripts/autoloads/Style.gd` | Builds the global Theme from `Palette.gd` and puts it on the scene-tree root, so all eight screens restyle with no `.tscn` edited. Hand-written; palette regeneration never touches it |
 | `godot/scripts/theme/Palette.gd` | **Generated** from `palette.py` — do not hand-edit |
 | `godot/scripts/data/MysteryData.gd` | Typed wrapper for mystery JSON |
-| `godot/scenes/ui/` | The eight screens: MainMenu, MysteryGeneration, Lobby, CaseDisplay, Interrogation, ShareSelection, Accusation, ResultScreen |
+| `godot/scenes/ui/` | The nine screens: MainMenu, MysteryGeneration, Lobby, CaseDisplay, **ApfRound**, Interrogation, ShareSelection, Accusation, ResultScreen |
+| `godot/scripts/ui/apf_round.gd` | **The APF play screen, and the only screen the mechanic needs** — hand, suspect board, shared pool and the share decision on one screen, because the board is what makes withholding legible |
 | `godot/scripts/tools/` | `EditorScript`s — run inside the engine, File → Run. See the checker tables below |
 | `palette.py` | **The one place a colour is decided.** Ground, surface ramp, ink, brass, semantics, type/space/radius scales, and a 28-pair WCAG contrast contract. Read before changing any colour anywhere |
 | `part_registry.py` | The corpus index — **5,990 parts across 573 sources** as committed. `load_registry()` rebuilds when a corpus fingerprint changes; see item 14 |
@@ -181,6 +191,7 @@ game lifecycle (`/games/create`, `/join`, `/start`), play (`/interrogate-witness
 | `coherence/` | The shared engine (`Issue`, `CoherenceReport`, `RuleSet`). Used by both CYM and Mind Your Friends — item 16 |
 | `craft_grounding.py` | Retrieval layer over the craft-grounding docs; feeds guidance into all five generation call sites. Zero added API calls |
 | `localization.py` | Era-appropriate name/occupation localization, 3-tier disk cache |
+| `apf.py` | **APF's rhythm** (item 23 step 3). Round count, the cumulative share checkpoint, the suspect board and full disclosure. Owns the *cadence*; `deal.py` owns the *deal*. The share rule is injected, never recomputed. Pure computation, wired to `server/main.py`'s six `/apf/` routes and to `ApfRound.tscn` |
 | `deal.py` | APF's constrained deal (item 23). `best_deal()` picks the fairest of several dealings. Deals findings under set arithmetic over `evidence[]`, reached through the `reveals` pointer. Pure computation, deterministic from a seed, re-dealable free. Computed, tested, **wired to no client** |
 | `gate.py` | Decides whether a generated mystery may be served, and routes it to `generated/` or `rejected/`. Runs coherence, `check_narrative` and `deal.feasibility`; free, no API call. Item 18 |
 | `arrangement.py` | The pointer-wiring pass: finds exonerations no witness, lead or area reveals, and wires the ones a finding can honestly carry. Free, deterministic. Repairs the arrangement, never the evidence — see item 29 |
@@ -357,6 +368,7 @@ Zero API cost, no Godot binary needed. Each has already caught a real bug.
 | `scripts/build_icons.py --check` | Generated icon copies drifting from `icons/`. `--report` describes the sources. Refuses a raster embedded in an SVG wrapper, which cannot be recoloured |
 | `scripts/split_icon_sheet.py` | Cuts a sheet of icons into one file each — vector by subpath geometry, raster by column occupancy, dispatching on what the file contains rather than its extension. Reports detached specks; never removes them |
 | `scripts/test_icons.py` | That the icon flatten survives all three export shapes, and that icon assignment is genuinely random |
+| `scripts/test_apf.py` | The rhythm: that round 1 asks nothing, that sharing is cumulative and monotone, that the difficulty ladder separates, that the board never greys a face on a narrowing, that disclosure names whoever sat on it, and that a client is sent only its own half. Fixtures plus one pass over the accepted mystery |
 | `scripts/test_share_rule.py` | The share minimum being defined twice. It was — server `round()` against client `ceili()`, disagreeing in 6 of 18 realistic cases with the client always stricter, so it refused shares the server would accept |
 | `scripts/test_registry_staleness.py` | That a moved-on corpus rebuilds the registry and an unchanged one does not |
 | `scripts/test_crime_scene_map.py` | Overlapping rooms, off-canvas rooms, a witness outside its stated room, a non-deterministic layout |
@@ -376,6 +388,12 @@ that use Godot's own loader, which is where the undetectable defects live:
 | `godot/scripts/tools/VerifyScenes.gd` | A node a `.tscn` declares that does not survive loading, a node whose runtime class is not what the scene declares, and a scene root that lost its script. **Run on 4.7.2 in Session 40: eight `ok` lines** |
 | `godot/scripts/tools/ApplyTheme.gd` | A theme item name the engine does not have. Also generates the editor's theme preview, so the design is visible while scenes are edited, and reports whether the fonts resolved. **Run on 4.7.2 in Session 40: 168 items across 36 types, `MISSES none`, fonts resolved** |
 
+**One needs a running server, and finds what no in-process test can:**
+`scripts/walk_apf_game.py` plays a whole four-round APF game over real HTTP — create, join, deal,
+four rounds, full disclosure, accusation, result. Zero API cost and **no API key needed**; it plays
+the mystery already on disk. Session 42 found two defects with it that every unit test passed
+through. Run the server first, then `python3 scripts/walk_apf_game.py`.
+
 **Not checkers, but run locally:** `scripts/wire_pointers.py` reports exonerations nothing reveals and which suspects have no witness at all (`--coverage`), wiring only what a finding can honestly carry; `scripts/cpam.py` reports cost per accepted mystery, pass rate and rejections by rule from `mystery_database/ledger.jsonl`; `scripts/backfill_ledger.py` seeds that ledger from the mysteries already on disk (idempotent, `--go` to write); `scripts/preview_background_field.py` renders the BACKGROUND
 field to SVG over real screen text (`--sheet` covers the shortest and longest real titles);
 `scripts/compare_extraction_models.py` scores extraction models by parts yielded and axes filled.
@@ -386,7 +404,7 @@ field to SVG over real screen text (`--sheet` covers the shortest and longest re
 
 Everything else is closed — see `docs/DECISIONS.md`.
 
-### 23. Build APF — **START HERE** (step 2 done; step 3 next, after one generation)
+### 23. Build APF — **steps 1–4 built. What is left is a table, not code**
 
 The playtest shape is agreed and written down: `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)".
 Findings are **dealt, not gathered**; the only decision is which to share and which to keep, which
@@ -403,17 +421,22 @@ Build order (`docs/INVESTIGATION_DESIGN.md` §7, already reduced by APF):
    one lead result, and **only `evidence[]` carries `exonerates`** — so two of the three kinds
    could not participate in the arithmetic at all. Closed with a `reveals` pointer on witnesses,
    leads and areas, which keeps elimination data in one place. Untested against a real generation.
-3. The share decision, the suspect board, the reveal — **START HERE, but see below**
+3. ~~The share decision, the suspect board, the reveal~~ — **built in Session 42.** `apf.py` owns
+   the rhythm; six `/apf/` routes serve it; `ApfRound.tscn` puts the hand, the board and the share
+   on one screen, and `ResultScreen` shows full disclosure with a name against every finding
+   somebody sat on. Verified two ways: `scripts/test_apf.py` (58 assertions) and
+   `scripts/walk_apf_game.py`, which plays a whole game over real HTTP **with no API key at all**.
+   Not yet run in Godot — no engine is reachable from a session (see Godot notes).
 4. ~~The paced text opening~~ — `_generate_opening_narration()` writes it, on by default
    (Session 40). Pacing the five beats is client-side and free; the screen is unbuilt.
 
-**Step 3 is still blocked on a mystery that passes everything — five generated, five rejected.**
-The fifth (Session 41, `the_last_night_of_delacroix_&_sons`, $0.2027 measured) found two holes in
-the rules rather than in itself, both now closed: a narrowing counted list entries rather than
-suspects, so naming the **victim** alongside the culprit passed a "two names" test while leaving one
-living possibility; and the prose-leak check compared full names, so *"the inventory entry
-**Celestine** herself made"* was invisible. Session 40's prose fix had therefore not landed — it had
-only stopped being detectable.
+**What is actually left is a table.** Step 3 was blocked on a mystery that passed everything;
+`the_neriin_in_the_pilchard_barrel` is that mystery and it has now been played end to end, four
+rounds, at all three difficulties. Nothing on the critical path is unbuilt. What has never happened
+is a person sitting in front of it — see **Not verified** below, and `docs/F5_CHECKLIST.md`.
+
+The five rejections that got here, and the rules each one earned, are in `docs/DECISIONS.md`
+item 23.
 
 **[Session 41, eighth generation] THE FIRST ACCEPTED MYSTERY.**
 `the_neriin_in_the_pilchard_barrel` (Cornish tin-mine counting house, 1907) is in `generated/`:
@@ -427,8 +450,16 @@ generations.
 **One thing it exposed: monopoly on proof is a property of the DEAL, not the mystery.** At seed 7
 exactly one player could prove it in 27 of 81 patterns — the same figure `totality` was hand-
 rejected for. Across 20 seeds, 13 give **0/81** and proof survives 81/81 on every one. Re-dealing
-is free, so the deal should choose a seed by monopoly count rather than take the first that works.
-Unbuilt, and the cheapest quality win on the board.
+is free, so `best_deal()` searches seeds and keeps the fairest dealing rather than the first legal
+one. **Built in Session 41**; this section said "unbuilt" for a session after it landed.
+
+**[Session 42] It was selecting against the wrong hoarding model.** `best_deal()` forwarded
+`hoard_allowance` into `deal()` but not into the `prover_counts()` call it *chooses the seed with*,
+so a session whose rules permit a two-finding stash constrained proof-survival at two and then
+picked its dealing by a monopoly measured at one. Reachable only once something derived the
+allowance instead of taking the constant — which is what `apf.stash_allowance()` does. At allowance
+2 on the accepted mystery it now examines **1296 patterns instead of 256**, and picks a different
+seed.
 
 **[Session 41, sixth generation] The two-routes problem is solved.** It was never a distribution
 problem — counted over routes rather than evidence items, exactly one suspect had exactly one route
@@ -445,6 +476,19 @@ exoneration that completes it.** In the prompt, untested. One generation should 
 
 **Decided (Session 38): no crime-scene picture for the playtest** — a list of named findings. The
 map is deferred, not cancelled.
+
+**Not verified, and the list is short.** (a) **Nothing here has been run in Godot.** The scene and
+scripts pass `scripts/check_godot_wiring.py`, which reads scene files rather than loading them —
+necessary, not sufficient. `VerifyScenes.gd` and `ApplyTheme.gd` are the two checks that use the
+engine's own loader and they need the owner's machine. (b) **Nobody has played it.** Every number in
+the difficulty ladder is arithmetic, not a measurement: whether a two-finding stash at HARD *feels*
+like a decision is a question only a table answers. (c) **APF needs at least two players** —
+constraint 2 is unsatisfiable at one, because the only hand is the whole deal. A solo walk-through
+has to add seats.
+
+**The one play-time Claude call left on the critical path is the resolution narrative.** Session 42
+stopped it being fatal — a failed call now falls back to the mystery's own resolution prose — but
+build-order step 5 still has to remove it.
 
 ### 27. Incrimination as well as exculpation — the glove mechanic — **BUILT, Session 40**
 
