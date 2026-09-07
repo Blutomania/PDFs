@@ -278,7 +278,11 @@ before trusting it — this has happened before and cost a reconciliation (items
   allowlist-only and the engine's hosts are not on it (tested, Session 38). Rendering can only be
   verified on the owner's machine.
 - **Backend URL** is `ApiClient.SERVER_URL`, default `http://localhost:8000`.
-- **Testing single-player:** run the server (`cd server && uvicorn main:app --port 8000`), then F5.
+- **Testing single-player:** run the server (`python3 -m uvicorn server.main:app --port 8000` from
+  the repo root), then F5. **`python3 -m uvicorn`, not bare `uvicorn`** — the launcher script is
+  absent from `PATH` on Homebrew Python, on `pip install --user`, and in any terminal where the venv
+  is not active, and `zsh: command not found: uvicorn` reads like a missing dependency when the
+  package is installed and importable. The `-m` form works whenever it is.
 - **A fresh clone must be opened with Edit, not Run** — `.godot/` is a generated import cache and is
   not committed. `.uid` files *are* committed; Godot 4.4+ expects them.
 - **`project.godot` cannot hold documentation.** Opening the project in Godot 4.7 rewrites the file

@@ -15,7 +15,7 @@ Endpoints:
 
 Run locally:
   cd /path/to/SocialGaming
-  uvicorn server.main:app --reload --port 8000
+  python3 -m uvicorn server.main:app --reload --port 8000
 
 SESSION ANNOTATION — Phase 1 complete when:
   curl -X POST localhost:8000/generate \

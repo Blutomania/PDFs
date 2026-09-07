@@ -12,7 +12,7 @@ Claude call, so a 401 took the whole win down with a 500.
 ZERO API COST, AND NO API KEY NEEDED. Nothing here generates; it plays the
 mystery already on disk. Run the server first:
 
-    cd server && uvicorn main:app --port 8000
+    python3 -m uvicorn server.main:app --port 8000
     python3 scripts/walk_apf_game.py
 
 Exit: 0 = pass, 1 = failure.

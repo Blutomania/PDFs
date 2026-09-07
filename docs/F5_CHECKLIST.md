@@ -148,6 +148,14 @@ python3 -m uvicorn main:app --port 8000
 
 **Expect** Uvicorn to print that it is running on `http://127.0.0.1:8000`. Leave it alone.
 
+> **`zsh: command not found: uvicorn`** — the most common first stumble, and it usually does NOT
+> mean the dependency is missing. `python3 -c "import uvicorn"` tells you which it is: an error
+> means the packages really are absent (go back to step 2); a silent success means only the
+> launcher *script* is off your `PATH`, which happens on Homebrew Python, on `pip install --user`,
+> and in any terminal where the venv is not active. That is why every command in this document says
+> **`python3 -m uvicorn`** rather than bare `uvicorn` — the `-m` form works whenever the package is
+> importable, so it never depends on `PATH` at all.
+
 Now, in your **second** terminal:
 
 ```bash
