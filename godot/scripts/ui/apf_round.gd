@@ -28,7 +28,7 @@ extends Control
 @onready var round_label: Label = $Margin/MainVBox/Header/RoundLabel
 @onready var requirement_label: Label = $Margin/MainVBox/Header/RequirementLabel
 @onready var board_container: VBoxContainer = $Margin/MainVBox/Columns/BoardColumn/BoardScroll/BoardContainer
-@onready var hand_container: VBoxContainer = $Margin/MainVBox/Columns/HandColumn/HandScroll/HandContainer
+@onready var casefile_container: VBoxContainer = $Margin/MainVBox/Columns/CasefileColumn/CasefileScroll/CasefileContainer
 @onready var pool_container: VBoxContainer = $Margin/MainVBox/Columns/PoolColumn/PoolScroll/PoolContainer
 @onready var table_label: Label = $Margin/MainVBox/TableLabel
 @onready var status_label: Label = $Margin/MainVBox/StatusLabel
@@ -95,7 +95,7 @@ func _render() -> void:
 
 	_render_requirement(state)
 	_render_board()
-	_render_hand()
+	_render_casefile()
 	_render_pool(state)
 	_render_table(state)
 	_render_actions(state)
@@ -184,13 +184,13 @@ func _cleared_by_text(sources: Array) -> String:
 ## Your casefile. Findings you have already shared stay in it — an investigator
 ## cannot be made to forget — but they carry no checkbox, because there is
 ## nothing left to decide about them. What you spend is exclusivity.
-func _render_hand() -> void:
-	for child in hand_container.get_children():
+func _render_casefile() -> void:
+	for child in casefile_container.get_children():
 		child.queue_free()
 	_checkboxes.clear()
 	_selectable.clear()
 
-	for entry in GameState.apf_hand():
+	for entry in GameState.apf_casefile():
 		var finding: Dictionary = entry
 		var shared: bool = bool(finding.get("shared", false))
 		var box := VBoxContainer.new()
@@ -226,8 +226,8 @@ func _render_hand() -> void:
 		if shared:
 			box.modulate = Color(1.0, 1.0, 1.0, 0.7)
 
-		hand_container.add_child(box)
-		hand_container.add_child(HSeparator.new())
+		casefile_container.add_child(box)
+		casefile_container.add_child(HSeparator.new())
 
 ## What the room has. Ordered oldest first, with the name of whoever put it
 ## there — the order IS the social record, and it is what "she's held back twice

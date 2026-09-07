@@ -131,7 +131,7 @@ func apf_outstanding() -> int:
 	return int(apf_state.get("share_outstanding", 0))
 
 ## This player's assigned findings, each flagged with whether it has been shared.
-func apf_hand() -> Array:
+func apf_casefile() -> Array:
 	return apf_state.get("casefile", [])
 
 ## The suspect board: [{name, cleared, cleared_by}, ...]. A row is greyed out

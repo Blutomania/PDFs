@@ -50,7 +50,7 @@ st, listing = call("GET", "/mysteries")
 ok("the saved-mystery list loads", st == 200 and isinstance(listing, list), str(st))
 ready = [m for m in listing if m.get("apf_ready")]
 not_ready = [m for m in listing if not m.get("apf_ready")]
-ok("it judges dealability per mystery",
+ok("it judges assignability per mystery",
    all("apf_ready" in m for m in listing), "some rows carry no apf_ready")
 ok("the accepted mystery is offered as ready",
    any(m["slug"] == "the_neriin_in_the_pilchard_barrel" for m in ready),

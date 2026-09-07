@@ -398,6 +398,13 @@ that use Godot's own loader, which is where the undetectable defects live:
 | `godot/scripts/tools/VerifyScenes.gd` | A node a `.tscn` declares that does not survive loading, a node whose runtime class is not what the scene declares, and a scene root that lost its script. **Run on 4.7.2 in Session 40: eight `ok` lines** |
 | `godot/scripts/tools/ApplyTheme.gd` | A theme item name the engine does not have. Also generates the editor's theme preview, so the design is visible while scenes are edited, and reports whether the fonts resolved. **Run on 4.7.2 in Session 40: 168 items across 36 types, `MISSES none`, fonts resolved** |
 
+**One fills the other seats so a person can walk it alone:** `scripts/seat_players.py <ROOM>` joins
+three players to a room and pays each share checkpoint with the bare minimum. It is **not** a bot
+player — it never accuses, never opens a round and never closes the case. It exists because APF needs
+at least two players (constraint 2 is unsatisfiable at one) and `mobile.html` cannot yet share under
+the rhythm, so without it a solo walk stalls at the round-2 checkpoint. Run it while the host is in
+the lobby, before they deal — `open_session()` snapshots who is in the room.
+
 **One needs a running server, and finds what no in-process test can:**
 `scripts/walk_apf_game.py` plays a whole four-round APF game over real HTTP — create, join, assignment,
 four rounds, full disclosure, accusation, result. Zero API cost and **no API key needed**; it plays

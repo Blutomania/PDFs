@@ -406,7 +406,7 @@ def feasibility(mystery: dict, player_count: int,
                 redundancy: int = 1,
                 casefile_spec: Sequence[str] = DEFAULT_CASEFILE_SPEC) -> List[str]:
     """The reasons, as prose. Unchanged public behaviour — every existing caller
-    and scripts/test_deal.py read this list of strings."""
+    and scripts/test_casefiles.py read this list of strings."""
     return [i["message"] for i in
             feasibility_issues(mystery, player_count, redundancy, casefile_spec)]
 
@@ -545,8 +545,8 @@ def feasibility_issues(mystery: dict, player_count: int,
     # dial (suspect count or red-herring density, per Session 38) to get a
     # third rung; redundancy alone cannot provide one.
     if required and player_count and redundancy > 1:
-        worst_hand = math.ceil(len(required) * redundancy / player_count)
-        if worst_hand >= len(required):
+        worst_casefile = math.ceil(len(required) * redundancy / player_count)
+        if worst_casefile >= len(required):
             _add(issues, "CASE.REDUNDANCY_CEILING", 
                 f"redundancy {redundancy} is impossible at {player_count} players with "
                 f"{len(required)} required exoneration(s): some casefile must then hold all "

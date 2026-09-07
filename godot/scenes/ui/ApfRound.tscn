@@ -64,21 +64,21 @@ size_flags_vertical = 3
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="HandColumn" type="VBoxContainer" parent="Margin/MainVBox/Columns"]
+[node name="CasefileColumn" type="VBoxContainer" parent="Margin/MainVBox/Columns"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 1.2
 
-[node name="HandHeading" type="Label" parent="Margin/MainVBox/Columns/HandColumn"]
+[node name="CasefileHeading" type="Label" parent="Margin/MainVBox/Columns/CasefileColumn"]
 theme_type_variation = &"HeadingLabel"
 layout_mode = 2
 text = "Your findings"
 
-[node name="HandScroll" type="ScrollContainer" parent="Margin/MainVBox/Columns/HandColumn"]
+[node name="CasefileScroll" type="ScrollContainer" parent="Margin/MainVBox/Columns/CasefileColumn"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="HandContainer" type="VBoxContainer" parent="Margin/MainVBox/Columns/HandColumn/HandScroll"]
+[node name="CasefileContainer" type="VBoxContainer" parent="Margin/MainVBox/Columns/CasefileColumn/CasefileScroll"]
 layout_mode = 2
 size_flags_horizontal = 3
 

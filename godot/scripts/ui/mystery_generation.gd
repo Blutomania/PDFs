@@ -161,7 +161,7 @@ func _load_saved_mysteries() -> void:
 ## would leave a dropdown with one entry and no explanation of where the
 ## library went. Disabling them says "these exist, they are too old", which is
 ## the true statement. The server does the judging (GET /mysteries returns
-## apf_ready) because dealability is set arithmetic over the mystery, and a
+## apf_ready) because whether a mystery can be assigned is set arithmetic over the mystery, and a
 ## client that guessed at it would be a second implementation of the rule.
 func _on_saved_listed(error: String, data) -> void:
 	if error:

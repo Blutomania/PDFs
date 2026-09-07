@@ -200,9 +200,9 @@ func _go_interrogate() -> void:
 func _on_begin_rounds() -> void:
 	begin_rounds_button.disabled = true
 	begin_rounds_button.text = "Opening the case…"
-	ApiClient.apf_open(GameState.game_id, GameState.player_id, _on_dealt)
+	ApiClient.apf_open(GameState.game_id, GameState.player_id, _on_assigned)
 
-func _on_dealt(error: String, data: Dictionary) -> void:
+func _on_assigned(error: String, data: Dictionary) -> void:
 	if error:
 		begin_rounds_button.disabled = false
 		begin_rounds_button.text = "Begin the investigation"

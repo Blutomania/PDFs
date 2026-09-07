@@ -434,7 +434,7 @@ def test_no_prover_monopoly():
     check("one route per suspect can never be monopoly-free", not r.ok)
     check("and the refusal says so", any("monopoly" in i for i in r.issues), str(r.issues))
 
-    # MEASURED over 20 seeds each, with the constraint ON so the dealer is
+    # MEASURED over 20 seeds each, with the constraint ON so the assignment is
     # actually searching:
     #
     #   carriers   proof-safe assignment found   also monopoly-free
@@ -535,7 +535,7 @@ def test_determinism_and_shape():
     # holds by construction and the assertion could never fail. The real
     # property is that a scarce kind is fully USED: two witnesses and four
     # players must put a witness in exactly two casefiles, not zero (over-eager
-    # fallback) and not one (a witness left undealt).
+    # fallback) and not one (a witness left unassigned).
     witness_counts = [sum(1 for f in h if f.kind == "witness") for h in s.casefiles]
     check("a scarce kind is fully assigned: 2 witnesses reach exactly 2 of 4 casefiles",
           s.ok and sum(witness_counts) == 2, str(witness_counts))
@@ -544,7 +544,7 @@ def test_determinism_and_shape():
 def main():
     print("casefiles.py -- constrained assignment fixtures")
     test_arithmetic()
-    test_best_deal()
+    test_best_assignment()
     test_the_glove()
     test_constraint_1_union_solves()
     test_constraint_2_no_solo_win()
@@ -562,7 +562,7 @@ def main():
 
 
 
-def test_best_deal():
+def test_best_assignment():
     """Choosing an assignment rather than accepting the first legal one.
 
     From the real measurement on the first accepted mystery: seed 7 left one

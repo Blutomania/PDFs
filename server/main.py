@@ -2836,7 +2836,7 @@ def apf_next_round(game_id: str, req: ApfOpenRequest):
 def apf_state(game_id: str, player_id: str):
     """One client's whole view: its own casefile, the public pool, the board, and
     the share requirement -- SENT, never derived. Other players' unshared
-    findings and this player's own undealt future are not in it."""
+    findings and this player's own unassigned future are not in it."""
     game = _get_game(game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
