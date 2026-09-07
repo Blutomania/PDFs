@@ -63,6 +63,7 @@ from localization import (                                  # noqa: E402
 import craft_grounding                                       # noqa: E402
 import gate                                                  # noqa: E402
 import generation_ledger                                     # noqa: E402
+import apf                                                   # noqa: E402
 
 # ---------------------------------------------------------------------------
 # API client — auth priority: env var → session ingress token
@@ -968,6 +969,29 @@ def _winner_findings_summary(game: dict, winner_id: str) -> dict:
     def _strip_craft_guidance(findings: list) -> list:
         return [{k: v for k, v in f.items() if k != "_craft_guidance"} for f in findings]
 
+    # UNDER APF THE WINNER GATHERED NOTHING. There are no witness/investigation/
+    # lead budgets and no per-phase finding lists to read -- findings were dealt.
+    # Reading the old keys would return three empty arrays and the reveal would
+    # say the winner found nothing, which is the opposite of true.
+    session = game.get("apf")
+    if session is not None:
+        by_kind = {"witness": [], "clue": [], "lead": []}
+        shared_ids = set(session["shared"].get(winner_id, []))
+        for finding in apf.dealt(session, winner_id):
+            by_kind.setdefault(finding["kind"], []).append({
+                "id": finding["id"],
+                "title": finding["title"],
+                "body": finding["body"],
+                # Whether they put it on the table is part of HOW they got
+                # there, which is what this summary is for.
+                "shared": finding["id"] in shared_ids,
+            })
+        return {
+            "witness_findings": by_kind["witness"],
+            "investigation_findings": by_kind["clue"],
+            "lead_findings": by_kind["lead"],
+        }
+
     return {
         "witness_findings": _strip_craft_guidance(player.get("witness_findings", [])),
         "investigation_findings": _strip_craft_guidance(player.get("investigation_findings", [])),
@@ -1053,6 +1077,35 @@ Return ONLY the narrative text -- no JSON, no headers, no quotation marks around
     return narrative.strip(), craft_grounding.guidance_provenance(guidance_entries)
 
 
+def _fallback_resolution_narrative(game: dict, plot_reveal: dict) -> str:
+    """The reveal when the narrative call cannot be made. Assembled from fields
+    the mystery already carries -- zero API cost, and no invention: every
+    sentence here was written by the generation call that produced the mystery.
+    """
+    culprit = (plot_reveal.get("culprit") or "").strip()
+    method = (plot_reveal.get("method") or "").strip()
+    motive = (plot_reveal.get("motive") or "").strip()
+    deduce = (plot_reveal.get("how_to_deduce") or "").strip()
+
+    # The four fields _format_plot_reveal already resolves, read in the order a
+    # reveal is told: who, how, why, and how it could have been worked out.
+    lines = []
+    if culprit:
+        lines.append(f"It was {culprit}.")
+    if method:
+        lines.append(method)
+    if motive:
+        lines.append(motive)
+    if deduce:
+        lines.append(deduce)
+    if lines:
+        return "\n\n".join(lines)
+
+    # A mystery carrying none of them has bigger problems than its reveal; say
+    # something true rather than nothing.
+    return "The case is closed, but this mystery carries no written resolution."
+
+
 def _build_resolution_reveal(game: dict, winner_id: str) -> dict:
     """
     Shared by the game_won broadcast and GET /result so a client that missed
@@ -1071,7 +1124,20 @@ def _build_resolution_reveal(game: dict, winner_id: str) -> dict:
     winner_findings = _winner_findings_summary(game, winner_id)
 
     if game.get("resolution_narrative") is None:
-        narrative, craft_guidance = _generate_resolution_narrative(game, plot_reveal, winner_findings)
+        # THE WIN MUST NOT DEPEND ON A NETWORK CALL. This is the last play-time
+        # Claude call on the critical path, and until build-order step 5 removes
+        # it, a 401 / rate limit / timeout here took the whole win down with a
+        # 500 -- measured, Session 42, driving a full APF game over HTTP. The
+        # stage-1 test is "reach the result screen without an error", so the
+        # reveal degrades to the mystery's OWN already-generated resolution
+        # prose rather than failing. That text was written and paid for at
+        # generation time; it is a plainer reveal, not a missing one.
+        try:
+            narrative, craft_guidance = _generate_resolution_narrative(game, plot_reveal, winner_findings)
+        except Exception as e:  # noqa: BLE001 -- any failure, not a taxonomy of them
+            print(f"[resolution] narrative call failed ({type(e).__name__}); "
+                  f"falling back to the mystery's own resolution text")
+            narrative, craft_guidance = _fallback_resolution_narrative(game, plot_reveal), []
         with _games_lock:
             game["resolution_narrative"] = narrative
             game["_resolution_craft_guidance"] = craft_guidance
@@ -1697,6 +1763,13 @@ class SharePhaseRequest(BaseModel):
     player_id: str
     phase: str          # "witness" | "investigation" | "lead"
     selected_ids: list  # list of clue/finding IDs the player chose to share
+
+class ApfOpenRequest(BaseModel):
+    player_id: str
+
+class ApfShareRequest(BaseModel):
+    player_id: str
+    finding_ids: list   # ids of DEALT findings this player puts on the table
 
 class StartGameRequest(BaseModel):
     player_id: str
@@ -2608,6 +2681,253 @@ def share_phase(game_id: str, req: SharePhaseRequest):
 
     return {"ok": True, "shared_count": len(req.selected_ids), "duplicate_flags": []}
 
+# ---------------------------------------------------------------------------
+# APF -- the rhythm (CLAUDE.md item 23 step 3, docs/PLAYTEST_FLOW.md)
+#
+# THESE ROUTES REPLACE THE GATHER LOOP, THEY DO NOT EXTEND IT. /interrogate,
+# /investigate-area, /follow-lead and /share-phase above are the pre-APF
+# mechanic: a player spends a budget going and getting findings, then shares by
+# phase. APF deals instead, so nothing below calls them and they are untouched
+# (CLAUDE.md: "nothing already built gets removed").
+#
+# ZERO API COST. Every route here is set arithmetic over a mystery that was
+# already generated. A whole game costs exactly what its one generation call
+# cost -- which is docs/AI_COST_PLAYBOOK.md's lever pushed all the way.
+#
+# THE SHARE RULE IS INJECTED, NOT REIMPLEMENTED. _min_share_required() above is
+# its only definition; apf.py takes it as a callable and precomputes the ladder
+# once, at open, so the game can announce it before play starts.
+# ---------------------------------------------------------------------------
+
+def _apf_session(game: dict) -> dict:
+    session = game.get("apf")
+    if session is None:
+        raise HTTPException(status_code=409,
+                            detail="no APF session; POST /games/{game_id}/apf/open first")
+    return session
+
+
+def _apf_broadcast_state(game_id: str, game: dict) -> None:
+    """Push what changed to the whole room. The BOARD and the POOL are public by
+    construction -- a shared finding greys a suspect out for everyone, with the
+    sharer's name on it, and that is the point of sharing. Hands are not, so
+    they are never in this payload; each client re-reads its own via /apf/state.
+    """
+    session = game["apf"]
+    _broadcast_sync(game_id, "apf_state", {
+        "round": session["round"],
+        "rounds": session["rounds"],
+        "checkpoint_open": apf.checkpoint_open(session),
+        "checkpoint_met": apf.checkpoint_met(session),
+        "disclosed": session["disclosed"],
+        "board": apf.board(session, game["mystery"]),
+        "shared_pool": apf.shared_pool(session),
+        "players": [
+            {"player_id": pid,
+             "name": session["names"].get(pid, pid),
+             "held": apf.held_count(session, pid),
+             "shared": len(session["shared"].get(pid, [])),
+             "outstanding": apf.outstanding(session, pid)}
+            for pid in session["player_order"]
+        ],
+    })
+
+
+@app.post("/games/{game_id}/apf/open")
+def apf_open(game_id: str, req: ApfOpenRequest):
+    """Host deals the mystery into a rhythm and the game announces its length.
+
+    Owner, Session 41: "the game TELLS the users. This mystery has a maximum of
+    X rounds. It creates tension and sets expectations." So the round count and
+    the whole share ladder come back from this one call, before anybody has seen
+    a finding.
+
+    The deal is free and deterministic, so a refusal here is a statement about
+    the MYSTERY, not bad luck -- it comes back with deal.py's own diagnosis
+    rather than a bare 400, because the two need different responses (re-deal
+    versus regenerate).
+    """
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    player = game["players"].get(req.player_id)
+    if not player or not player.get("is_host"):
+        raise HTTPException(status_code=403, detail="only the host can deal")
+    if game.get("mystery") is None:
+        raise HTTPException(status_code=409, detail="no mystery attached to this game yet")
+    if game.get("apf") is not None:
+        raise HTTPException(status_code=409, detail="this game has already been dealt")
+
+    players = [{"id": pid, "name": p["name"]} for pid, p in game["players"].items()]
+    if len(players) < 2:
+        # Constraint 2 -- no single hand may solve alone -- is unsatisfiable at
+        # one player, because that hand IS the union. Said plainly here rather
+        # than surfaced as an opaque deal failure.
+        raise HTTPException(
+            status_code=400,
+            detail="APF needs at least 2 players: at one, the only hand is the whole deal "
+                   "and it solves the case alone.",
+        )
+
+    share_min = game["share_min"]
+    try:
+        session = apf.open_session(
+            game["mystery"], players,
+            share_rule=lambda held: _min_share_required(held, share_min),
+        )
+    except apf.ApfError as e:
+        raise HTTPException(status_code=422,
+                            detail={"error": str(e), "issues": e.issues})
+
+    with _games_lock:
+        game["apf"] = session
+        game["stage"] = "apf"
+
+    announcement = {
+        "rounds": session["rounds"],
+        "share_ladder": session["share_ladder"],
+        "stash_allowance": session["stash_allowance"],
+        "player_count": len(players),
+        "difficulty": game["difficulty"],
+    }
+    _broadcast_sync(game_id, "apf_opened", announcement)
+    return {**announcement, "deal": session["deal"]}
+
+
+@app.post("/games/{game_id}/apf/round/next")
+def apf_next_round(game_id: str, req: ApfOpenRequest):
+    """Turn one more finding face up for every player.
+
+    Refuses while a checkpoint is outstanding. That is the mechanic, not a
+    safety rail: a round that arrives before the table has paid is just a
+    faster deal, and the rhythm is what produces "she's held back twice now".
+    """
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    player = game["players"].get(req.player_id)
+    if not player or not player.get("is_host"):
+        raise HTTPException(status_code=403, detail="only the host can deal a round")
+    session = _apf_session(game)
+
+    try:
+        with _games_lock:
+            round_no = apf.deal_round(session)
+    except apf.ApfError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+
+    _apf_broadcast_state(game_id, game)
+    return {
+        "round": round_no,
+        "rounds": session["rounds"],
+        "checkpoint_open": apf.checkpoint_open(session),
+        "final_round": round_no >= session["rounds"],
+    }
+
+
+@app.get("/games/{game_id}/apf/state")
+def apf_state(game_id: str, player_id: str):
+    """One client's whole view: its own hand, the public pool, the board, and
+    the share requirement -- SENT, never derived. Other players' unshared
+    findings and this player's own undealt future are not in it."""
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    session = _apf_session(game)
+    if player_id not in session["hands"]:
+        raise HTTPException(status_code=404, detail="player not in this deal")
+    return apf.state_for(session, player_id, game["mystery"])
+
+
+@app.post("/games/{game_id}/apf/share")
+def apf_share(game_id: str, req: ApfShareRequest):
+    """Put findings on the table. Cumulative, monotone, idempotent.
+
+    THE FINDING STAYS IN THE PLAYER'S HAND. Owner: an investigator cannot be
+    made to forget. What is spent is exclusivity, not possession -- so this adds
+    to the shared pool and removes nothing, and there is no un-share, because
+    the room cannot unlearn.
+    """
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    session = _apf_session(game)
+    if req.player_id not in session["hands"]:
+        raise HTTPException(status_code=404, detail="player not in this deal")
+
+    try:
+        with _games_lock:
+            result = apf.share(session, req.player_id, req.finding_ids)
+    except apf.ApfError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    _apf_broadcast_state(game_id, game)
+    return {**result, "checkpoint_met": apf.checkpoint_met(session)}
+
+
+@app.post("/games/{game_id}/apf/disclose")
+def apf_disclose(game_id: str, req: ApfOpenRequest):
+    """Full disclosure: everything still held becomes public, with the holder's
+    name against it.
+
+    NOT A TIE-BREAKER AND NOT A RESCUE (owner, Session 41) -- it is the reward
+    for having chosen this mystery. You picked the setting and paid for the
+    generation, so you are owed the whole of it rather than the fraction that
+    happened to be shared. And it does a second job for free: "she was holding
+    the ledger page the whole time" is the sentence the mechanic exists to
+    produce, and nothing before the end can produce it.
+    """
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    player = game["players"].get(req.player_id)
+    if not player or not player.get("is_host"):
+        raise HTTPException(status_code=403, detail="only the host can close the case")
+    session = _apf_session(game)
+    if session["disclosed"]:
+        return apf_disclosure(game_id)
+
+    with _games_lock:
+        apf.disclose(session)
+
+    _apf_broadcast_state(game_id, game)
+    payload = apf_disclosure(game_id)
+    _broadcast_sync(game_id, "apf_disclosed", payload)
+    return payload
+
+
+@app.get("/games/{game_id}/apf/disclosure")
+def apf_disclosure(game_id: str):
+    """The end-of-game record: every dealt finding, who held it, whether they
+    volunteered it or disclosure prised it out, and in which round.
+
+    `withheld` is the list the reveal screen is actually for. Zero API calls --
+    this is the session's own log, reformatted.
+    """
+    game = _get_game(game_id)
+    if game is None:
+        raise HTTPException(status_code=404, detail="game not found")
+    session = _apf_session(game)
+    pool = apf.shared_pool(session)
+    return {
+        "disclosed": session["disclosed"],
+        "rounds": session["rounds"],
+        "board": apf.board(session, game["mystery"]),
+        "findings": pool,
+        "withheld": [e for e in pool if e["disclosure"]],
+        "by_player": [
+            {
+                "player_id": pid,
+                "name": session["names"].get(pid, pid),
+                "held": apf.held_count(session, pid),
+                "volunteered": sum(1 for e in pool
+                                   if e["shared_by_id"] == pid and not e["disclosure"]),
+                "withheld": sum(1 for e in pool
+                                if e["shared_by_id"] == pid and e["disclosure"]),
+            }
+            for pid in session["player_order"]
+        ],
+    }
 
 @app.post("/interrogate")
 def interrogate(req: InterrogateRequest):

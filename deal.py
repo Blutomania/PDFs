@@ -896,7 +896,15 @@ def best_deal(mystery: dict, player_count: int,
             best = best or result
             continue
 
-        counts = prover_counts(result.hands, mystery, ev_by_id)
+        # FORWARD THE ALLOWANCE. This used to call prover_counts() with its
+        # default of 1 while deal() was constraining at whatever the caller
+        # passed -- so a session with a two-finding stash checked
+        # proof-survives-hoarding at two and then chose its seed by a monopoly
+        # measured at one. Two different hoarding models, one of which the rules
+        # do not permit. apf.py derives the allowance from the difficulty ladder
+        # (see apf.stash_allowance), which is what made the mismatch reachable.
+        counts = prover_counts(result.hands, mystery, ev_by_id,
+                               kwargs.get("hoard_allowance", DEFAULT_HOARD_ALLOWANCE))
         result.monopoly = counts.get(1, 0)
         result.patterns = sum(counts.values())
         result.seeds_tried = n
