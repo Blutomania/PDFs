@@ -15,7 +15,7 @@
 ##
 ## HOW IT APPLIES WITHOUT TOUCHING A SINGLE SCENE. `get_tree().root` is a
 ## Window, Window has a `theme`, and every Control inherits its nearest
-## ancestor's theme. So one assignment in _ready() restyles all eight screens,
+## ancestor's theme. So one assignment in _ready() restyles all nine screens,
 ## and no .tscn node tree is edited to get it. That matters beyond tidiness:
 ## editing scene files is precisely where the last session's defects lived.
 ##
@@ -366,7 +366,7 @@ func _style_windows(t: Theme) -> void:
 ## is caught before the engine is even opened.
 ##
 ## Keep this list SHORT. Every variation is a decision someone has to make at
-## every label they add, and the ones below cover the roles the eight screens
+## every label they add, and the ones below cover the roles the nine screens
 ## actually contain.
 func _declare_variations(t: Theme) -> void:
 	## The product's own name, on the main menu. Nowhere else.

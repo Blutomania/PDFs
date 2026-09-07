@@ -179,7 +179,7 @@ and the WebSocket.
 | `godot/scripts/autoloads/GameState.gd` | Current mystery, phase, history |
 | `godot/scripts/autoloads/ApiClient.gd` | HTTP + WebSocket wrapper for the backend |
 | `godot/scripts/autoloads/NetworkManager.gd` | ENet singleton — present, unwired (see Architecture) |
-| `godot/scripts/autoloads/Style.gd` | Builds the global Theme from `Palette.gd` and puts it on the scene-tree root, so all eight screens restyle with no `.tscn` edited. Hand-written; palette regeneration never touches it |
+| `godot/scripts/autoloads/Style.gd` | Builds the global Theme from `Palette.gd` and puts it on the scene-tree root, so all nine screens restyle with no `.tscn` edited. Hand-written; palette regeneration never touches it |
 | `godot/scripts/theme/Palette.gd` | **Generated** from `palette.py` — do not hand-edit |
 | `godot/scripts/data/MysteryData.gd` | Typed wrapper for mystery JSON |
 | `godot/scenes/ui/` | The nine screens: MainMenu, MysteryGeneration, Lobby, CaseDisplay, **ApfRound**, Interrogation, ShareSelection, Accusation, ResultScreen |
