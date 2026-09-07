@@ -113,9 +113,12 @@ because it decides what counts as a blocker.
 
 - **Phone-client gaps are not blockers.** `mobile.html` has no prompt entry box, no mystery list
   and no lobby suggestion UI. All true, all fine until stage 3.
-- **Saved-mystery reuse being single-player is correct, not an oversight.** The browse list loads a
-  mystery straight into `CaseDisplay.tscn`. The server has supported group reuse since Session 26
-  (`mystery_slug` on game creation); no UI reaches it, deliberately.
+- **Saved-mystery reuse reached a UI in Session 42, and stage 1 is why.** The browse list still
+  loads a mystery straight into `CaseDisplay.tscn` for solo reading — that part was never an
+  oversight. What changed is that `MysteryGeneration`'s multiplayer section can now open a **room**
+  from a saved mystery, because until it could, every look at the round screen cost a generation and
+  one generation in eight passes the gate. `GET /mysteries` reports `apf_ready` per mystery so the
+  picker can disable what cannot be dealt; 1 of 17 on disk qualifies, and the other 16 say why.
 - **Moderation stays as decided** — none, with the visible *Not moderated for play testing*
   disclaimer. A stage-1 answer by construction; the Steam answer is stage 3.
 - **Nothing already built gets removed.** The multiplayer server work stays exactly as it is. It is

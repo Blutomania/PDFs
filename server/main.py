@@ -64,6 +64,13 @@ import craft_grounding                                       # noqa: E402
 import gate                                                  # noqa: E402
 import generation_ledger                                     # noqa: E402
 import apf                                                   # noqa: E402
+import deal                                                  # noqa: E402
+
+# The table size the saved-mystery picker judges dealability at. APF is
+# specified for four (docs/PLAYTEST_FLOW.md), and a mystery's readiness has to
+# be reported before anybody has joined, so it is measured at the specified
+# shape rather than at whoever happens to be in the room.
+APF_PICKER_PLAYERS = 4
 
 # ---------------------------------------------------------------------------
 # API client — auth priority: env var → session ingress token
@@ -3119,6 +3126,37 @@ def rate(req: RateRequest):
     return {"ok": True}
 
 
+def _apf_readiness(mystery: dict) -> dict:
+    """Can this saved mystery actually be DEALT? Free -- pure set arithmetic.
+
+    WHY A PICKER NEEDS THIS AND A PLAYER NEEDS IT MORE. `generated/` means "no
+    check we own can prove this is broken", which is a statement about the
+    checks that existed when the file was written. Seventeen of the eighteen
+    mysteries on disk predate the APF schema entirely: they carry no `reveals`
+    pointers and mostly three suspects, so `deal.feasibility()` refuses them.
+    Offering all eighteen as equals means a picker where one in eighteen works
+    and the other seventeen fail AFTER you have chosen, named a room and waited
+    -- which reads as a broken game rather than an old library.
+
+    Measured at APF's specified shape: 4 players over 4 rounds. A mystery that
+    cannot be dealt there is reported with the FIRST reason, because the first
+    reason is almost always the real one and a wall of them tells a picker
+    nothing it can render.
+    """
+    try:
+        rounds = apf.round_count(len(deal.build_pool(mystery)), APF_PICKER_PLAYERS)
+        if rounds < apf.MIN_ROUNDS:
+            return {"apf_ready": False,
+                    "apf_blocker": f"only {rounds} round(s) at {APF_PICKER_PLAYERS} players"}
+        issues = deal.feasibility(mystery, APF_PICKER_PLAYERS,
+                                  hand_spec=apf.hand_spec_for(rounds))
+        if issues:
+            return {"apf_ready": False, "apf_blocker": issues[0]}
+        return {"apf_ready": True, "apf_blocker": ""}
+    except Exception as exc:  # noqa: BLE001 -- a malformed file is "not ready", not a 500
+        return {"apf_ready": False, "apf_blocker": f"unreadable: {type(exc).__name__}"}
+
+
 @app.get("/mysteries")
 def list_mysteries():
     """
@@ -3142,6 +3180,7 @@ def list_mysteries():
                 "coherence_passed": data.get("_coherence", {}).get("passed", None),
                 "viability_rating": data.get("_meta", {}).get("viability_rating", None),
                 "created_at": ts,
+                **_apf_readiness(data),
             })
         except Exception:
             continue

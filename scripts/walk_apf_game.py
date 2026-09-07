@@ -42,6 +42,25 @@ def ok(name, cond, detail=""):
     if not cond:
         fails.append(name)
 
+# THE PICKER'S CONTRACT. The client offers saved mysteries and disables the ones
+# that cannot be dealt, so GET /mysteries has to say which is which. A field
+# that answered "ready" for everything would pass a happy-path test and hand the
+# owner a dropdown where sixteen of seventeen choices fail after they are made.
+st, listing = call("GET", "/mysteries")
+ok("the saved-mystery list loads", st == 200 and isinstance(listing, list), str(st))
+ready = [m for m in listing if m.get("apf_ready")]
+not_ready = [m for m in listing if not m.get("apf_ready")]
+ok("it judges dealability per mystery",
+   all("apf_ready" in m for m in listing), "some rows carry no apf_ready")
+ok("the accepted mystery is offered as ready",
+   any(m["slug"] == "the_neriin_in_the_pilchard_barrel" for m in ready),
+   str([m["slug"] for m in ready]))
+ok("and the field discriminates rather than saying yes to everything",
+   bool(not_ready), "every saved mystery reported ready, which cannot be true")
+ok("every refusal names its reason",
+   all(m.get("apf_blocker") for m in not_ready),
+   str([m["slug"] for m in not_ready if not m.get("apf_blocker")]))
+
 st, g = call("POST", "/games/create", {
     "mystery_slug": "the_neriin_in_the_pilchard_barrel",
     "host_name": "Ana", "difficulty": "MEDIUM"})
