@@ -59,7 +59,7 @@ var share_min: float = 0.6                  ## Informational only — see share_
 ## does NOT compute this. It used to, from share_min, with ceil() where the
 ## server uses round() — the two disagreed in 6 of 18 realistic combinations and
 ## the client was always stricter, so it refused shares the server would have
-## accepted. At a two-finding hand it demanded both, deleting the choice the
+## accepted. With only two findings held it demanded both, deleting the choice the
 ## mechanic exists for. The server now sends the number with every finding
 ## response and these just hold it.
 var witness_share_required: int = 0
@@ -86,7 +86,7 @@ var block_pool: Dictionary = {
 }
 
 # ---------------------------------------------------------------------------
-# APF — the rhythm (docs/PLAYTEST_FLOW.md). Findings are DEALT, one per player
+# APF — the rhythm (docs/PLAYTEST_FLOW.md). Findings are ASSIGNED, one per player
 # per round, with a cumulative share checkpoint from round 2.
 #
 # NOTHING HERE IS DERIVED. The server sends the round, the requirement and the
@@ -95,7 +95,7 @@ var block_pool: Dictionary = {
 # see current_share_required() below and scripts/test_share_rule.py.
 # ---------------------------------------------------------------------------
 
-## True when this player created the room. Only the host may deal a round or
+## True when this player created the room. Only the host may open a round or
 ## close the case, so the round screen hides those controls for everyone else.
 var is_host: bool = false
 
@@ -130,9 +130,9 @@ func record_apf_state(data: Dictionary) -> void:
 func apf_outstanding() -> int:
 	return int(apf_state.get("share_outstanding", 0))
 
-## This player's dealt findings, each flagged with whether it has been shared.
+## This player's assigned findings, each flagged with whether it has been shared.
 func apf_hand() -> Array:
-	return apf_state.get("hand", [])
+	return apf_state.get("casefile", [])
 
 ## The suspect board: [{name, cleared, cleared_by}, ...]. A row is greyed out
 ## only by an EXONERATION somebody shared — never by a narrowing, which item 27

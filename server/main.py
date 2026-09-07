@@ -64,9 +64,9 @@ import craft_grounding                                       # noqa: E402
 import gate                                                  # noqa: E402
 import generation_ledger                                     # noqa: E402
 import apf                                                   # noqa: E402
-import deal                                                  # noqa: E402
+import casefiles                                                  # noqa: E402
 
-# The table size the saved-mystery picker judges dealability at. APF is
+# The table size the saved-mystery picker judges assignability at. APF is
 # specified for four (docs/PLAYTEST_FLOW.md), and a mystery's readiness has to
 # be reported before anybody has joined, so it is measured at the specified
 # shape rather than at whoever happens to be in the room.
@@ -263,9 +263,9 @@ SETTING:
   - description must explicitly explain why suspects cannot simply leave (isolation mechanic).
 
 CHARACTERS (include 1 victim, EXACTLY 4 suspects, and 3–4 witnesses):
-  - FOUR SUSPECTS, COUNTED. Not three, not five. The whole deal is sized for it: four suspects
+  - FOUR SUSPECTS, COUNTED. Not three, not five. The whole assignment is sized for it: four suspects
     means three people to clear, and with only two the single finding that clears both IS the
-    answer, so no deal can be fair however well the mystery is written. A three-suspect mystery
+    answer, so no assignment can be fair however well the mystery is written. A three-suspect mystery
     is refused outright -- count the list before writing anything else.
   - alibi: SPECIFIC — state where the person was, with whom or doing what. Never "—" or vague.
   - secret: CONCRETE FACT (≥ 2 sentences) anchoring interrogation questions.
@@ -296,7 +296,7 @@ CHARACTERS (include 1 victim, EXACTLY 4 suspects, and 3–4 witnesses):
     generation where every suspect had a witness passed this rule outright.
     A suspect nobody mentions is not a lighter workload. It is the defect.
 
-    AND NO SINGLE WITNESS, LEAD OR AREA MAY CARRY A WHOLE PROOF. One finding is dealt to one
+    AND NO SINGLE WITNESS, LEAD OR AREA MAY CARRY A WHOLE PROOF. One finding is assigned to one
     player, so if its "reveals" list adds up to the answer, that player wins without speaking to
     anyone and the sharing decision -- the point of the game -- never happens. Concretely: do not
     let one witness reveal BOTH a narrowing item and the exoneration that completes it. A
@@ -317,7 +317,7 @@ CHARACTERS (include 1 victim, EXACTLY 4 suspects, and 3–4 witnesses):
   - reveals (WITNESSES ONLY): the ids of the evidence items this statement surfaces, e.g. ["E3"].
     EVERY witness must reveal at least one. The statement must actually be about that evidence --
     if a witness saw the bolted door, they reveal the evidence item about the bolted door.
-    A witness who reveals nothing is dealt to a player as a finding that cannot be reasoned from.
+    A witness who reveals nothing is assigned to a player as a finding that cannot be reasoned from.
 
 EVIDENCE (include at least 9 items total — planted to serve the chain, written AFTER it):
   - At least 2 items with type "physical".
@@ -328,7 +328,7 @@ EVIDENCE (include at least 9 items total — planted to serve the chain, written
     nothing and must use [] — it is the only kind of item that may.
   - exonerates: names of suspects this item clears. Use the exact character name.
     AT MOST ONE NAME. One piece of evidence rules out one person, never several at once. An
-    item clearing two or three suspects is a solved case in a single object — whoever is dealt it
+    item clearing two or three suspects is a solved case in a single object — whoever is assigned it
     wins without anyone sharing anything, which deletes the game. Write the alibi evidence one
     person at a time: each alibi is its own document, witness or trace.
   - implicates: names of suspects this item points AT — SUSPICION, not proof. The culprit must be
@@ -360,7 +360,7 @@ EVIDENCE (include at least 9 items total — planted to serve the chain, written
             RIGHT: "A partial print in the gear oil, narrower than a work boot — a herringbone
                     walking sole, no bigger than a size 6."
 
-        The wrong one is not a narrowing clue at all. It is an accusation, and whoever is dealt it
+        The wrong one is not a narrowing clue at all. It is an accusation, and whoever is assigned it
         wins without speaking to anyone. Same failure, second example:
 
             WRONG: "...a woman's voice, low and steady, consistent with how Morag Gillies speaks."
@@ -895,7 +895,7 @@ def _min_share_required(finding_count: int, share_min: float) -> int:
     It used to be written twice -- here and again in the Godot client, which
     used ceil() where this uses round(). They disagreed in 6 of 18 realistic
     combinations and the client was always the stricter one, so it refused to
-    submit shares the server would have accepted. At a hand of two findings it
+    submit shares the server would have accepted. With only two findings held it
     demanded both, which removes the choice the whole mechanic is about.
 
     Now the server computes it and sends it with every finding response; the
@@ -977,14 +977,14 @@ def _winner_findings_summary(game: dict, winner_id: str) -> dict:
         return [{k: v for k, v in f.items() if k != "_craft_guidance"} for f in findings]
 
     # UNDER APF THE WINNER GATHERED NOTHING. There are no witness/investigation/
-    # lead budgets and no per-phase finding lists to read -- findings were dealt.
+    # lead budgets and no per-phase finding lists to read -- findings were assigned.
     # Reading the old keys would return three empty arrays and the reveal would
     # say the winner found nothing, which is the opposite of true.
     session = game.get("apf")
     if session is not None:
         by_kind = {"witness": [], "clue": [], "lead": []}
         shared_ids = set(session["shared"].get(winner_id, []))
-        for finding in apf.dealt(session, winner_id):
+        for finding in apf.assigned(session, winner_id):
             by_kind.setdefault(finding["kind"], []).append({
                 "id": finding["id"],
                 "title": finding["title"],
@@ -1776,7 +1776,7 @@ class ApfOpenRequest(BaseModel):
 
 class ApfShareRequest(BaseModel):
     player_id: str
-    finding_ids: list   # ids of DEALT findings this player puts on the table
+    finding_ids: list   # ids of ASSIGNED findings this player puts on the table
 
 class StartGameRequest(BaseModel):
     player_id: str
@@ -2101,7 +2101,7 @@ def mystery_brief(game_id: str):
     # discovery/analysis are the pre-written search results. Single-player reads
     # them straight out of the mystery dict, which is fine -- that client already
     # holds the solution. Multiplayer resolves areas server-side through
-    # /games/{id}/investigate, so shipping them here would hand every clue to
+    # /games/{id}/investigate, so shipping them here would casefile every clue to
     # every player the moment the game started.
     safe["investigation_areas"] = [
         {k: v for k, v in a.items()
@@ -2694,7 +2694,7 @@ def share_phase(game_id: str, req: SharePhaseRequest):
 # THESE ROUTES REPLACE THE GATHER LOOP, THEY DO NOT EXTEND IT. /interrogate,
 # /investigate-area, /follow-lead and /share-phase above are the pre-APF
 # mechanic: a player spends a budget going and getting findings, then shares by
-# phase. APF deals instead, so nothing below calls them and they are untouched
+# phase. APF assigns instead, so nothing below calls them and they are untouched
 # (CLAUDE.md: "nothing already built gets removed").
 #
 # ZERO API COST. Every route here is set arithmetic over a mystery that was
@@ -2717,7 +2717,7 @@ def _apf_session(game: dict) -> dict:
 def _apf_broadcast_state(game_id: str, game: dict) -> None:
     """Push what changed to the whole room. The BOARD and the POOL are public by
     construction -- a shared finding greys a suspect out for everyone, with the
-    sharer's name on it, and that is the point of sharing. Hands are not, so
+    sharer's name on it, and that is the point of sharing. Casefiles are not, so
     they are never in this payload; each client re-reads its own via /apf/state.
     """
     session = game["apf"]
@@ -2742,16 +2742,16 @@ def _apf_broadcast_state(game_id: str, game: dict) -> None:
 
 @app.post("/games/{game_id}/apf/open")
 def apf_open(game_id: str, req: ApfOpenRequest):
-    """Host deals the mystery into a rhythm and the game announces its length.
+    """Host assigns the mystery into a rhythm and the game announces its length.
 
     Owner, Session 41: "the game TELLS the users. This mystery has a maximum of
     X rounds. It creates tension and sets expectations." So the round count and
     the whole share ladder come back from this one call, before anybody has seen
     a finding.
 
-    The deal is free and deterministic, so a refusal here is a statement about
-    the MYSTERY, not bad luck -- it comes back with deal.py's own diagnosis
-    rather than a bare 400, because the two need different responses (re-deal
+    The assignment is free and deterministic, so a refusal here is a statement about
+    the MYSTERY, not bad luck -- it comes back with casefiles.py's own diagnosis
+    rather than a bare 400, because the two need different responses (re-run
     versus regenerate).
     """
     game = _get_game(game_id)
@@ -2759,20 +2759,20 @@ def apf_open(game_id: str, req: ApfOpenRequest):
         raise HTTPException(status_code=404, detail="game not found")
     player = game["players"].get(req.player_id)
     if not player or not player.get("is_host"):
-        raise HTTPException(status_code=403, detail="only the host can deal")
+        raise HTTPException(status_code=403, detail="only the host can assignment")
     if game.get("mystery") is None:
         raise HTTPException(status_code=409, detail="no mystery attached to this game yet")
     if game.get("apf") is not None:
-        raise HTTPException(status_code=409, detail="this game has already been dealt")
+        raise HTTPException(status_code=409, detail="this game has already been assigned")
 
     players = [{"id": pid, "name": p["name"]} for pid, p in game["players"].items()]
     if len(players) < 2:
-        # Constraint 2 -- no single hand may solve alone -- is unsatisfiable at
-        # one player, because that hand IS the union. Said plainly here rather
-        # than surfaced as an opaque deal failure.
+        # Constraint 2 -- no single casefile may solve alone -- is unsatisfiable at
+        # one player, because that casefile IS the union. Said plainly here rather
+        # than surfaced as an opaque assignment failure.
         raise HTTPException(
             status_code=400,
-            detail="APF needs at least 2 players: at one, the only hand is the whole deal "
+            detail="APF needs at least 2 players: at one, the only casefile is the whole assignment "
                    "and it solves the case alone.",
         )
 
@@ -2798,7 +2798,7 @@ def apf_open(game_id: str, req: ApfOpenRequest):
         "difficulty": game["difficulty"],
     }
     _broadcast_sync(game_id, "apf_opened", announcement)
-    return {**announcement, "deal": session["deal"]}
+    return {**announcement, "assignment": session["assignment"]}
 
 
 @app.post("/games/{game_id}/apf/round/next")
@@ -2807,19 +2807,19 @@ def apf_next_round(game_id: str, req: ApfOpenRequest):
 
     Refuses while a checkpoint is outstanding. That is the mechanic, not a
     safety rail: a round that arrives before the table has paid is just a
-    faster deal, and the rhythm is what produces "she's held back twice now".
+    faster assignment, and the rhythm is what produces "she's held back twice now".
     """
     game = _get_game(game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
     player = game["players"].get(req.player_id)
     if not player or not player.get("is_host"):
-        raise HTTPException(status_code=403, detail="only the host can deal a round")
+        raise HTTPException(status_code=403, detail="only the host can assignment a round")
     session = _apf_session(game)
 
     try:
         with _games_lock:
-            round_no = apf.deal_round(session)
+            round_no = apf.open_round(session)
     except apf.ApfError as e:
         raise HTTPException(status_code=409, detail=str(e))
 
@@ -2834,15 +2834,15 @@ def apf_next_round(game_id: str, req: ApfOpenRequest):
 
 @app.get("/games/{game_id}/apf/state")
 def apf_state(game_id: str, player_id: str):
-    """One client's whole view: its own hand, the public pool, the board, and
+    """One client's whole view: its own casefile, the public pool, the board, and
     the share requirement -- SENT, never derived. Other players' unshared
     findings and this player's own undealt future are not in it."""
     game = _get_game(game_id)
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
     session = _apf_session(game)
-    if player_id not in session["hands"]:
-        raise HTTPException(status_code=404, detail="player not in this deal")
+    if player_id not in session["casefiles"]:
+        raise HTTPException(status_code=404, detail="player not in this assignment")
     return apf.state_for(session, player_id, game["mystery"])
 
 
@@ -2850,7 +2850,7 @@ def apf_state(game_id: str, player_id: str):
 def apf_share(game_id: str, req: ApfShareRequest):
     """Put findings on the table. Cumulative, monotone, idempotent.
 
-    THE FINDING STAYS IN THE PLAYER'S HAND. Owner: an investigator cannot be
+    THE FINDING STAYS IN THE PLAYER'S CASEFILE. Owner: an investigator cannot be
     made to forget. What is spent is exclusivity, not possession -- so this adds
     to the shared pool and removes nothing, and there is no un-share, because
     the room cannot unlearn.
@@ -2859,8 +2859,8 @@ def apf_share(game_id: str, req: ApfShareRequest):
     if game is None:
         raise HTTPException(status_code=404, detail="game not found")
     session = _apf_session(game)
-    if req.player_id not in session["hands"]:
-        raise HTTPException(status_code=404, detail="player not in this deal")
+    if req.player_id not in session["casefiles"]:
+        raise HTTPException(status_code=404, detail="player not in this assignment")
 
     try:
         with _games_lock:
@@ -2905,7 +2905,7 @@ def apf_disclose(game_id: str, req: ApfOpenRequest):
 
 @app.get("/games/{game_id}/apf/disclosure")
 def apf_disclosure(game_id: str):
-    """The end-of-game record: every dealt finding, who held it, whether they
+    """The end-of-game record: every assigned finding, who held it, whether they
     volunteered it or disclosure prised it out, and in which round.
 
     `withheld` is the list the reveal screen is actually for. Zero API calls --
@@ -3127,29 +3127,29 @@ def rate(req: RateRequest):
 
 
 def _apf_readiness(mystery: dict) -> dict:
-    """Can this saved mystery actually be DEALT? Free -- pure set arithmetic.
+    """Can this saved mystery actually be ASSIGNED? Free -- pure set arithmetic.
 
     WHY A PICKER NEEDS THIS AND A PLAYER NEEDS IT MORE. `generated/` means "no
     check we own can prove this is broken", which is a statement about the
     checks that existed when the file was written. Seventeen of the eighteen
     mysteries on disk predate the APF schema entirely: they carry no `reveals`
-    pointers and mostly three suspects, so `deal.feasibility()` refuses them.
+    pointers and mostly three suspects, so `casefiles.feasibility()` refuses them.
     Offering all eighteen as equals means a picker where one in eighteen works
     and the other seventeen fail AFTER you have chosen, named a room and waited
     -- which reads as a broken game rather than an old library.
 
     Measured at APF's specified shape: 4 players over 4 rounds. A mystery that
-    cannot be dealt there is reported with the FIRST reason, because the first
+    cannot be assigned there is reported with the FIRST reason, because the first
     reason is almost always the real one and a wall of them tells a picker
     nothing it can render.
     """
     try:
-        rounds = apf.round_count(len(deal.build_pool(mystery)), APF_PICKER_PLAYERS)
+        rounds = apf.round_count(len(casefiles.build_pool(mystery)), APF_PICKER_PLAYERS)
         if rounds < apf.MIN_ROUNDS:
             return {"apf_ready": False,
                     "apf_blocker": f"only {rounds} round(s) at {APF_PICKER_PLAYERS} players"}
-        issues = deal.feasibility(mystery, APF_PICKER_PLAYERS,
-                                  hand_spec=apf.hand_spec_for(rounds))
+        issues = casefiles.feasibility(mystery, APF_PICKER_PLAYERS,
+                                  casefile_spec=apf.casefile_spec_for(rounds))
         if issues:
             return {"apf_ready": False, "apf_blocker": issues[0]}
         return {"apf_ready": True, "apf_blocker": ""}

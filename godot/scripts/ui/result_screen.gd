@@ -94,7 +94,7 @@ func _load_disclosure() -> void:
 	ApiClient.apf_disclosure(GameState.game_id, _on_disclosure)
 
 func _on_disclosure(error: String, data: Dictionary) -> void:
-	## A single-player or pre-APF game has no deal, so the server answers 409.
+	## A single-player or pre-APF game has no assignment, so the server answers 409.
 	## That is not an error worth showing anybody — this section simply is not
 	## part of that game.
 	if error or not bool(data.get("disclosed", false)):

@@ -33,7 +33,7 @@ layout_mode = 2
 theme_type_variation = &"TitleLabel"
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Dealing…"
+text = "Opening the case…"
 
 [node name="RequirementLabel" type="Label" parent="Margin/MainVBox/Header"]
 theme_type_variation = &"MutedLabel"
@@ -124,7 +124,7 @@ custom_minimum_size = Vector2(170, 0)
 [node name="NextRoundButton" type="Button" parent="Margin/MainVBox/Actions"]
 theme_type_variation = &"QuietButton"
 layout_mode = 2
-text = "Deal the next round"
+text = "Open the next round"
 custom_minimum_size = Vector2(170, 0)
 
 [node name="CloseCaseButton" type="Button" parent="Margin/MainVBox/Actions"]

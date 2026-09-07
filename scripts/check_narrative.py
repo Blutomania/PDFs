@@ -41,10 +41,10 @@ Three things are checked here, in ascending strictness:
             the fact, and narrowing that has become load-bearing so a withheld
             glove could make the case unprovable.
 
-  REVEALS   APF deals findings rather than letting players gather them, and only
+  REVEALS   APF assigns findings rather than letting players gather them, and only
             evidence[] carries elimination data. A witness statement and a lead
             result reach it through a `reveals` pointer naming the evidence they
-            surface (see deal.py). Checked here: a pointer resolving to no
+            surface (see casefiles.py). Checked here: a pointer resolving to no
             evidence item, a witness or lead carrying no pointer at all, and an
             exoneration reachable ONLY as a crime-scene clue -- which would make
             witness and lead findings decorative, since a clue is always
@@ -84,7 +84,7 @@ GENERATED = ROOT / "mystery_database" / "generated"
 #
 # An intra-day epoch was tried first, to exempt one mystery generated hours
 # before the rules landed. That was the wrong instrument: mystery_database/
-# generated/ is SERVED to players, so a mystery the deal refuses cannot sit
+# generated/ is SERVED to players, so a mystery the assignment refuses cannot sit
 # there whatever the checker says about it. Both Session 39 mysteries moved to
 # mystery_database/rejected/ instead, and the epoch went back to a plain date.
 SCHEMA_EPOCH = datetime.datetime(2026, 9, 1, tzinfo=datetime.timezone.utc).timestamp()
@@ -135,7 +135,7 @@ def deduction_text(solution):
 #
 #   incoherent      the story does not hang together -- it reasons about people
 #                   who do not exist, or its own chain contradicts itself
-#   unplayable      the story is fine and the GAME is broken: it cannot be dealt,
+#   unplayable      the story is fine and the GAME is broken: it cannot be assigned,
 #                   or it cannot be won
 #   spoiled_prose   every field is correct and the text gives the answer away.
 #                   the_light_that_went_out is the case that named this one
@@ -304,7 +304,7 @@ def audit_data(data, name="<memory>", legacy=False):
         #
         # COUNTED OVER DEALABLE FINDINGS, NOT EVIDENCE ITEMS. An earlier version
         # counted entries in evidence[] and was wrong: a witness whose `reveals`
-        # names E1 is a SEPARATE finding, dealt to a different player and
+        # names E1 is a SEPARATE finding, assigned to a different player and
         # hoarded independently, so it is a genuine second route to the same
         # exoneration. One evidence item plus one witness pointing at it
         # satisfies this; two evidence items nobody reveals does not, because
@@ -337,14 +337,14 @@ def audit_data(data, name="<memory>", legacy=False):
             # straight through it: E9 narrowed to [the culprit, THE VICTIM] --
             # two names, one living suspect, so it is a single-suspect narrowing
             # wearing a disguise, and whoever drew it won without speaking to
-            # anyone. deal.py caught the consequence (E9 solved outright) but
+            # anyone. casefiles.py caught the consequence (E9 solved outright) but
             # this rule reported only "narrows to somebody who is not a suspect",
             # which reads like a typo rather than the whole answer on one card.
             live = [n for n in named if n in suspects]
             if len(live) < 2:
                 _flag(report, "links", "NARR.NARROWS_SINGLE",
                       f"{e.get('id')} narrows to {named}, which is {len(live)} actual suspect(s) "
-                      f"-- that is the whole answer in one finding, and whoever is dealt it wins "
+                      f"-- that is the whole answer in one finding, and whoever is assigned it wins "
                       f"without sharing. Naming a non-suspect alongside does not widen it",
                       [e.get("id")])
             elif suspects and len(live) >= len(suspects):
@@ -379,7 +379,7 @@ def audit_data(data, name="<memory>", legacy=False):
                 _flag(report, "links", "NARR.NARROWS_PROSE_NAMES",
                       f"{e.get('id')} is a narrowing clue whose own text names {spoiled}, somebody "
                       f"it still leaves possible -- that turns a narrowing into an accusation and "
-                      f"whoever is dealt it wins without speaking to anyone. Naming a suspect the "
+                      f"whoever is assigned it wins without speaking to anyone. Naming a suspect the "
                       f"fact rules OUT is fine; naming one it does not is not",
                       [e.get("id")])
 

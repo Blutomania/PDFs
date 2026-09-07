@@ -124,10 +124,10 @@ func share_phase(game_id: String, player_id: String, phase: String, selected_ids
 ## --- APF: the rhythm (docs/PLAYTEST_FLOW.md, "The rhythm") ---
 ##
 ## These six replace the gather loop above for the playtest path; they do not
-## extend it. Findings are DEALT, so there is nothing here that spends a budget
+## extend it. Findings are ASSIGNED, so there is nothing here that spends a budget
 ## or goes and gets anything, and no call below costs the server an API call.
 
-## Host only. Deals the mystery into rounds and returns the announcement the
+## Host only. Assigns the mystery into rounds and returns the announcement the
 ## game opens with: how many rounds, and the whole share ladder.
 func apf_open(game_id: String, player_id: String, callback: Callable) -> void:
 	var body := JSON.stringify({"player_id": player_id})
@@ -139,14 +139,14 @@ func apf_next_round(game_id: String, player_id: String, callback: Callable) -> v
 	var body := JSON.stringify({"player_id": player_id})
 	_post("/games/" + game_id + "/apf/round/next", body, callback)
 
-## One player's whole view: their own hand, the public pool, the suspect board,
+## One player's whole view: their own casefile, the public pool, the suspect board,
 ## and how many findings they still owe the table.
 func apf_state(game_id: String, player_id: String, callback: Callable) -> void:
 	_do_request("/games/" + game_id + "/apf/state?player_id=" + player_id,
 			HTTPClient.METHOD_GET, "", callback)
 
 ## Put findings on the table. Cumulative and monotone — a shared finding stays
-## in the hand, and there is no un-share.
+## in the casefile, and there is no un-share.
 func apf_share(game_id: String, player_id: String, finding_ids: Array, callback: Callable) -> void:
 	var body := JSON.stringify({"player_id": player_id, "finding_ids": finding_ids})
 	_post("/games/" + game_id + "/apf/share", body, callback)

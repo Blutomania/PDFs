@@ -173,7 +173,7 @@ Either stop that process, or run on another port (`--port 8001`) and change `SER
 
 ### 4b. Play a whole APF game over HTTP, before opening Godot at all
 
-With the server up, this plays the accepted mystery end to end — create, join, deal, four rounds,
+With the server up, this plays the accepted mystery end to end — create, join, assignment, four rounds,
 full disclosure, accusation, result:
 
 ```bash
@@ -526,7 +526,7 @@ the slate ground looks stark white. Anything drawing one should set `modulate`.
   `server/static/mobile.html`. Stage 3.
 - **APF's round screen** — `ApfRound.tscn` was built in Session 42 and **has never been loaded by
   the engine.** It is the one screen on this list that is finished code with zero engine hours on
-  it, so walk it deliberately: deal, watch a face grey out when somebody shares, confirm the round
+  it, so walk it deliberately: assignment, watch a face grey out when somebody shares, confirm the round
   refuses to advance while the checkpoint is open, close the case, and check the result screen names
   who held what back. Needs at least two players — constraint 2 is unsatisfiable at one, so a solo
   walk has to add a seat (join from a phone at `/play`, or `POST /games/{id}/join`).

@@ -1,8 +1,8 @@
 ## ApfRound — the APF play screen, and the only screen the mechanic needs.
 ##
 ## THIS SCREEN IS THE GAME. With exploration gone there is no traversal, no
-## budget and no phase gate; what is left is a hand, a decision about it, and a
-## board that makes the decision visible. docs/PLAYTEST_FLOW.md: "the hand and
+## budget and no phase gate; what is left is a casefile, a decision about it, and a
+## board that makes the decision visible. docs/PLAYTEST_FLOW.md: "the casefile and
 ## the share are not part of the game — they are the game."
 ##
 ## WHY THE SHARE IS NOT ITS OWN SCREEN. It used to be (ShareSelection.tscn,
@@ -18,7 +18,7 @@
 ## this project a screen's worth of silently-refused legal moves, and
 ## scripts/test_share_rule.py exists to stop it coming back.
 ##
-## Reached from the lobby once the host has dealt. Leaves for Accusation.tscn.
+## Reached from the lobby once the host has assigned. Leaves for Accusation.tscn.
 
 extends Control
 
@@ -86,7 +86,7 @@ func _on_state(error: String, data: Dictionary) -> void:
 func _render() -> void:
 	var state: Dictionary = GameState.apf_state
 	if state.is_empty():
-		round_label.text = "Dealing…"
+		round_label.text = "Opening the case…"
 		return
 
 	var current: int = int(state.get("round", 0))
@@ -113,7 +113,7 @@ func _render_requirement(state: Dictionary) -> void:
 		requirement_label.remove_theme_color_override("font_color")
 		return
 	if required <= 0:
-		## Round 1. A hand of one forces a share whatever the difficulty, so
+		## Round 1. Holding a single finding forces a share whatever the difficulty, so
 		## there is no decision here and the screen does not pretend otherwise.
 		requirement_label.text = "Read your finding. Nothing is asked of you yet."
 		requirement_label.remove_theme_color_override("font_color")
@@ -181,7 +181,7 @@ func _cleared_by_text(sources: Array) -> String:
 		text += " · and %d more" % (sources.size() - 1)
 	return text
 
-## Your hand. Findings you have already shared stay in it — an investigator
+## Your casefile. Findings you have already shared stay in it — an investigator
 ## cannot be made to forget — but they carry no checkbox, because there is
 ## nothing left to decide about them. What you spend is exclusivity.
 func _render_hand() -> void:
@@ -293,7 +293,7 @@ func _render_actions(state: Dictionary) -> void:
 	var total: int = int(state.get("rounds", 0))
 	var final_round: bool = current >= total
 
-	## Only the host deals and closes; everyone else would get a 403.
+	## Only the host assigns and closes; everyone else would get a 403.
 	next_round_button.visible = GameState.is_host and not disclosed and not final_round
 	close_case_button.visible = GameState.is_host and not disclosed and final_round
 
@@ -331,7 +331,7 @@ func _selected_ids() -> Array:
 ## Sharing MORE than the minimum is legal and deliberately not blocked: the
 ## requirement is a floor, not a cap, and giving something away early is a real
 ## move. The server is the only thing that refuses a share, and it refuses only
-## a finding the player was never dealt.
+## a finding the player was never assigned.
 func _on_share() -> void:
 	var ids: Array = _selected_ids()
 	if ids.is_empty():
@@ -356,13 +356,13 @@ func _on_share_result(error: String, data: Dictionary) -> void:
 
 func _on_next_round() -> void:
 	_set_busy(true)
-	status_label.text = "Dealing…"
+	status_label.text = "Opening the next round…"
 	ApiClient.apf_next_round(GameState.game_id, GameState.player_id, _on_round_result)
 
 func _on_round_result(error: String, _data: Dictionary) -> void:
 	_set_busy(false)
 	if error:
-		status_label.text = "Could not deal: " + error
+		status_label.text = "Could not open the next round: " + error
 		status_label.add_theme_color_override("font_color", Palette.CAUTION)
 		return
 	status_label.remove_theme_color_override("font_color")

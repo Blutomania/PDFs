@@ -20,6 +20,13 @@ in six files under `docs/`, and in source comments. Never renumber one.
 that rule had not been followed: it had reached 1,003 lines, 60% of it archive, and its own opening
 paragraph contradicted its item 11.
 
+**The vocabulary is investigation, not card game.** No decks, no cards, no hands, no deals, and
+nothing is *played*. Findings are **assigned**, into a player's **casefile**. Owner's instruction,
+three times — the first two were obeyed only for the noun, and the metaphor rebuilt itself from the
+verbs and containers left standing. Where it came from and what was deliberately left alone:
+`docs/DECISIONS.md` item 34. **The test: if a word would be at home on a box reading "2–6 players,
+ages 10+", it is the wrong word.**
+
 **Backtick-quoting a string here or in `docs/` is a CLAIM that the product contains it**, enforced
 by `scripts/check_doc_claims.py`. To mention a string without asserting it exists — a retired
 label, an illustrative pattern — use italics, or add it to that script's `ALLOWED_LITERALS` with a
@@ -54,31 +61,31 @@ false version stayed in the first thing every session read. What `server/main.py
 | MEDIUM | 0.60 |
 | HARD | 0.50 |
 
-**At APF's three-finding hand that ladder is inert** — all three difficulties resolve to "share 2,
+**At APF's three-finding casefile that ladder is inert** — all three difficulties resolve to "share 2,
 keep 1", because a percentage has no resolution over three items (Session 38). Session 39 moved
-difficulty to deal redundancy instead: `REDUNDANCY_BY_DIFFICULTY` in `deal.py` puts each
-exoneration in two hands on EASY and one on HARD, which has real resolution at that hand size.
+difficulty to assignment redundancy instead: `REDUNDANCY_BY_DIFFICULTY` in `casefiles.py` puts each
+exoneration in two casefiles on EASY and one on HARD, which has real resolution at that casefile size.
 
 **That buys two rungs, not three, and the ceiling is arithmetic.** Redundancy fights constraint 2:
-push each exoneration into enough hands and some hand holds them all and solves alone. At APF's
+push each exoneration into enough casefiles and some casefile holds them all and solves alone. At APF's
 shape — 4 players, exactly 4 suspects, so 3 required exonerations — the ceiling is 2, so MEDIUM and
 HARD are both 1. A third rung needs a second dial: suspect count or red-herring density.
 
 If a random-broadcast mechanic is wanted, it is unbuilt design work, not a regression.
 
-**[Session 41] The decision is a RHYTHM, not a single moment.** Findings are dealt one per player
-per round, with a share checkpoint at every round from the second (a hand of one forces a share, so
-round 1 deals only). A shared finding **stays in its holder's hand** — an investigator cannot be
+**[Session 41] The decision is a RHYTHM, not a single moment.** Findings are assigned one per player
+per round, with a share checkpoint at every round from the second (a single held finding forces a share, so
+round 1 assigns only). A shared finding **stays in its holder's casefile** — an investigator cannot be
 made to forget, so what a player spends is *exclusivity*, not possession — which makes the share
 requirement cumulative. Rounds = findings ÷ players, announced before play. This revives the
-difficulty ladder that was inert at a fixed hand: what differs between EASY and HARD is how much a
+difficulty ladder that was inert at a fixed casefile: what differs between EASY and HARD is how much a
 player may sit on. Full spec and the arithmetic: `docs/PLAYTEST_FLOW.md` → "The rhythm".
 
 **[Session 42] Built, in `apf.py`.** Measured over the accepted mystery at four rounds: the private
 stash is **1 at EASY, 2 at MEDIUM and HARD** — the ladder separating without a second dial, which is
 what Sessions 38 and 39 both concluded could not happen. One consequence worth knowing before
-touching the deal: the stash size **is** the right `hoard_allowance`, so it is derived from the
-ladder rather than taken from `deal.py`'s constant.
+touching the assignment: the stash size **is** the right `hoard_allowance`, so it is derived from the
+ladder rather than taken from `casefiles.py`'s constant.
 
 ---
 
@@ -87,7 +94,7 @@ ladder rather than taken from `deal.py`'s constant.
 **Stage 1 of the delivery priority: get one human through one whole mystery on one PC.**
 
 The current build is item 23 — **APF ("All Provided For")**, specified in `docs/PLAYTEST_FLOW.md`.
-Findings are **dealt, not gathered**: no traversal, no exploration, no investigation budget, no
+Findings are **assigned, not gathered**: no traversal, no exploration, no investigation budget, no
 phase gates. That is a deliberate reduction to the sharing decision, and it deletes several
 problems rather than fixing them — see `docs/INVESTIGATION_DESIGN.md` §5–§7.
 
@@ -118,7 +125,7 @@ because it decides what counts as a blocker.
   oversight. What changed is that `MysteryGeneration`'s multiplayer section can now open a **room**
   from a saved mystery, because until it could, every look at the round screen cost a generation and
   one generation in eight passes the gate. `GET /mysteries` reports `apf_ready` per mystery so the
-  picker can disable what cannot be dealt; 1 of 17 on disk qualifies, and the other 16 say why.
+  picker can disable what cannot be assigned; 1 of 17 on disk qualifies, and the other 16 say why.
 - **Moderation stays as decided** — none, with the visible *Not moderated for play testing*
   disclaimer. A stage-1 answer by construction; the Steam answer is stage 3.
 - **Nothing already built gets removed.** The multiplayer server work stays exactly as it is. It is
@@ -186,7 +193,7 @@ and the WebSocket.
 | `godot/scripts/theme/Palette.gd` | **Generated** from `palette.py` — do not hand-edit |
 | `godot/scripts/data/MysteryData.gd` | Typed wrapper for mystery JSON |
 | `godot/scenes/ui/` | The nine screens: MainMenu, MysteryGeneration, Lobby, CaseDisplay, **ApfRound**, Interrogation, ShareSelection, Accusation, ResultScreen |
-| `godot/scripts/ui/apf_round.gd` | **The APF play screen, and the only screen the mechanic needs** — hand, suspect board, shared pool and the share decision on one screen, because the board is what makes withholding legible |
+| `godot/scripts/ui/apf_round.gd` | **The APF play screen, and the only screen the mechanic needs** — casefile, suspect board, shared pool and the share decision on one screen, because the board is what makes withholding legible |
 | `godot/scripts/tools/` | `EditorScript`s — run inside the engine, File → Run. See the checker tables below |
 | `palette.py` | **The one place a colour is decided.** Ground, surface ramp, ink, brass, semantics, type/space/radius scales, and a 28-pair WCAG contrast contract. Read before changing any colour anywhere |
 | `part_registry.py` | The corpus index — **5,990 parts across 573 sources** as committed. `load_registry()` rebuilds when a corpus fingerprint changes; see item 14 |
@@ -194,9 +201,9 @@ and the WebSocket.
 | `coherence/` | The shared engine (`Issue`, `CoherenceReport`, `RuleSet`). Used by both CYM and Mind Your Friends — item 16 |
 | `craft_grounding.py` | Retrieval layer over the craft-grounding docs; feeds guidance into all five generation call sites. Zero added API calls |
 | `localization.py` | Era-appropriate name/occupation localization, 3-tier disk cache |
-| `apf.py` | **APF's rhythm** (item 23 step 3). Round count, the cumulative share checkpoint, the suspect board and full disclosure. Owns the *cadence*; `deal.py` owns the *deal*. The share rule is injected, never recomputed. Pure computation, wired to `server/main.py`'s six `/apf/` routes and to `ApfRound.tscn` |
-| `deal.py` | APF's constrained deal (item 23). `best_deal()` picks the fairest of several dealings. Deals findings under set arithmetic over `evidence[]`, reached through the `reveals` pointer. Pure computation, deterministic from a seed, re-dealable free. Computed, tested, **wired to no client** |
-| `gate.py` | Decides whether a generated mystery may be served, and routes it to `generated/` or `rejected/`. Runs coherence, `check_narrative` and `deal.feasibility`; free, no API call. Item 18 |
+| `apf.py` | **APF's rhythm** (item 23 step 3). Round count, the cumulative share checkpoint, the suspect board and full disclosure. Owns the *cadence*; `casefiles.py` owns the *assignment*. The share rule is injected, never recomputed. Pure computation, wired to `server/main.py`'s six `/apf/` routes and to `ApfRound.tscn` |
+| `casefiles.py` | APF's constrained assignment (item 23). `best_assignment()` picks the fairest of several assignments. Assigns findings under set arithmetic over `evidence[]`, reached through the `reveals` pointer. Pure computation, deterministic from a seed, re-runnable free. Computed, tested, **wired to no client** |
+| `gate.py` | Decides whether a generated mystery may be served, and routes it to `generated/` or `rejected/`. Runs coherence, `check_narrative` and `casefiles.feasibility`; free, no API call. Item 18 |
 | `arrangement.py` | The pointer-wiring pass: finds exonerations no witness, lead or area reveals, and wires the ones a finding can honestly carry. Free, deterministic. Repairs the arrangement, never the evidence — see item 29 |
 | `generation_ledger.py` | One append-only JSONL row per generation attempt — cost, verdict, failure class, rule ids. The only record of what generation costs; see item 28 |
 | `background_field.py` | The BACKGROUND layout (item 17). Computed, tested, **wired to no client** |
@@ -375,7 +382,7 @@ Zero API cost, no Godot binary needed. Each has already caught a real bug.
 | `scripts/test_share_rule.py` | The share minimum being defined twice. It was — server `round()` against client `ceili()`, disagreeing in 6 of 18 realistic cases with the client always stricter, so it refused shares the server would accept |
 | `scripts/test_registry_staleness.py` | That a moved-on corpus rebuilds the registry and an unchanged one does not |
 | `scripts/test_crime_scene_map.py` | Overlapping rooms, off-canvas rooms, a witness outside its stated room, a non-deterministic layout |
-| `scripts/test_deal.py` | The three deal constraints, and that each refuses a mystery violating it. Fixtures, because no mystery on disk carries `reveals` yet |
+| `scripts/test_casefiles.py` | The three assignment constraints, and that each refuses a mystery violating it. Fixtures, because no mystery on disk carries `reveals` yet |
 | `scripts/test_gate_and_ledger.py` | The gate's refusals and the ledger's arithmetic: that a clean mystery is accepted, that each failure class is refused and correctly named, that CAST findings stay advisory, that a legacy mystery is `unjudged` rather than rejected, and that CPAM divides by accepted rather than by attempts |
 | `scripts/test_arrangement.py` | That the wiring pass refuses a false positive — both of the two it actually made on real mysteries — that a genuine carrier is wired, and that a wiring making the mystery worse is withheld even when it lowers the violation count |
 | `scripts/check_rule_coverage.py` | Every hard assertion in the generation prompt against the rule that enforces it. Fails if the prompt gains an assertion nobody has triaged, if an inventory entry names a rule id that no longer exists, or if an inventoried assertion has been deleted. The standing UNENFORCED list is its real output |
@@ -392,7 +399,7 @@ that use Godot's own loader, which is where the undetectable defects live:
 | `godot/scripts/tools/ApplyTheme.gd` | A theme item name the engine does not have. Also generates the editor's theme preview, so the design is visible while scenes are edited, and reports whether the fonts resolved. **Run on 4.7.2 in Session 40: 168 items across 36 types, `MISSES none`, fonts resolved** |
 
 **One needs a running server, and finds what no in-process test can:**
-`scripts/walk_apf_game.py` plays a whole four-round APF game over real HTTP — create, join, deal,
+`scripts/walk_apf_game.py` plays a whole four-round APF game over real HTTP — create, join, assignment,
 four rounds, full disclosure, accusation, result. Zero API cost and **no API key needed**; it plays
 the mystery already on disk. Session 42 found two defects with it that every unit test passed
 through. Run the server first, then `python3 scripts/walk_apf_game.py`.
@@ -410,7 +417,7 @@ Everything else is closed — see `docs/DECISIONS.md`.
 ### 23. Build APF — **steps 1–4 built. What is left is a table, not code**
 
 The playtest shape is agreed and written down: `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)".
-Findings are **dealt, not gathered**; the only decision is which to share and which to keep, which
+Findings are **assigned, not gathered**; the only decision is which to share and which to keep, which
 is the mechanic this file's overview calls the point of the product.
 
 Build order (`docs/INVESTIGATION_DESIGN.md` §7, already reduced by APF):
@@ -418,14 +425,14 @@ Build order (`docs/INVESTIGATION_DESIGN.md` §7, already reduced by APF):
 1. ~~`exonerates` / `implicates` on evidence + the set-arithmetic solvability check~~ —
    **the schema half landed in Session 38** with the backwards-writing reorder (item 26).
    Untested against a real generation; that costs credits and is the next paid step.
-2. ~~The constrained deal~~ — **built in Session 39** as `deal.py`, with `scripts/test_deal.py`.
+2. ~~The constrained assignment~~ — **built in Session 39** as `casefiles.py`, with `scripts/test_casefiles.py`.
    The blocker (a finding carrying no evidence ID) was real but pointed at the gather routes APF
-   deletes. The gap that actually bit: APF's hand is one witness statement, one crime-scene clue,
+   deletes. The gap that actually bit: APF's casefile is one witness statement, one crime-scene clue,
    one lead result, and **only `evidence[]` carries `exonerates`** — so two of the three kinds
    could not participate in the arithmetic at all. Closed with a `reveals` pointer on witnesses,
    leads and areas, which keeps elimination data in one place. Untested against a real generation.
 3. ~~The share decision, the suspect board, the reveal~~ — **built in Session 42.** `apf.py` owns
-   the rhythm; six `/apf/` routes serve it; `ApfRound.tscn` puts the hand, the board and the share
+   the rhythm; six `/apf/` routes serve it; `ApfRound.tscn` puts the casefile, the board and the share
    on one screen, and `ResultScreen` shows full disclosure with a name against every finding
    somebody sat on. Verified two ways: `scripts/test_apf.py` (58 assertions) and
    `scripts/walk_apf_game.py`, which plays a whole game over real HTTP **with no API key at all**.
@@ -443,23 +450,23 @@ item 23.
 
 **[Session 41, eighth generation] THE FIRST ACCEPTED MYSTERY.**
 `the_neriin_in_the_pilchard_barrel` (Cornish tin-mine counting house, 1907) is in `generated/`:
-coherence 0 blocking 0 warnings, 4 suspects, routes 3/3/4, feasibility clean, deals on attempt 1,
+coherence 0 blocking 0 warnings, 4 suspects, routes 3/3/4, feasibility clean, assigns on attempt 1,
 **proof surviving 81 of 81 hoarding patterns**. It generated with one violation — an exoneration
 nothing revealed — and `scripts/wire_pointers.py` closed it by wiring E4 to the witness whose
 statement already described the same man on the same cliff path (the evidence item itself said
 *"consistent with Tomas Blewett's statement"*). **First CPAM: $0.7169**, over four measured
 generations.
 
-**One thing it exposed: monopoly on proof is a property of the DEAL, not the mystery.** At seed 7
-exactly one player could prove it in 27 of 81 patterns — the same figure `totality` was hand-
-rejected for. Across 20 seeds, 13 give **0/81** and proof survives 81/81 on every one. Re-dealing
-is free, so `best_deal()` searches seeds and keeps the fairest dealing rather than the first legal
+**One thing it exposed: monopoly on proof is a property of the ASSIGNMENT, not the mystery.** At seed 7
+exactly one player could prove it in 27 of 81 patterns — the same figure `totality` was casefile-
+rejected for. Across 20 seeds, 13 give **0/81** and proof survives 81/81 on every one. Re-running the assignment
+is free, so `best_assignment()` searches seeds and keeps the fairest assignment rather than the first legal
 one. **Built in Session 41**; this section said "unbuilt" for a session after it landed.
 
-**[Session 42] It was selecting against the wrong hoarding model.** `best_deal()` forwarded
-`hoard_allowance` into `deal()` but not into the `prover_counts()` call it *chooses the seed with*,
+**[Session 42] It was selecting against the wrong hoarding model.** `best_assignment()` forwarded
+`hoard_allowance` into `assignment()` but not into the `prover_counts()` call it *chooses the seed with*,
 so a session whose rules permit a two-finding stash constrained proof-survival at two and then
-picked its dealing by a monopoly measured at one. Reachable only once something derived the
+picked its assignment by a monopoly measured at one. Reachable only once something derived the
 allowance instead of taking the constant — which is what `apf.stash_allowance()` does. At allowance
 2 on the accepted mystery it now examines **1296 patterns instead of 256**, and picks a different
 seed.
@@ -473,7 +480,7 @@ exoneration wired, no prose leak** — the cleanest generation to date.
 
 **It fails on one rule, and that rule is item 27 working.** A narrowing (two men tall enough to
 reach a six-foot shelf) plus the exoneration clearing one of them names the culprit in two findings
-— the glove, exactly as specified. But both halves landed on the same witness, so one dealt finding
+— the glove, exactly as specified. But both halves landed on the same witness, so one assigned finding
 carries the whole proof. **No single witness, lead or area may reveal both a narrowing and the
 exoneration that completes it.** In the prompt, untested. One generation should confirm it.
 
@@ -486,7 +493,7 @@ necessary, not sufficient. `VerifyScenes.gd` and `ApplyTheme.gd` are the two che
 engine's own loader and they need the owner's machine. (b) **Nobody has played it.** Every number in
 the difficulty ladder is arithmetic, not a measurement: whether a two-finding stash at HARD *feels*
 like a decision is a question only a table answers. (c) **APF needs at least two players** —
-constraint 2 is unsatisfiable at one, because the only hand is the whole deal. A solo walk-through
+constraint 2 is unsatisfiable at one, because the only casefile is the whole assignment. A solo walk-through
 has to add seats.
 
 **The one play-time Claude call left on the critical path is the resolution narrative.** Session 42
@@ -548,7 +555,7 @@ findings. Both wants are answered by more findings per mystery, which is output 
 
 **The trigger is a number, not a decision:** revisit once a mystery reliably carries enough
 findings to feed both. Until then `APF_SUSPECT_COUNT` stays 4 and is enforced by
-`DEAL.SUSPECT_COUNT`. Full reasoning, including why "minimum 4" was rejected: `docs/DECISIONS.md`
+`CASE.SUSPECT_COUNT`. Full reasoning, including why "minimum 4" was rejected: `docs/DECISIONS.md`
 item 33.
 
 ### 17. BACKGROUND — two owner decisions outstanding — **stage 3**

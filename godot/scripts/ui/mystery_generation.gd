@@ -156,7 +156,7 @@ func _load_saved_mysteries() -> void:
 	saved_label.text = "Loading saved mysteries…"
 	ApiClient.list_mysteries(_on_saved_listed)
 
-## A MYSTERY THAT CANNOT BE DEALT IS SHOWN AND DISABLED, NOT HIDDEN.
+## A MYSTERY THAT CANNOT BE ASSIGNED IS SHOWN AND DISABLED, NOT HIDDEN.
 ## Seventeen of the eighteen on disk predate the APF schema, so hiding them
 ## would leave a dropdown with one entry and no explanation of where the
 ## library went. Disabling them says "these exist, they are too old", which is
@@ -175,14 +175,14 @@ func _on_saved_listed(error: String, data) -> void:
 		var m: Dictionary = _saved[i]
 		var ready: bool = bool(m.get("apf_ready", false))
 		var title: String = str(m.get("title", m.get("slug", "?")))
-		saved_option.add_item(title if ready else title + "  —  cannot be dealt")
+		saved_option.add_item(title if ready else title + "  —  cannot be assigned")
 		saved_option.set_item_disabled(i, not ready)
 		if ready and first_ready < 0:
 			first_ready = i
 
 	if first_ready < 0:
 		saved_label.text = (
-			"None of the %d saved mysteries can be dealt — they predate the APF schema. "
+			"None of the %d saved mysteries can be assigned — they predate the APF schema. "
 			% _saved.size()
 			+ "Generate one above."
 		)
@@ -202,7 +202,7 @@ func _on_host_saved() -> void:
 		## Reachable if the list changed under us. The server's own reason is
 		## shown rather than a generic refusal -- "3 suspects, not 4" tells you
 		## what to do next and "cannot be used" does not.
-		status_label.text = "That mystery cannot be dealt: " + str(m.get("apf_blocker", ""))
+		status_label.text = "That mystery cannot be assigned: " + str(m.get("apf_blocker", ""))
 		return
 	_pending_slug = str(m.get("slug", ""))
 	if _pending_slug.is_empty():
@@ -243,7 +243,7 @@ func _on_game_created(error: String, data: Dictionary) -> void:
 		return
 	GameState.game_id = data.get("game_id", "")
 	GameState.player_id = data.get("player_id", "")
-	## Whoever created the room is its host. Only the host may deal a round or
+	## Whoever created the room is its host. Only the host may open a round or
 	## close the case, so the round screen needs to know which one this is.
 	GameState.is_host = true
 	GameState.witness_budget = data.get("witness_budget", 0)

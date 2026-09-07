@@ -3213,6 +3213,70 @@ two-finding stash at HARD *feels* like a decision is a question only a table ans
 one, because the only hand is the whole deal. The server says so plainly rather than failing the
 deal opaquely, but a solo walk-through still has to add a seat.
 
+### The card-game vocabulary came out, and we found where it came from
+
+Owner, mid-session, for the THIRD time: *"This is NOT a card game. This is a social deduction
+game."* Correct, and the third telling was needed because the first two only fixed the **noun**.
+
+**The genesis, found in git rather than guessed at.** Commit `0db3d9b`, 25 August 2026 — the commit
+that first specified APF — under a heading about what the UI now has to carry:
+
+> **The data is already card-shaped**: a finding has a name, a description, a type, a relevance.
+> Assigned, held, played. MYF has `GameCard.jsx` (155 lines), `CardHand.jsx` (67), `CardPicker.jsx`
+> (104) — not portable to Godot, but straight into `mobile.html`, and the visual language carries
+> either way.
+
+**It entered as a UI-REUSE argument, never as a design one.** Mind Your Friends genuinely is a card
+game and genuinely has those components. Somebody noticed they had the right *shape* for "a discrete
+object given to a player and held", and wrote *"the data is already card-shaped"* as shorthand for
+*"MYF's components would fit"*. Nobody ever argued CYM should feel like a card game — so nobody ever
+defended the claim, and it spread precisely because it was never a claim.
+
+Then the shorthand became the vocabulary, in four sessions: *card-shaped* → *dealt, held, played* →
+*the deal* → *the hand* → the module name → the constant names → a *.card* CSS class on the phone
+client every player looks at.
+
+**Why the first two corrections failed, which is the transferable lesson.** The old module's
+docstring recorded *"THE WORD IS 'FINDING', EVERYWHERE. Owner's instruction, twice."* — and it was
+obeyed. No clue was called a card anywhere. Every verb and container around it survived untouched.
+**A metaphor rebuilds itself from whatever parts you leave standing.**
+
+So this pass moved all of it at once: `deal.py` → `casefiles.py`, `deal()` → `assign()`,
+`best_deal()` → `best_assignment()`, `DEFAULT_HAND_SPEC` → `DEFAULT_CASEFILE_SPEC`, `DEAL.*` rule
+ids → `CASE.*`, *.card* → `.panel`, and the prose in nine documents.
+
+**What was deliberately NOT rewritten**, because rewriting it would be a different error:
+
+- **`SESSIONS.md`** — append-only. Editing history so it agrees with today is the exact thing this
+  file exists to prevent, and Session 38 already had to rebuild `CLAUDE.md` because that rule was
+  ignored. The Session 35 block still says "dealt", because that is what it said.
+- **The ledger's stored rule ids.** 45 rows carry `DEAL.*`. They fold onto the new names at READ
+  time via `generation_ledger.LEGACY_RULE_IDS`, so a rule's cost history stays under one heading
+  without a single stored row being altered.
+- **Mystery JSON, `part_registry.json`, the corpus findings documents.** Prose from published
+  fiction and from party-game research that legitimately discusses card games. Content, not
+  vocabulary we chose.
+- **"handedness"** in the generation prompt — a forensic property of a person — and ordinary
+  English like *hand-written*.
+
+**Three mangles the mechanical pass made and review caught**, all of the same shape — a protected
+English phrase in a case the filter missed: *"DO NOT EDIT BY HAND"* became *"BY CASEFILE"* in the
+generated palette banner (caught by `scripts/build_palette.py --check`, which is what that checker
+is for), *"hands the model a parameter"* became *"casefiles the model a parameter"*, and every
+`def deal(` became `def assignment(` — a noun where a verb belongs.
+
+`docs/DECISIONS.md` item 34 carries the genesis and the standing rule: **if a word would be at home
+on a box reading "2–6 players, ages 10+", it is the wrong word.**
+
+### Also this session: hosting a saved mystery
+
+Until now the only way to open a room was to generate a new mystery first, so every look at the
+round screen cost ~$0.20 with a one-in-eight acceptance rate. The server has accepted a saved
+mystery on room creation since Session 26 and nothing asked it to. Now `MysteryGeneration`'s
+multiplayer section can, and `GET /mysteries` reports `apf_ready` per mystery so the picker disables
+what cannot be assigned — **1 of 17 qualifies**, and the other 16 say why (12 have three suspects,
+3 are too small for two rounds, 1 has narrowing as load-bearing).
+
 ### Next session
 
 1. **The owner walks it in Godot.** `docs/F5_CHECKLIST.md`, steps 3, 4, 4b, then the APF path. This

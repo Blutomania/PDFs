@@ -2,7 +2,7 @@
 """Every hard assertion in the generation prompt — and what, if anything, enforces it.
 
 WHY THIS EXISTS, AND WHAT IT COST NOT TO HAVE IT. The generation prompt has said
-"EXACTLY 4 suspects" since it was written. deal.py's entire constraint arithmetic
+"EXACTLY 4 suspects" since it was written. casefiles.py's entire constraint arithmetic
 is derived from four. Nothing checked it, and `snow_on_the_engawa` came back with
 three — which is not a smaller version of the same game but a different one, since
 two required exonerations means any finding carrying both solves outright. That
@@ -47,7 +47,7 @@ sys.path.insert(0, str(_ROOT))
 sys.path.insert(0, str(_ROOT / "scripts"))
 
 from check_narrative import RULES as NARRATIVE_RULES        # noqa: E402
-from deal import FEASIBILITY_RULES                          # noqa: E402
+from casefiles import FEASIBILITY_RULES                          # noqa: E402
 
 PROMPT_FILE = _ROOT / "server" / "main.py"
 PROMPT_START = "QUALITY REQUIREMENTS"
@@ -64,10 +64,10 @@ PROMPT_END = '"culprit": "string'
 ASSERTIONS = [
     ("header", "QUALITY REQUIREMENTS", "header", None),
 
-    ("suspect-count", "EXACTLY 4 suspects", "enforced", ["DEAL.SUSPECT_COUNT"]),
+    ("suspect-count", "EXACTLY 4 suspects", "enforced", ["CASE.SUSPECT_COUNT"]),
     ("witness-count", "3–4 witnesses", "UNENFORCED",
-     "no rule counts witnesses. A mystery with one witness still deals, but APF's "
-     "hand spec wants one witness statement per player"),
+     "no rule counts witnesses. A mystery with one witness still assigns, but APF's "
+     "casefile spec wants one witness statement per player"),
 
     ("alibi-specific", "alibi: SPECIFIC", "advisory", ["parts.alibi.testimonial_only",
                                                       "parts.alibi.no_physical_anchor"]),
@@ -105,7 +105,7 @@ ASSERTIONS = [
      ["NARR.STEP_UNSUPPORTED"]),
     ("reachable", "REACHABLE: every evidence item that exonerates", "enforced",
      ["REVEAL.UNREACHED_EXONERATION"]),
-    ("whole-proof", "MAY CARRY A WHOLE PROOF", "enforced", ["DEAL.SOLO_SOLVE"]),
+    ("whole-proof", "MAY CARRY A WHOLE PROOF", "enforced", ["CASE.SOLO_SOLVE"]),
     ("witness-covers-suspect", "ASSIGN EACH WITNESS A SUSPECT", "UNENFORCED",
      "arrangement.world_coverage() reports it but nothing gates on it -- this is "
      "the rule that fixed the two-routes problem and it is enforced only by its "
@@ -120,7 +120,7 @@ ASSERTIONS = [
     ("how-to-deduce", "how_to_deduce: the same reasoning as readable prose", "enforced",
      ["P1.C5.no_deduction_path"]),
     ("culprit-in-cast", 'The culprit named here must appear in "characters"', "enforced",
-     ["P1.C4.culprit_not_in_characters", "DEAL.CULPRIT_NOT_SUSPECT"]),
+     ["P1.C4.culprit_not_in_characters", "CASE.CULPRIT_NOT_SUSPECT"]),
 
     ("areas-distinct", "Each area must be atmospherically distinct", "UNENFORCED",
      "no rule judges atmosphere"),

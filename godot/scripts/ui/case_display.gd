@@ -40,7 +40,7 @@ func _ready() -> void:
 	accuse_button.pressed.connect(_go_accuse)
 	begin_rounds_button.pressed.connect(_on_begin_rounds)
 	## THIS SCREEN IS APF'S OPENING: the crime, told, before any finding is
-	## dealt. Only the host can deal, and only in a room -- a saved mystery
+	## assigned. Only the host can assignment, and only in a room -- a saved mystery
 	## opened from the browse list is one person reading, with nobody to share
 	## with, so the button stays hidden there.
 	begin_rounds_button.visible = GameState.is_host and not GameState.game_id.is_empty()
@@ -52,7 +52,7 @@ func _exit_tree() -> void:
 		ApiClient.ws_event.disconnect(_on_ws_event)
 
 func _on_ws_event(event_name: String, data: Dictionary) -> void:
-	## The host dealt. Everyone in the room moves to the round screen together.
+	## The host assigned. Everyone in the room moves to the round screen together.
 	if event_name == "apf_opened":
 		GameState.record_apf_open(data)
 		_go_rounds()
@@ -191,22 +191,22 @@ func _go_interrogate() -> void:
 	GameState.game_phase = GameState.Phase.INTERROGATION
 	get_tree().change_scene_to_file("res://scenes/ui/Interrogation.tscn")
 
-## Deal the mystery into rounds, and let the game ANNOUNCE its length before
+## Build the casefiles and set the rounds going, and let the game ANNOUNCE its length before
 ## play begins. Owner, Session 41: "the game TELLS the users. This mystery has a
 ## maximum of X rounds. It creates tension and sets expectations."
 ##
-## The deal is free and deterministic, so a refusal here is a statement about
+## The assignment is free and deterministic, so a refusal here is a statement about
 ## the mystery rather than bad luck -- it is shown as such instead of as a retry.
 func _on_begin_rounds() -> void:
 	begin_rounds_button.disabled = true
-	begin_rounds_button.text = "Dealing…"
+	begin_rounds_button.text = "Opening the case…"
 	ApiClient.apf_open(GameState.game_id, GameState.player_id, _on_dealt)
 
 func _on_dealt(error: String, data: Dictionary) -> void:
 	if error:
 		begin_rounds_button.disabled = false
 		begin_rounds_button.text = "Begin the investigation"
-		coherence_label.text = "This mystery cannot be dealt: " + error
+		coherence_label.text = "This mystery cannot be assigned: " + error
 		coherence_label.add_theme_color_override("font_color", Palette.NEGATIVE)
 		return
 	GameState.record_apf_open(data)
