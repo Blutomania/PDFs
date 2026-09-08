@@ -5,6 +5,35 @@ Use this file to onboard any new session without losing context.
 
 ---
 
+## Session — September 08, 2026 at 19:29
+**Branch:** `claude/playtest-flow-docs-qmqlti`
+**Latest commit:** `b292a7d`
+
+### Files changed this session
+- `odot/scenes/ui/CaseDisplay.tscn` — Modified
+- `godot/scripts/ui/case_display.gd` — Modified
+
+### Commits this session
+```
+b292a7d Fix a literal NUL byte in Icons.gd, and give check_godot_wiring a way to catch it
+bf26167 python3 -m uvicorn, everywhere -- bare `uvicorn` depends on PATH and often is not there
+e5da33c Fill the other seats, and finish the rename the word boundaries missed
+07d3059 The card-game vocabulary comes out, and we find where it came from
+163a39c Host a saved mystery: the round screen stops costing a generation to look at
+832d9a6 Nine screens, not eight -- ApfRound joined the tree and three live claims did not notice
+7108a2e The rhythm on screen: one play screen, a board that greys with a name on it
+4e38435 The rhythm, server-side: dealt over rounds, shared at a cumulative checkpoint
+```
+
+### Session notes
+_No additional notes recorded_
+
+### Resume from here
+See **Consolidated To-Do List** above for next steps.
+Check `CLAUDE.md` for project conventions and current priorities.
+
+---
+
 ## Session — September 04, 2026 at 03:22
 **Branch:** `claude/mystery-generation-narrowing-ad2xh8`
 **Latest commit:** `05fb3ad`
