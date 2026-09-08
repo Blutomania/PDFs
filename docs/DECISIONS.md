@@ -648,6 +648,19 @@ that the superseded text has become history and belongs here instead.
     negative mark's fix did not teach: a percentage clearing a floor is not the same claim as
     "the owner likes how this looks," and only one of those two is actually the bar.
 
+    **[Session 43, same conversation] The organic mark is gone from `Lobby.tscn`, replaced by the
+    owner's own placeholder.** `icons/new logo/CYM_temp-removebg-preview.svg`, uploaded to `main`
+    directly, copied to `godot/assets/brand/logo_temp.svg` and wired into the renamed `LogoMark`
+    node — a plain swap, not run through the `build_brand.py` mirror pipeline, because the owner's
+    own words for it were *"I don't love it here either. Need to get an artist on it."* Sizing was
+    recomputed for its actual aspect (747×334, wider than the organic mark's 449×375) rather than
+    reusing the old box, which would have letterboxed it. Measured anyway, so the next person does
+    not have to guess: `scripts/check_brand_contrast.py` puts it at **66% of its ink at or below
+    2.5:1** against `Palette.GROUND` — more of it flatly invisible (52.8%) than the organic mark's
+    own worst band ever was. No fix applied, on purpose, per the lesson two paragraphs up: this is
+    a placeholder, not a decision to hold to a floor. Whatever the artist delivers should be
+    measured before it is wired in for anything but a look.
+
 18. **[CLOSED, Session 41 — September 3 2026] A BLOCKING coherence report does not stop a
     mystery being saved, served, or played.** Not a coherence-engine failure — the opposite. The
     engine catches this exactly: `P1.C4.culprit_not_in_characters`, severity `BLOCKING`, message

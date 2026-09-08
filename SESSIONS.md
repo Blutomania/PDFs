@@ -3247,9 +3247,22 @@ supplying replacement artwork rather than having this session pick a fix for art
 approved the look of. The measurement being correct and the fix being wanted turned out to be two
 different bars. Full account: `docs/DECISIONS.md` item 17.
 
+### The organic mark's actual replacement
+
+Within the same turn, the owner uploaded `icons/new logo/CYM_temp-removebg-preview.svg` to `main`
+directly and asked for it in place of the organic mark, with the caveat set up front: "I don't love
+it here either. Need to get an artist on it." Copied to `godot/assets/brand/logo_temp.svg`, wired
+into `Lobby.tscn`'s renamed `LogoMark` node, resized for its own aspect (747×334, wider than the
+organic mark) rather than reusing the old box. Deliberately NOT added to the `build_brand.py`
+mirror pipeline — it is a stand-in, not the asset that pipeline exists to protect. Measured anyway
+rather than left as a guess for later: 66% of its ink is at or below 2.5:1 against the ground, worse
+in the fully-invisible band than the organic mark ever was. No fix applied — this is the owner's own
+placeholder, and the lesson two paragraphs up was not going to be re-learned in the same session.
+
 ### NOT done
 
-**Still nobody has run any of this in Godot.** Every fix this session addressed something the
+**Still nobody has run any of this in Godot** — the owner is doing that walkthrough next, separately
+from this session. Every fix this session addressed something the
 owner's own eyes caught in a screenshot, which is real signal a checker can't produce — but it is
 also evidence that `check_godot_wiring.py` reading scene files rather than loading them is a real
 gap: the E2/E8/E10 bug, the icon-wrapper defect and the font lowercase issue were all invisible to

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://b1lobb000001"]
 
 [ext_resource type="Script" path="res://scripts/ui/lobby.gd" id="1_lobby"]
-[ext_resource type="Texture2D" path="res://assets/brand/organic_mark.svg" id="2_organic"]
+[ext_resource type="Texture2D" path="res://assets/brand/logo_temp.svg" id="2_logo"]
 
 [node name="Lobby" type="Control"]
 script = ExtResource("1_lobby")
@@ -12,16 +12,16 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="OrganicMark" type="TextureRect" parent="."]
+[node name="LogoMark" type="TextureRect" parent="."]
 layout_mode = 1
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -38.0
+offset_left = -71.5
 offset_top = 20.0
-offset_right = 38.0
+offset_right = 71.5
 offset_bottom = 84.0
 grow_horizontal = 2
-texture = ExtResource("2_organic")
+texture = ExtResource("2_logo")
 expand_mode = 1
 stretch_mode = 5
 mouse_filter = 2

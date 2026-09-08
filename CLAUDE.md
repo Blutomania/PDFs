@@ -592,12 +592,14 @@ rather than via `Chrome.gd`. This was not (b)'s phone answer arriving early — 
 narrower placement this item had not anticipated, and it does not resolve the phone half above,
 which is still stage 3 and still unbuilt.
 
-**[Session 43] The mark's contrast is a real, measured problem — 73% of its ink at or below 2.5:1
-against `Palette.GROUND` (`scripts/check_brand_contrast.py`) — and it is OPEN again.** A light-plate
-fix (`Palette.PLATE`, a `PlatePanel`-styled card behind the mark) was built, shown to the owner, and
-rejected on sight ("I hate that mockup") — reverted the same session, before it saw a second
-playtest. **The owner is supplying replacement artwork**; nothing currently in `brand/` fixes this,
-and no further contrast remedy should be built without seeing that art first.
+**[Session 43] The organic monogram is replaced on `Lobby.tscn` with a temp placeholder — `LogoMark`
+now shows `godot/assets/brand/logo_temp.svg`, a plain copy of the owner's own upload
+(`icons/new logo/CYM_temp-removebg-preview.svg`), not wired into the `build_brand.py` mirror
+pipeline since it is explicitly not the final mark.** Owner: "I don't love it here either. Need to
+get an artist on it." No contrast fix applied — measured anyway so it is not a surprise later:
+**66% of its ink is at or below 2.5:1** against `Palette.GROUND`, worse in the fully-invisible band
+than the organic mark it replaced. Whatever the artist delivers should be run through
+`scripts/check_brand_contrast.py` before it is wired in for real.
 Full history: `docs/DECISIONS.md` item 17.
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**
