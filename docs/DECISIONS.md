@@ -608,6 +608,35 @@ that the superseded text has become history and belongs here instead.
     to the title inherits whatever the current failure rate is. Worth one real generation run to
     confirm before building on top of it.
 
+    **[Session 43] The organic monogram landed on Godot too — one screen, `Lobby.tscn`, top-centre
+    — and its contrast was audited and fixed the same session, not left as a caveat this time.**
+    A first pass spot-checked five fill values by hand and called it "roughly the same shape as the
+    negative mark's old defect" — wrong, and worth recording why: `scripts/check_brand_contrast.py`,
+    actually run rather than sampled, measured **73% of the mark's 309,450 opaque pixels at or below
+    2.5:1** against the ground. That is the same number the 2027 measurement above already reported
+    (49% → 73% after the vector re-cut) — it was never fixed, only the negative mark was. Ten times
+    the negative mark's remaining 7%, and its own worst fill sits at 1.12:1 — genuinely invisible,
+    not merely weak.
+
+    **This is not a one-path fix.** The negative mark's 53% traced to a single near-black fill on
+    one path; the organic mark's palette is 125 distinct fills forming a continuous terracotta
+    gradient with no clean offender to isolate, topping out around 4.3:1 at its lightest. Re-pitching
+    it would mean transforming the whole gradient, not changing one value, and would be editing the
+    owner's actual artwork rather than fixing a wiring defect — the checker's own printed verdict was
+    *"drawn for a light ground — re-pitch the values into the light half of the scale, or give the
+    mark a light plate to sit on."* Put to the owner as that choice, once the plate's own numbers
+    were known rather than assumed: white clears the most of the mark's own fills of every
+    background tried (5 of 125 still under 2.5:1, worst 2.35:1 — against 25 of 125 on `Palette.INK`
+    and 22 of 125 on a warm ivory tried in between). **Owner chose the plate.**
+
+    **Built as `Palette.PLATE` (`#FFFFFF`) in `palette.py`**, regenerated through into
+    `Palette.gd` and `mobile.html` the same "one file decides, two clients are generated from it"
+    way every other colour here does — deliberately NOT added to `CONTRAST_CONTRACT`, because that
+    contract measures flat UI ink against a UI background and this is a raster mark's own many-
+    coloured ink against a card behind it, a different kind of measurement with its own checker
+    already. `Lobby.tscn` gained a `PlatePanel`-styled `Panel` sized slightly larger than the mark
+    and placed immediately before it in node order, so it draws behind. No source SVG was touched.
+
 18. **[CLOSED, Session 41 — September 3 2026] A BLOCKING coherence report does not stop a
     mystery being saved, served, or played.** Not a coherence-engine failure — the opposite. The
     engine catches this exactly: `P1.C4.culprit_not_in_characters`, severity `BLOCKING`, message

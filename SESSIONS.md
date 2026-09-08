@@ -3229,6 +3229,18 @@ from across the room. Split into a new `CodeLabel` variation: same size and bras
 Bold instead. `DisplayLabel` now means only the main-menu wordmark, which is the single-use role its
 own comment already claimed.
 
+### The organic mark's contrast, audited for real and fixed
+
+The "spot-checked, not audited" line above was corrected the same session, at the owner's request.
+`scripts/check_brand_contrast.py`, actually run: **73% of the organic mark's ink sits at or below
+2.5:1** against the ground — ten times the negative mark's remaining 7%, and structurally different,
+a 125-fill gradient with no single offending path to recolor. Owner chose a light plate over
+re-pitching the source art, once the numbers were in: white clears the most of the mark's own fills
+of every background measured (5/125 still under 2.5:1, worst 2.35:1, vs. 25/125 on `Palette.INK`).
+New `Palette.PLATE` (`#FFFFFF`) in `palette.py`, regenerated through to `Palette.gd` and
+`mobile.html`; `Lobby.tscn` seats the mark on a new `PlatePanel`-styled card. No source SVG touched.
+Full numbers: `docs/DECISIONS.md` item 17.
+
 ### NOT done
 
 **Still nobody has run any of this in Godot.** Every fix this session addressed something the
@@ -3236,10 +3248,8 @@ owner's own eyes caught in a screenshot, which is real signal a checker can't pr
 also evidence that `check_godot_wiring.py` reading scene files rather than loading them is a real
 gap: the E2/E8/E10 bug, the icon-wrapper defect and the font lowercase issue were all invisible to
 every automated check that ran clean throughout. `VerifyScenes.gd` and `ApplyTheme.gd` still need
-the owner's machine. The organic mark's own fills were spot-checked against the ground (darkest
-sampled swatch, 2.46:1) but not audited as thoroughly as the negative mark's contrast fix in item 17
-— worth a real pass if it reads faint on the owner's screen. Session continues screen by screen; no
-further screenshot had arrived as of this entry.
+the owner's machine — see `docs/F5_CHECKLIST.md` for the exact steps. Session continues screen by
+screen; no further screenshot had arrived as of this entry.
 
 ---
 

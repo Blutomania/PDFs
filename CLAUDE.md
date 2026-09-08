@@ -591,6 +591,16 @@ mirrored to `godot/assets/brand/organic_mark.svg`) placed at the top of `Lobby.t
 rather than via `Chrome.gd`. This was not (b)'s phone answer arriving early — it is a second,
 narrower placement this item had not anticipated, and it does not resolve the phone half above,
 which is still stage 3 and still unbuilt.
+
+**[Session 43] The mark's contrast was audited and fixed, not left as a caveat.** The first render
+flagged it as merely spot-checked; the real `scripts/check_brand_contrast.py` run found **73% of
+the mark's ink at or below 2.5:1 against `Palette.GROUND`** — ten times worse than the negative
+mark's defect before its own fix (7%, now), and structurally different: a 125-colour gradient drawn
+for a light ground, not one offending path. Owner's choice between the checker's own two remedies:
+a light plate rather than re-pitching the source art. `Palette.PLATE` (`#FFFFFF`) is new in
+`palette.py`, and `Lobby.tscn` seats the mark on a `PlatePanel`-styled card. Measured, not assumed:
+white was chosen because it clears the most of the mark's own fills (5 of 125 still under 2.5:1,
+worst 2.35:1) of every background tried, including `Palette.INK`.
 Full history: `docs/DECISIONS.md` item 17.
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**
