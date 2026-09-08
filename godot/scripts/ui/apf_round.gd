@@ -130,13 +130,47 @@ func _render_requirement(state: Dictionary) -> void:
 ## that person, and the sharer's name goes on it. Nothing here greys a face on a
 ## narrowing (item 27): "man's size large" is a line the player draws, and a
 ## board that draws it for them deletes the deduction.
+## A square image slot with no image in it yet (owner, playtest FindingsSept7:
+## "we need more images in this game... images will come later when we use
+## GenAI"). "FPO" -- production shorthand for "for position only" -- says the
+## empty slot is deliberate. Deliberately NOT the PLAYTEST_FLOW.md video-slot
+## approach (fill the gap with the best real content available, a map instead
+## of an announcement) -- there IS no real-content stand-in for "what this
+## person looks like" the way a map stands in for a scene, so naming the gap
+## honestly is the only option that exists here, not a lesser copy of that one.
+func _fpo_square(square_size: float) -> Control:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(square_size, square_size)
+
+	var box := StyleBoxFlat.new()
+	box.bg_color = Palette.SURFACE_DEEP
+	box.border_color = Palette.LINE_SOFT
+	box.set_border_width_all(Palette.BORDER_WIDTH)
+	box.set_corner_radius_all(Palette.RADIUS_SMALL)
+	panel.add_theme_stylebox_override("panel", box)
+
+	var lbl := Label.new()
+	lbl.text = "FPO"
+	lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.add_theme_font_size_override("font_size", Palette.TYPE_LABEL)
+	lbl.add_theme_color_override("font_color", Palette.INK_FAINT)
+	panel.add_child(lbl)
+
+	return panel
+
 func _render_board() -> void:
 	for child in board_container.get_children():
 		child.queue_free()
 
 	for entry in GameState.apf_board():
 		var row: Dictionary = entry
+		var wrapper := HBoxContainer.new()
+		wrapper.add_theme_constant_override("separation", Palette.SPACE_SMALL)
+		wrapper.add_child(_fpo_square(40.0))
+
 		var box := VBoxContainer.new()
+		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 		var name_label := Label.new()
 		name_label.text = str(row.get("name", "?"))
@@ -145,9 +179,10 @@ func _render_board() -> void:
 		var cleared: bool = bool(row.get("cleared", false))
 		if cleared:
 			## Struck through and dimmed: the face is still on the board, because
-			## knowing who is out is half the deduction.
+			## knowing who is out is half the deduction. Dimming the WRAPPER, not
+			## just the name, so the FPO square dims along with it.
 			name_label.add_theme_color_override("font_color", Palette.INK_FAINT)
-			box.modulate = Color(1.0, 1.0, 1.0, 0.55)
+			wrapper.modulate = Color(1.0, 1.0, 1.0, 0.55)
 		else:
 			name_label.add_theme_color_override("font_color", Palette.INK)
 
@@ -160,11 +195,20 @@ func _render_board() -> void:
 			by_label.text = _cleared_by_text(row.get("cleared_by", []))
 			by_label.add_theme_color_override("font_color", Palette.INK_MUTED)
 		else:
-			by_label.text = "still standing"
-			by_label.add_theme_color_override("font_color", Palette.BRASS)
+			## NOT a verdict and not a nudge (owner, playtest FindingsSept7): this
+			## reports only that no shared finding has cleared them yet -- the same
+			## fact "cleared by X in round Y" reports in the other direction. The
+			## MECHANIC is unchanged (item 27's board still greys a face only on a
+			## shared exoneration); only the wording and visual weight of the
+			## not-yet-cleared state changed, from a phrase that reads as a verdict
+			## in an attention-grabbing accent (BRASS) to a neutral status in a
+			## quiet one.
+			by_label.text = "not yet cleared"
+			by_label.add_theme_color_override("font_color", Palette.INK_FAINT)
 		box.add_child(by_label)
 
-		board_container.add_child(box)
+		wrapper.add_child(box)
+		board_container.add_child(wrapper)
 		board_container.add_child(HSeparator.new())
 
 ## Attribution is the point, so the first name is spelled out rather than
@@ -180,6 +224,101 @@ func _cleared_by_text(sources: Array) -> String:
 	if sources.size() > 1:
 		text += " · and %d more" % (sources.size() - 1)
 	return text
+
+## The point at which a body cuts to its excerpt, when no sentence ending is
+## found short enough to use as one. Chosen to be a couple of lines on this
+## column's width, not a hard rule.
+const _EXCERPT_FALLBACK_CHARS: int = 140
+
+## Titles that end in a period without ending a sentence. Checked against the
+## word immediately before a "." candidate -- found by running the excerpt
+## against the accepted mystery's own real evidence text before trusting it:
+## E2 opens "Written notes made by Dr. Voss within thirty minutes..." and a
+## naive splitter cuts it to "Written notes made by Dr." -- a real defect in
+## real content, not a hypothetical one, caught by testing against data
+## instead of only against invented sentences.
+const _TITLE_ABBREVIATIONS: Array[String] = [
+	"mr", "mrs", "ms", "dr", "st", "capt", "rev", "prof", "jr", "sr", "mme", "mlle", "hon",
+]
+
+## A finding's excerpt: its OWN first sentence, verbatim -- never a generated
+## summary (owner, playtest FindingsSept7; see the reply in this same turn on
+## why that stays a deliberate, costed decision rather than a default). Falls
+## back to a hard cut at the nearest word boundary when there is no sentence
+## ending within a reasonable span, so one run-on paragraph cannot defeat the
+## whole point of excerpting.
+func _first_sentence(body: String) -> String:
+	var search_from: int = 0
+	while true:
+		var idx: int = -1
+		for mark in [". ", "! ", "? "]:
+			var found: int = body.find(mark, search_from)
+			if found != -1 and (idx == -1 or found < idx):
+				idx = found
+		if idx == -1:
+			break
+		if body[idx] == "." and _ends_in_title_abbreviation(body, idx):
+			search_from = idx + 1
+			continue
+		return body.substr(0, idx + 1)
+
+	if body.length() > 0 and body[body.length() - 1] in ".!?":
+		return body
+	if body.length() <= _EXCERPT_FALLBACK_CHARS:
+		return body
+	var cut: int = body.rfind(" ", _EXCERPT_FALLBACK_CHARS)
+	if cut <= 0:
+		cut = _EXCERPT_FALLBACK_CHARS
+	return body.substr(0, cut) + "…"
+
+## Whether the "." at `period_idx` closes a title abbreviation ("Dr.") rather
+## than a sentence -- the word immediately before it, case-insensitively.
+func _ends_in_title_abbreviation(body: String, period_idx: int) -> bool:
+	var start: int = period_idx
+	while start > 0 and body[start - 1] != " ":
+		start -= 1
+	var word: String = body.substr(start, period_idx - start).to_lower()
+	return word in _TITLE_ABBREVIATIONS
+
+## One finding's body, as a scannable bullet rather than a paragraph (owner,
+## playtest FindingsSept7: "the findings are summarized so you can ingest them
+## and begin to deduce from there"). "Full Finding", not "Full Testimony" --
+## a finding can be a witness statement, a clue or a lead, and only the first
+## of those is testimony. Skipped entirely when the excerpt already IS the
+## whole body: a link with nothing left to reveal is a dead link, not a
+## feature. Used by both this column and the shared pool below, so a finding
+## reads the same way wherever it is shown.
+func _body_block(body: String) -> Control:
+	var wrap := VBoxContainer.new()
+
+	var excerpt: String = _first_sentence(body)
+	var bullet := Label.new()
+	bullet.text = "•  " + excerpt
+	bullet.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	bullet.add_theme_color_override("font_color", Palette.INK_MUTED)
+	wrap.add_child(bullet)
+
+	if excerpt.strip_edges() == body.strip_edges():
+		return wrap
+
+	var full := Label.new()
+	full.text = body
+	full.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	full.add_theme_color_override("font_color", Palette.INK_MUTED)
+	full.visible = false
+	wrap.add_child(full)
+
+	var link := LinkButton.new()
+	link.text = "Full Finding"
+	link.add_theme_font_size_override("font_size", Palette.TYPE_LABEL)
+	link.pressed.connect(func() -> void:
+		full.visible = not full.visible
+		bullet.visible = not full.visible
+		link.text = "Show less" if full.visible else "Full Finding"
+	)
+	wrap.add_child(link)
+
+	return wrap
 
 ## Your casefile. Findings you have already shared stay in it — an investigator
 ## cannot be made to forget — but they carry no checkbox, because there is
@@ -217,11 +356,7 @@ func _render_casefile() -> void:
 		head.add_child(title)
 		box.add_child(head)
 
-		var body := Label.new()
-		body.text = str(finding.get("body", ""))
-		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		body.add_theme_color_override("font_color", Palette.INK_MUTED)
-		box.add_child(body)
+		box.add_child(_body_block(str(finding.get("body", ""))))
 
 		if shared:
 			box.modulate = Color(1.0, 1.0, 1.0, 0.7)
@@ -266,11 +401,7 @@ func _render_pool(state: Dictionary) -> void:
 		title.add_theme_color_override("font_color", Palette.INK)
 		box.add_child(title)
 
-		var body := Label.new()
-		body.text = str(item.get("body", ""))
-		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		body.add_theme_color_override("font_color", Palette.INK_MUTED)
-		box.add_child(body)
+		box.add_child(_body_block(str(item.get("body", ""))))
 
 		pool_container.add_child(box)
 		pool_container.add_child(HSeparator.new())
