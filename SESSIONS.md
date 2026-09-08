@@ -3277,10 +3277,59 @@ multiplayer section can, and `GET /mysteries` reports `apf_ready` per mystery so
 what cannot be assigned — **1 of 17 qualifies**, and the other 16 say why (12 have three suspects,
 3 are too small for two rounds, 1 has narrowing as load-bearing).
 
+### The owner's F5 ran, found a parse error at boot — and the walkthrough finished anyway
+
+Right on schedule: **"Not verified, and the list is short"** named "nothing here has been run in
+Godot" as the risk, and the very first load surfaced a parse error nothing in this session's
+environment could have caught. Not in the APF path itself — in `godot/scripts/theme/Icons.gd`,
+last touched Session 37 and untouched by this session's work, which is exactly why it had gone
+this long unnoticed: nothing had pressed F5 since.
+
+**It printed and did not block.** `grep`ing every script and scene for `Icons.` turns up nothing
+outside `Icons.gd` itself — the icon sets are wired to no client (`CLAUDE.md` already says so; they
+ship empty until artwork lands in `icons/`). Godot parses every `.gd` it discovers at boot and logs
+a failure for each one that cannot load, but a script nothing calls into cannot block anything that
+does not call it. So the error sat in the Output panel as noise, and the owner completed the entire
+playtest — the full APF path, round screen included — with it still there. Worth recording because
+it is a distinction the earlier draft of this entry got wrong before being corrected: a parse
+failure is fatal to the *file*, not automatically to the *session*, and which one you get depends
+entirely on the dependency graph.
+
+```
+ERROR: res://scripts/theme/Icons.gd:34 - Parse Error: Unterminated string.
+```
+
+**The cause was stranger than the message.** `const _SEP: String = "<byte>"` — the separator
+`Icons._pick()` uses to glue `salt + _SEP + key` before hashing a seed — held a **literal NUL byte
+between the quotes**, not the printable character the surrounding comment described. A real NUL
+sitting in a GDScript string literal doesn't produce a one-character string containing NUL; it
+breaks the lexer's ability to find the closing quote at all, so the parser reports an unterminated
+string on a line where the quotes visibly balance. The *intent* — "a character that cannot appear
+in a real key or salt" — was sound. The literal byte was not. Fixed with a `` escape, which
+parses to the same one-character separator without confusing the lexer.
+
+**Why no checker caught it, and why that was a real gap, not a coincidence.** `check_godot_wiring.py`
+already claimed "no script carries a parse-level defect" in its own pass/fail summary — and it was
+wrong to claim that, because its parse-level checking was two regexes for two previously-seen
+failure shapes (Python-style docstrings; implicit adjacent-string concatenation), not anything that
+runs a real GDScript grammar. A raw control byte inside a string literal was a third shape nobody
+had written a rule for. Closed with a fourth check, `check_control_bytes()`: any C0 control byte
+(0x00–0x1F, excluding tab/newline/CR) sitting literally in a `.gd` file's source text is now a
+FAIL, with the line number and a `\uXXXX` escape suggested in the message. Proved against the exact
+defect before trusting it — a synthetic NUL-in-a-string-literal fails, the fixed file and ordinary
+tab/newline/CR usage do not.
+
+**The standing lesson, already written down and worth re-reading rather than re-learning:**
+`CLAUDE.md`'s Godot section says nothing in a session environment can load a scene or script through
+the real engine, so checks here read files rather than running them — "necessary, not sufficient."
+This is the concrete shape that sentence has taken twice now (Session 36's three defects, this
+one): the free checkers narrow the search space and nothing more. A human's F5 is still the only
+thing that has ever found a defect of this kind, and will be again.
+
 ### Next session
 
-1. **The owner walks it in Godot.** `docs/F5_CHECKLIST.md`, steps 3, 4, 4b, then the APF path. This
-   is the only remaining unknown on the stage-1 critical path.
+1. **The owner's aesthetic feedback from the completed playtest** — the actual next item; see
+   whatever session picks this up immediately after, since it lands in the same working session.
 2. Then build-order **step 5** — remove the six play-time call sites. The resolution narrative is
    the one that matters, and it is now non-fatal rather than gone.
 3. The paced opening screen (step 4's client half). `_generate_opening_narration()` already writes
