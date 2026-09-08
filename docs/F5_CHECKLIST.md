@@ -209,7 +209,7 @@ committed. **Run** fails on it with *"Can't run project: Assets need to be impor
 
 Click **Edit** and let the initial import finish. The fonts and eight SVG icons are imported here.
 
-Then check **Project → Project Settings → Globals**. **Expect four entries**, in this order:
+Then check **Project → Project Settings → Globals**. **Expect five entries**, in this order:
 
 > **The tab is called Autoload in Godot 4.6 and earlier, and Globals from 4.7.** Same panel, same
 > contents; 4.7 renamed it. Verified on 4.7.2 (Session 40) after the owner went looking for an
@@ -221,9 +221,17 @@ Then check **Project → Project Settings → Globals**. **Expect four entries**
 | `GameState` | current mystery, phase, history |
 | `ApiClient` | HTTP and WebSocket calls to the backend |
 | `NetworkManager` | ENet singleton — present but wired to nothing |
-| `Style` | builds the theme. **Must be last** — it reads `Palette.gd` |
+| `Style` | builds the theme. Second-to-last — it reads `Palette.gd` |
+| `Chrome` | the brand mark, added on top of every screen. **Must be last** — it draws over whatever theme `Style` already set |
 
-If `Style` is missing or not last, that alone explains a completely unstyled game.
+**`Chrome` was added in Session 42/43 and this table was never updated to match** — a session
+walking this checklist as it read before this fix would see `Style` sitting one slot above the
+bottom, "must be last" right there in the row, and reasonably move `Style` below `Chrome` to
+match. That is backwards: `Chrome`'s whole job is to draw on top of `Style`'s theme, so `Style` has
+to run first. If you did this, **move `Chrome` back to the last position, below `Style`.**
+
+If `Chrome` is missing or not last, that alone explains a theme with no brand mark on it, or a mark
+that looks wrong because it drew before the theme it should sit on top of existed yet.
 
 ## 7. Run `VerifyScenes.gd` — before anything else
 
