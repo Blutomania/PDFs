@@ -150,21 +150,28 @@ func _style_fonts(t: Theme) -> void:
 		t.set_font("font", "PrimaryButton", semibold)
 		t.set_font("font", "DangerButton", semibold)
 
-	## DisplayLabel and MysteryTitleLabel are BRAND and MYSTERY-TITLE moments
-	## -- the game's own name on MainMenu/Lobby, and a generated mystery's own
-	## dramatic title on CaseDisplay -- not functional screen headers. Cinzel
-	## Decorative there; NunitoSans everywhere else. Deliberately NOT applied
-	## to TitleLabel, which is used broadly for workaday status headers
+	## DisplayLabel, MysteryTitleLabel and VerdictLabel are BRAND and
+	## DRAMATIC-MOMENT text -- the game's own name on MainMenu/Lobby, a
+	## generated mystery's own title on CaseDisplay, and the win/lose banner
+	## on ResultScreen -- not functional screen headers. Cinzel Decorative
+	## there; NunitoSans everywhere else. Deliberately NOT applied to
+	## TitleLabel, which is used broadly for workaday status headers
 	## ("Round 2 of 4", "Set Your Mystery") that are read fast during play --
 	## a heavy decorative serif risks looking overwrought there, and this was
 	## a scope call flagged to the owner rather than assumed (font upload,
 	## playtest SolvedSept7).
+	##
+	## THE TIER IS BY WEIGHT, NOT BY SCREEN. Black is reserved for the game's
+	## own identity (DisplayLabel only); MysteryTitleLabel and VerdictLabel
+	## share Bold -- both are in-fiction dramatic beats one notch below the
+	## brand name itself, not two different things arbitrarily styled alike.
 	var display_black: Font = _font("CinzelDecorative-Black.ttf")
 	var display_bold: Font = _font("CinzelDecorative-Bold.ttf")
 	if display_black:
 		t.set_font("font", "DisplayLabel", display_black)
 	if display_bold:
 		t.set_font("font", "MysteryTitleLabel", display_bold)
+		t.set_font("font", "VerdictLabel", display_bold)
 
 
 func _font(file_name: String) -> Font:
@@ -402,6 +409,18 @@ func _declare_variations(t: Theme) -> void:
 	t.set_type_variation("MysteryTitleLabel", "Label")
 	t.set_color("font_color", "MysteryTitleLabel", Palette.BRASS)
 	t.set_font_size("font_size", "MysteryTitleLabel", Palette.TYPE_TITLE)
+
+	## The outcome banner on ResultScreen -- "Correct! X is the culprit." /
+	## "Wrong. You accused X." A DIFFERENT variation from MysteryTitleLabel
+	## on purpose (owner, font follow-up on playtest SolvedSept7): a verdict
+	## is not a mystery title, even though both are the one big dramatic
+	## announcement a screen opens on and both now wear Cinzel Decorative.
+	## Base colour is INK and is never actually seen -- result_screen.gd
+	## overrides it to POSITIVE or NEGATIVE the instant it sets the text --
+	## kept here anyway so the variation is never colourless before that runs.
+	t.set_type_variation("VerdictLabel", "Label")
+	t.set_color("font_color", "VerdictLabel", Palette.INK)
+	t.set_font_size("font_size", "VerdictLabel", Palette.TYPE_TITLE)
 
 	## Section headers within a screen: "Suspects", "Evidence", "Witnesses".
 	t.set_type_variation("HeadingLabel", "Label")
