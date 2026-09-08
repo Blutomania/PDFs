@@ -55,12 +55,12 @@ static func witness(key: String, salt: String = "") -> String:
 	return _pick(IconSet.WITNESS, key, salt)
 
 
-## Pick a suspect icon. Same contract as clue(). INERT UNTIL ARTWORK LANDS:
-## IconSet.SUSPECT ships empty (owner is supplying it separately, playtest
-## StartPageSept7), _pick() returns "" for an empty set, and texture("")
-## returns null -- so a suspect row draws no icon today, exactly as it does
-## right now, and starts drawing one automatically the moment SVGs land in
-## icons/suspect/ and scripts/build_icons.py runs. No code change needed then.
+## Pick a suspect icon. Same contract as clue(). Was inert -- IconSet.SUSPECT
+## shipped empty while the owner sourced artwork separately (playtest
+## StartPageSept7) -- until playtest FindingsSept8, when three PNGs landed in
+## icons/suspect/ and scripts/build_icons.py ran. No code change was needed
+## to activate it: _pick()/texture()'s empty-set handling is exactly what made
+## that possible, and it is what a FOURTH suspect icon would still need today.
 static func suspect(key: String, salt: String = "") -> String:
 	return _pick(IconSet.SUSPECT, key, salt)
 

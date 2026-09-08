@@ -25,5 +25,7 @@ const WITNESS: Array[String] = [
 ]
 
 const SUSPECT: Array[String] = [
-	# none yet -- drop SVGs into icons/suspect/
+	"res://assets/icons/suspect/Suspect2.png",
+	"res://assets/icons/suspect/suspect1.png",
+	"res://assets/icons/suspect/suspect3.png",
 ]
