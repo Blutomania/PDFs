@@ -121,21 +121,6 @@ BRASS_DIM = "#8A6F1B"     # pressed, and disabled-but-still-primary
 STEEL = "#4E6E90"     # a FILL, so it is pitched dark enough for INK to sit on it
 STEEL_BRIGHT = "#759BC8"  # hover only
 
-# PLATE exists for exactly one problem: brand art drawn for a light ground,
-# sitting on this dark one. scripts/check_brand_contrast.py measured
-# brand/NEWorganic_cym.svg at 73% of its ink at or below 2.5:1 against GROUND
-# -- ten times worse than the negative mark's defect before item 17's fix --
-# and its own verdict was "drawn for a light ground... give the mark a light
-# plate to sit on" (Session 43, owner's call between the two remedies offered).
-# Plain white measured best of the candidates tried: 5 of 125 of the mark's own
-# fills still fall under 2.5:1 even here (worst 2.35:1), against 25 on INK and
-# 22 on a warm ivory -- this mark's own palette is a narrow mid-tone gradient,
-# so no background clears it completely, and white clears the most of it.
-# NOT in CONTRAST_CONTRACT below: that contract is UI text on a UI background,
-# and this is a raster/vector mark's own multi-colour ink on a card behind it
-# -- a different measurement, which is why it has its own checker.
-PLATE = "#FFFFFF"
-
 
 # ---------------------------------------------------------------------------
 # Semantic
@@ -311,7 +296,6 @@ COLOURS: Dict[str, str] = {
     "brass_dim": BRASS_DIM,
     "steel": STEEL,
     "steel_bright": STEEL_BRIGHT,
-    "plate": PLATE,
     "positive": POSITIVE,
     "negative": NEGATIVE,
     "caution": CAUTION,

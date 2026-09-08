@@ -592,15 +592,12 @@ rather than via `Chrome.gd`. This was not (b)'s phone answer arriving early — 
 narrower placement this item had not anticipated, and it does not resolve the phone half above,
 which is still stage 3 and still unbuilt.
 
-**[Session 43] The mark's contrast was audited and fixed, not left as a caveat.** The first render
-flagged it as merely spot-checked; the real `scripts/check_brand_contrast.py` run found **73% of
-the mark's ink at or below 2.5:1 against `Palette.GROUND`** — ten times worse than the negative
-mark's defect before its own fix (7%, now), and structurally different: a 125-colour gradient drawn
-for a light ground, not one offending path. Owner's choice between the checker's own two remedies:
-a light plate rather than re-pitching the source art. `Palette.PLATE` (`#FFFFFF`) is new in
-`palette.py`, and `Lobby.tscn` seats the mark on a `PlatePanel`-styled card. Measured, not assumed:
-white was chosen because it clears the most of the mark's own fills (5 of 125 still under 2.5:1,
-worst 2.35:1) of every background tried, including `Palette.INK`.
+**[Session 43] The mark's contrast is a real, measured problem — 73% of its ink at or below 2.5:1
+against `Palette.GROUND` (`scripts/check_brand_contrast.py`) — and it is OPEN again.** A light-plate
+fix (`Palette.PLATE`, a `PlatePanel`-styled card behind the mark) was built, shown to the owner, and
+rejected on sight ("I hate that mockup") — reverted the same session, before it saw a second
+playtest. **The owner is supplying replacement artwork**; nothing currently in `brand/` fixes this,
+and no further contrast remedy should be built without seeing that art first.
 Full history: `docs/DECISIONS.md` item 17.
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**

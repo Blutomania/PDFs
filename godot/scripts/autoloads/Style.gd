@@ -411,17 +411,6 @@ func _style_windows(t: Theme) -> void:
 ## every label they add, and the ones below cover the roles the nine screens
 ## actually contain.
 func _declare_variations(t: Theme) -> void:
-	## A light card a piece of brand art sits on when the art itself was drawn
-	## for a light ground (Session 43: brand/NEWorganic_cym.svg measured 73% of
-	## its ink at or below 2.5:1 against Palette.GROUND -- see palette.py's
-	## PLATE comment for the numbers behind the choice of white). This is NOT
-	## a general panel role -- everything else in the product sits on the dark
-	## surface ramp on purpose, per palette.py's own reasoning for sinking
-	## panels rather than lifting them. One flat fill, no border: a seam
-	## between plate and card would be one more thing to explain for no gain.
-	t.set_type_variation("PlatePanel", "Panel")
-	t.set_stylebox("panel", "PlatePanel", _panel(Palette.PLATE, Palette.RADIUS_CARD, Palette.PLATE))
-
 	## The product's own name, on the main menu. Nowhere else.
 	t.set_type_variation("DisplayLabel", "Label")
 	t.set_color("font_color", "DisplayLabel", Palette.BRASS)

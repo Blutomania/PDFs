@@ -3229,7 +3229,7 @@ from across the room. Split into a new `CodeLabel` variation: same size and bras
 Bold instead. `DisplayLabel` now means only the main-menu wordmark, which is the single-use role its
 own comment already claimed.
 
-### The organic mark's contrast, audited for real and fixed
+### The organic mark's contrast, audited for real, fixed, then reverted
 
 The "spot-checked, not audited" line above was corrected the same session, at the owner's request.
 `scripts/check_brand_contrast.py`, actually run: **73% of the organic mark's ink sits at or below
@@ -3237,9 +3237,15 @@ The "spot-checked, not audited" line above was corrected the same session, at th
 a 125-fill gradient with no single offending path to recolor. Owner chose a light plate over
 re-pitching the source art, once the numbers were in: white clears the most of the mark's own fills
 of every background measured (5/125 still under 2.5:1, worst 2.35:1, vs. 25/125 on `Palette.INK`).
-New `Palette.PLATE` (`#FFFFFF`) in `palette.py`, regenerated through to `Palette.gd` and
-`mobile.html`; `Lobby.tscn` seats the mark on a new `PlatePanel`-styled card. No source SVG touched.
-Full numbers: `docs/DECISIONS.md` item 17.
+Built as `Palette.PLATE` and a `PlatePanel`-styled card behind the mark in `Lobby.tscn`.
+
+**Shown to the owner and rejected on sight: "I hate that mockup. I will come up with something to
+use instead."** All of it reverted the same session — `Palette.PLATE`, `PlatePanel`,
+`Lobby.tscn`'s plate node — before it reached a second playtest. `OrganicMark` sits exactly where
+it did before the plate; the contrast problem is real and unchanged (still 73%), and the owner is
+supplying replacement artwork rather than having this session pick a fix for art they had not
+approved the look of. The measurement being correct and the fix being wanted turned out to be two
+different bars. Full account: `docs/DECISIONS.md` item 17.
 
 ### NOT done
 

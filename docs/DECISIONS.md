@@ -637,6 +637,17 @@ that the superseded text has become history and belongs here instead.
     already. `Lobby.tscn` gained a `PlatePanel`-styled `Panel` sized slightly larger than the mark
     and placed immediately before it in node order, so it draws behind. No source SVG was touched.
 
+    **[REVERTED, same session, before it reached a second playtest.]** Rendered and sent for a
+    look, the way the negative-mark fix above was — and this time the answer was not a number, it
+    was *"No, I lied. I hate that mockup. I will come up with something to use instead."* `Palette.PLATE`,
+    the `PlatePanel` variation, and `Lobby.tscn`'s plate node are all gone again; `OrganicMark` sits
+    exactly where it did before the plate, contrast problem and all. **The measurement stands and
+    the problem is real** — 73% of the mark's ink is still at or below 2.5:1 against the ground, and
+    that has not changed — but the remedy is now the owner's own replacement artwork, not a fix
+    applied to `NEWorganic_cym.svg` sight-unseen. Worth carrying forward as the general lesson the
+    negative mark's fix did not teach: a percentage clearing a floor is not the same claim as
+    "the owner likes how this looks," and only one of those two is actually the bar.
+
 18. **[CLOSED, Session 41 — September 3 2026] A BLOCKING coherence report does not stop a
     mystery being saved, served, or played.** Not a coherence-engine failure — the opposite. The
     engine catches this exactly: `P1.C4.culprit_not_in_characters`, severity `BLOCKING`, message
