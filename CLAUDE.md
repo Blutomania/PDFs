@@ -584,6 +584,13 @@ mark, upper-left, on every screen: `Chrome.gd`, a new autoload. The phone half o
 monogram, top-centre) is still open and still stage 3 — `mobile.html` has no chrome pass at all.
 **The window icon is a SEPARATE, still-open question** — (b) was said to unblock it, but nobody has
 asked for it yet, and `project.godot`'s `config/icon` stays deliberately unset until someone does.
+
+**[Session 43] The organic mark also landed on Godot, top-centre, but on ONE screen, not every
+screen.** Owner, playtest WaitingSept7: the organic monogram (`brand/NEWorganic_cym.svg`, already
+mirrored to `godot/assets/brand/organic_mark.svg`) placed at the top of `Lobby.tscn`, scene-local
+rather than via `Chrome.gd`. This was not (b)'s phone answer arriving early — it is a second,
+narrower placement this item had not anticipated, and it does not resolve the phone half above,
+which is still stage 3 and still unbuilt.
 Full history: `docs/DECISIONS.md` item 17.
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**

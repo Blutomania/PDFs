@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3 uid="uid://b1lobb000001"]
+[gd_scene load_steps=3 format=3 uid="uid://b1lobb000001"]
 
 [ext_resource type="Script" path="res://scripts/ui/lobby.gd" id="1_lobby"]
+[ext_resource type="Texture2D" path="res://assets/brand/organic_mark.svg" id="2_organic"]
 
 [node name="Lobby" type="Control"]
 script = ExtResource("1_lobby")
@@ -11,6 +12,40 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="OrganicMark" type="TextureRect" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -38.0
+offset_top = 20.0
+offset_right = 38.0
+offset_bottom = 84.0
+grow_horizontal = 2
+texture = ExtResource("2_organic")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="StatusBox" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -232.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = 148.0
+grow_horizontal = 0
+
+[node name="StatusLabel" type="Label" parent="StatusBox"]
+theme_type_variation = &"TitleLabel"
+layout_mode = 2
+size_flags_vertical = 3
+text = "Waiting
+for
+Players"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="VBox" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 8
@@ -19,17 +54,11 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -280.0
-offset_top = -280.0
+offset_top = -240.0
 offset_right = 280.0
-offset_bottom = 280.0
+offset_bottom = 320.0
 grow_horizontal = 2
 grow_vertical = 2
-
-[node name="TitleLabel" type="Label" parent="VBox"]
-theme_type_variation = &"TitleLabel"
-layout_mode = 2
-text = "Waiting for Players"
-horizontal_alignment = 1
 
 [node name="MysteryTitleLabel" type="Label" parent="VBox"]
 theme_type_variation = &"MysteryTitleLabel"
@@ -48,7 +77,7 @@ text = "Room Code"
 horizontal_alignment = 1
 
 [node name="RoomCodeLabel" type="Label" parent="VBox"]
-theme_type_variation = &"DisplayLabel"
+theme_type_variation = &"CodeLabel"
 layout_mode = 2
 text = "------"
 horizontal_alignment = 1
@@ -95,9 +124,3 @@ text = "Start Game"
 theme_type_variation = &"QuietButton"
 layout_mode = 2
 text = "Cancel"
-
-[node name="StatusLabel" type="Label" parent="VBox"]
-theme_type_variation = &"FaintLabel"
-layout_mode = 2
-text = ""
-horizontal_alignment = 1

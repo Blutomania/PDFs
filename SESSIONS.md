@@ -3207,6 +3207,28 @@ created, so time spent chatting in the lobby isn't counted as play.
   owner directly, since no Godot binary is reachable from this session (see CLAUDE.md's Godot
   notes) and every visual claim in this session was checked against a render rather than assumed.
 
+### Lobby (owner's screenshot: WaitingSept7)
+
+The organic brand mark (`brand/NEWorganic_cym.svg`) wired in, top-centre, scene-local to
+`Lobby.tscn` rather than through `Chrome.gd` — this is a narrower placement than item 17's still-open
+phone-chrome question and does not resolve it. "Waiting for Players" moved from the centered column
+to a new top-right `StatusBox`, three lines of one word each, and that box is now where every status
+this screen shows lives — `_on_start()`'s "Starting…" and a start error now write into the same
+label instead of a second one at the bottom of the column. Player names now render at the same size
+as the room code (`PlayerNameLabel`, a new theme variation at `Palette.TYPE_DISPLAY`) rather than the
+game's own default body size — the owner's reasoning: in a social game, who you're playing with
+outranks almost everything else on the screen. Kept to NunitoSans Bold rather than Cinzel Decorative
+on purpose, since these render free-typed player names and Cinzel Decorative's missing lowercase
+would turn an ordinary name into small caps nobody asked for.
+
+**Immediate follow-up, from the render itself:** the room code was still on `DisplayLabel` (Cinzel
+Decorative Black) and the owner called it out as hard to read the moment they saw it rendered — an
+alphanumeric code is exactly the string that font's small-caps rendering hurts most, and unlike the
+main-menu wordmark it is not a brand moment, it is a string a second person has to type correctly
+from across the room. Split into a new `CodeLabel` variation: same size and brass colour, NunitoSans
+Bold instead. `DisplayLabel` now means only the main-menu wordmark, which is the single-use role its
+own comment already claimed.
+
 ### NOT done
 
 **Still nobody has run any of this in Godot.** Every fix this session addressed something the
@@ -3214,8 +3236,10 @@ owner's own eyes caught in a screenshot, which is real signal a checker can't pr
 also evidence that `check_godot_wiring.py` reading scene files rather than loading them is a real
 gap: the E2/E8/E10 bug, the icon-wrapper defect and the font lowercase issue were all invisible to
 every automated check that ran clean throughout. `VerifyScenes.gd` and `ApplyTheme.gd` still need
-the owner's machine. Session continues screen by screen; no further screenshot had arrived as of
-this entry.
+the owner's machine. The organic mark's own fills were spot-checked against the ground (darkest
+sampled swatch, 2.46:1) but not audited as thoroughly as the negative mark's contrast fix in item 17
+— worth a real pass if it reads faint on the owner's screen. Session continues screen by screen; no
+further screenshot had arrived as of this entry.
 
 ---
 
