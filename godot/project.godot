@@ -31,6 +31,11 @@ NetworkManager="*res://scripts/autoloads/NetworkManager.gd"
 ; Control inherits. It is listed LAST because it reads Palette.gd, and it is
 ; an autoload rather than a .tres so the palette lives in exactly one place.
 Style="*res://scripts/autoloads/Style.gd"
+; Chrome adds the one thing Style's theme cannot: an actual node (the brand
+; mark, upper-left) that has to survive every scene swap. Listed after Style
+; for the same reason Style is listed after everything else -- it is the
+; final visual layer, added on top of whatever the theme already set.
+Chrome="*res://scripts/autoloads/Chrome.gd"
 
 [display]
 

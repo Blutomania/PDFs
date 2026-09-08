@@ -552,6 +552,33 @@ that the superseded text has become history and belongs here instead.
       otherwise scopes to MYF. A noir question mark is a different object from a strewn field, so
       this may well be fine — but deliberately, not by drift.
 
+    **[DECIDED, playtest StartPageSept7] The desktop half.** Owner: put the logo upper-left on
+    every screen. That is the negative mark, at the exact placement this item already specified
+    for desktop/TV — so the "different marks per device" question above is now answered for the
+    Godot client specifically, not for the room as a whole. The phone half (organic monogram,
+    top-centre) is untouched and still open; `mobile.html` has no chrome pass of any kind yet, so
+    there is nothing there to place it against. The question-mark-motif point directly above was
+    NOT re-litigated when this was asked — flagged to the owner in the same turn the mark was
+    wired in, not decided unilaterally either way.
+
+    **Built as `godot/scripts/autoloads/Chrome.gd`**, a fifth autoload, for the same reason
+    `Style.gd` is one: `change_scene_to_file()` discards and rebuilds the current-scene tree
+    wholesale, so anything living inside a `.tscn` needs adding nine separate times today and
+    again for every screen this project ever grows. Chrome adds its `CanvasLayer` straight to
+    `get_tree().root` in `_ready()`, which survives every scene swap for free. Also built:
+    `scripts/build_brand.py`, the same "generated, then checked" mirror `palette.py` and `icons/`
+    already use, copying `brand/NEWnegative_CYM.svg` byte-exact into
+    `godot/assets/brand/negative_mark.svg` — no recolouring, because a brand mark is a fixed
+    identity rather than a retintable icon, which is exactly the distinction `build_icons.py`
+    draws for the OTHER direction (why it recolours the clue/witness sets and this script does
+    not).
+
+    **The contrast measurement above is unchanged and was surfaced again before wiring anything
+    in**, not silently inherited: 53% of the negative mark's ink still sits at or below 2.5:1
+    against the slate ground. This is a property of the artwork, not of the wiring, and fixing it
+    means re-pitching fill values on the source SVG — a decision for whoever owns the mark. Flagged
+    to the owner in the same turn rather than left for a screenshot to surface on its own.
+
     **Unrelated, noticed while checking and worth one look before building on generation:** an old
     batch summary in `mystery_database/generated/` shows **13 of 14 generations failing** on JSON
     parse errors (`Unterminated string`, `Expecting property name`). It is from March and 16

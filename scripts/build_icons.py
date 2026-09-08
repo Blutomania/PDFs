@@ -55,7 +55,7 @@ sys.path.insert(0, str(ROOT))
 import palette  # noqa: E402
 
 SRC = ROOT / "icons"
-SETS = ("clue", "witness")
+SETS = ("clue", "witness", "suspect")
 
 GODOT_OUT = ROOT / "godot" / "assets" / "icons"
 PHONE_OUT = ROOT / "server" / "static" / "icons"

@@ -109,7 +109,11 @@ func _populate() -> void:
 
 	var suspects := _mystery.get_suspects()
 	for i in range(suspects.size()):
-		_add_cast_row("Suspect %d:" % (i + 1), suspects[i].name, suspects[i].occupation, Palette.BRASS)
+		## No `.id` field on CharacterData -- `.name` is the stable, unique-
+		## per-mystery key the server side already treats it as, so it is the
+		## right seed for Icons.suspect() too.
+		var suspect_icon: String = Icons.suspect(suspects[i].name, GameState.game_id)
+		_add_cast_row("Suspect %d:" % (i + 1), suspects[i].name, suspects[i].occupation, Palette.BRASS, suspect_icon)
 
 	var witnesses := _mystery.characters.filter(func(c): return c.role == "witness")
 	for i in range(witnesses.size()):
@@ -131,8 +135,8 @@ func _populate() -> void:
 	# --- Evidence ---
 	for child in evidence_container.get_children():
 		child.queue_free()
-	for ev in _mystery.evidence:
-		_add_evidence_row(ev)
+	for i in range(_mystery.evidence.size()):
+		_add_evidence_row(i, _mystery.evidence[i])
 
 	# --- Gameplay notes ---
 	var twists_text := " · ".join(_mystery.key_twists) if _mystery.key_twists else "none"
@@ -162,20 +166,65 @@ func _populate() -> void:
 ## `role_label` is the finished heading -- "The Victim:", "Suspect 2:" -- not a
 ## bare tag. Numbering a suspect or witness needs the loop index, which lives
 ## with the caller, not here.
-func _add_cast_row(role_label: String, name: String, occupation: String, color: Color) -> void:
+## `icon_path` is optional (default "" -- no icon drawn), matching the way
+## Icons.texture() itself degrades: a role with no icon set yet (victim,
+## witness -- SUSPECT is the only set wired to a row so far, playtest
+## StartPageSept7) renders exactly as it did before this parameter existed.
+func _add_cast_row(role_label: String, name: String, occupation: String, color: Color,
+		icon_path: String = "") -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", Palette.SPACE_SMALL)
+
+	var icon_tex: Texture2D = Icons.texture(icon_path)
+	if icon_tex:
+		var icon_rect := TextureRect.new()
+		icon_rect.texture = icon_tex
+		icon_rect.custom_minimum_size = Vector2(20, 20)
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.modulate = Icons.tint()
+		row.add_child(icon_rect)
+
 	var lbl := Label.new()
 	lbl.text = "%s %s — %s" % [role_label, name, occupation]
 	lbl.add_theme_color_override("font_color", color)
-	cast_container.add_child(lbl)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
 
-func _add_evidence_row(ev: MysteryData.EvidenceData) -> void:
+	cast_container.add_child(row)
+
+## `index` is this clue's position among ALL evidence (0-based); the row reads
+## "Clue 1:", "Clue 2:", ... in that order -- the id (`ev.id`, "E1") stays the
+## STORAGE key, matching cast rows' "Suspect 1:"/"Witness 1:" numbering
+## (owner, playtest StartPageSept7).
+func _add_evidence_row(index: int, ev: MysteryData.EvidenceData) -> void:
 	# Dictionary.get() returns Variant, so `:=` infers Variant here and Godot
 	# treats that inference as an error. The type has to be stated.
 	var relevance_icon: String = {"critical": "★", "red_herring": "✗", "supporting": "·"}.get(ev.relevance, "·")
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", Palette.SPACE_SMALL)
+
+	## Decorative only -- Icons.gd's own rule: which of the four magnifiers
+	## lands here carries no information about the clue. Seeded on the clue's
+	## own id plus the game id, so it stays stable for as long as anyone is
+	## looking at it and reshuffles between games (owner, playtest
+	## StartPageSept7 -- the first screen this ever gets wired to).
+	var icon_tex: Texture2D = Icons.texture(Icons.clue(ev.id, GameState.game_id))
+	if icon_tex:
+		var icon_rect := TextureRect.new()
+		icon_rect.texture = icon_tex
+		icon_rect.custom_minimum_size = Vector2(20, 20)
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.modulate = Icons.tint()
+		row.add_child(icon_rect)
+
 	var lbl := Label.new()
-	lbl.text = "%s [%s] %s (%s)" % [relevance_icon, ev.id, ev.name, ev.type]
+	lbl.text = "%s Clue %d: %s (%s)" % [relevance_icon, index + 1, ev.name, ev.type]
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	evidence_container.add_child(lbl)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+
+	evidence_container.add_child(row)
 
 func _build_viability_buttons() -> void:
 	# Free only the buttons this function added. The previous version freed

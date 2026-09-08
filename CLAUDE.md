@@ -139,8 +139,8 @@ because it decides what counts as a blocker.
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │  Godot 4.x desktop client (godot/)  — the host / TV screen    │
-│  GDScript 2.0. Four autoloads: GameState, ApiClient,          │
-│  NetworkManager, Style.  Nine .tscn screens.                  │
+│  GDScript 2.0. Five autoloads: GameState, ApiClient,          │
+│  NetworkManager, Style, Chrome.  Nine .tscn screens.           │
 └───────────────┬──────────────────────────────────────────────┘
                 │ HTTP JSON  (ApiClient.gd)
 ┌───────────────▼──────────────────────────────────────────────┐
@@ -190,6 +190,7 @@ and the WebSocket.
 | `godot/scripts/autoloads/ApiClient.gd` | HTTP + WebSocket wrapper for the backend |
 | `godot/scripts/autoloads/NetworkManager.gd` | ENet singleton — present, unwired (see Architecture) |
 | `godot/scripts/autoloads/Style.gd` | Builds the global Theme from `Palette.gd` and puts it on the scene-tree root, so all nine screens restyle with no `.tscn` edited. Hand-written; palette regeneration never touches it |
+| `godot/scripts/autoloads/Chrome.gd` | The brand mark, upper-left, on every screen — added to `get_tree().root` in `_ready()` for the same "no `.tscn` edited" reason as `Style.gd`. Loads the **generated** copy at `godot/assets/brand/negative_mark.svg`; source is `brand/NEWnegative_CYM.svg`, mirrored by `scripts/build_brand.py` |
 | `godot/scripts/theme/Palette.gd` | **Generated** from `palette.py` — do not hand-edit |
 | `godot/scripts/data/MysteryData.gd` | Typed wrapper for mystery JSON |
 | `godot/scenes/ui/` | The nine screens: MainMenu, MysteryGeneration, Lobby, CaseDisplay, **ApfRound**, Interrogation, ShareSelection, Accusation, ResultScreen |
@@ -270,9 +271,11 @@ before trusting it — this has happened before and cost a reconciliation (items
 ## Godot development notes
 
 - **Godot 4.x, GDScript 2.0** — typed, `class_name` declarations. `project.godot` declares 4.6.
-- **Four autoloads**, in order: `GameState`, `ApiClient`, `NetworkManager`, `Style`. `Style` is last
-  because it reads `Palette.gd`. If you add one, register it in `project.godot` **and** confirm it
-  appears in Project → Project Settings → **Globals** (the tab is called *Autoload* on Godot 4.6
+- **Five autoloads**, in order: `GameState`, `ApiClient`, `NetworkManager`, `Style`, `Chrome`.
+  `Style` is second-to-last because it reads `Palette.gd`; `Chrome` is last because it adds the
+  brand mark on top of whatever theme Style already set. If you add one, register it in
+  `project.godot` **and** confirm it appears in Project → Project Settings → **Globals** (the tab
+  is called *Autoload* on Godot 4.6
   and earlier; 4.7 renamed it).
 - **No Godot binary in the repo, and none reachable from a session environment** — outbound is
   allowlist-only and the engine's hosts are not on it (tested, Session 38). Rendering can only be
@@ -380,6 +383,7 @@ Zero API cost, no Godot binary needed. Each has already caught a real bug.
 | `scripts/build_palette.py --check` | The palette having drifted between `palette.py`, `Palette.gd`, `mobile.html` and the ground clear colour |
 | `scripts/test_palette.py` | Every ink/background pair against its WCAG floor |
 | `scripts/build_icons.py --check` | Generated icon copies drifting from `icons/`. `--report` describes the sources. Refuses a raster embedded in an SVG wrapper, which cannot be recoloured |
+| `scripts/build_brand.py --check` | The Godot copies of the brand marks (`godot/assets/brand/`) drifting from `brand/NEWnegative_CYM.svg` / `NEWorganic_cym.svg`. Byte-exact mirror, no recolouring — a brand mark is a fixed identity, not a retintable icon |
 | `scripts/split_icon_sheet.py` | Cuts a sheet of icons into one file each — vector by subpath geometry, raster by column occupancy, dispatching on what the file contains rather than its extension. Reports detached specks; never removes them |
 | `scripts/test_icons.py` | That the icon flatten survives all three export shapes, and that icon assignment is genuinely random |
 | `scripts/test_apf.py` | The rhythm: that round 1 asks nothing, that sharing is cumulative and monotone, that the difficulty ladder separates, that the board never greys a face on a narrowing, that disclosure names whoever sat on it, and that a client is sent only its own half. Fixtures plus one pass over the accepted mystery |
@@ -569,13 +573,18 @@ findings to feed both. Until then `APF_SUSPECT_COUNT` stays 4 and is enforced by
 `CASE.SUSPECT_COUNT`. Full reasoning, including why "minimum 4" was rejected: `docs/DECISIONS.md`
 item 33.
 
-### 17. BACKGROUND — two owner decisions outstanding — **stage 3**
+### 17. BACKGROUND — one owner decision outstanding — **stage 3**
 
 The layout is built and tested (`background_field.py`) and wired to nothing, which is the specified
-pre-prompt state. Outstanding: **(a)** whether the field is strewn with the mystery's title, with
-something else, or both — do not assume; **(b)** which brand mark goes on which device, given that
-the host screen and the phones are in the same room at once. (b) also unblocks the window icon,
-which is deliberately unset. Full history: `docs/DECISIONS.md` item 17.
+pre-prompt state. Outstanding: whether the field is strewn with the mystery's title, with something
+else, or both — do not assume.
+
+**(b) is decided, for the Godot client — Session 42/43, playtest StartPageSept7.** The negative
+mark, upper-left, on every screen: `Chrome.gd`, a new autoload. The phone half of (b) (organic
+monogram, top-centre) is still open and still stage 3 — `mobile.html` has no chrome pass at all.
+**The window icon is a SEPARATE, still-open question** — (b) was said to unblock it, but nobody has
+asked for it yet, and `project.godot`'s `config/icon` stays deliberately unset until someone does.
+Full history: `docs/DECISIONS.md` item 17.
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**
 
