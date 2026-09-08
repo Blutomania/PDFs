@@ -63,11 +63,21 @@ func _on_ws_event(event_name: String, data: Dictionary) -> void:
 		})
 		_rebuild_shared_intel()
 
+## These two headings are a matched PAIR by design (owner, playtest StartPageSept7):
+## "The Scene:" sits above the setting description, "The Crime:" sits above
+## what happened, and they read as one visual family — same weight, same
+## "word(s) + colon" shape. If either wording changes, change the other to
+## match; do not let them drift into two different heading conventions for
+## what is visually the same kind of label.
+const _SCENE_HEADING: String = "The Scene:"
+const _CRIME_HEADING: String = "The Crime:"
+
 func _populate() -> void:
 	title_label.text = _mystery.title
 
 	setting_label.text = (
-		"[b]%s[/b] — [i]%s[/i]\n%s" % [
+		"[b]%s[/b]\n[b]%s[/b] — [i]%s[/i]\n%s" % [
+			_SCENE_HEADING,
 			_mystery.location,
 			_mystery.time_period,
 			_mystery.setting_description,
@@ -75,7 +85,8 @@ func _populate() -> void:
 	)
 
 	crime_label.text = (
-		"[b]The Crime[/b]\n%s\n[i]When: %s[/i]\n[i]Discovered: %s[/i]" % [
+		"[b]%s[/b]\n%s\n[i]When: %s[/i]\n[i]Discovered: %s[/i]" % [
+			_CRIME_HEADING,
 			_mystery.what_happened,
 			_mystery.when_occurred,
 			_mystery.initial_discovery,
@@ -87,16 +98,22 @@ func _populate() -> void:
 	for child in cast_container.get_children():
 		child.queue_free()
 
+	## Role labels, not bracketed tags (owner, playtest StartPageSept7): "The
+	## Victim:", "Suspect 1:", "Witness 1:" — numbered per person within their
+	## own role, in cast order. `_add_cast_row` takes the finished label text
+	## rather than a bare tag, since numbering has to happen here where the
+	## index is available, not inside the row-builder.
 	var victim := _mystery.get_victim()
 	if victim.name:
-		_add_cast_row("VICTIM", victim.name, victim.occupation, Palette.NEGATIVE)
+		_add_cast_row("The Victim:", victim.name, victim.occupation, Palette.NEGATIVE)
 
-	for suspect in _mystery.get_suspects():
-		_add_cast_row("SUSPECT", suspect.name, suspect.occupation, Palette.BRASS)
+	var suspects := _mystery.get_suspects()
+	for i in range(suspects.size()):
+		_add_cast_row("Suspect %d:" % (i + 1), suspects[i].name, suspects[i].occupation, Palette.BRASS)
 
 	var witnesses := _mystery.characters.filter(func(c): return c.role == "witness")
-	for w in witnesses:
-		_add_cast_row("WITNESS", w.name, w.occupation, Palette.STEEL_BRIGHT)
+	for i in range(witnesses.size()):
+		_add_cast_row("Witness %d:" % (i + 1), witnesses[i].name, witnesses[i].occupation, Palette.STEEL_BRIGHT)
 
 	# --- Coherence badge ---
 	if _mystery.coherence_passed:
@@ -142,9 +159,12 @@ func _populate() -> void:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-func _add_cast_row(role_tag: String, name: String, occupation: String, color: Color) -> void:
+## `role_label` is the finished heading -- "The Victim:", "Suspect 2:" -- not a
+## bare tag. Numbering a suspect or witness needs the loop index, which lives
+## with the caller, not here.
+func _add_cast_row(role_label: String, name: String, occupation: String, color: Color) -> void:
 	var lbl := Label.new()
-	lbl.text = "[%s] %s — %s" % [role_tag, name, occupation]
+	lbl.text = "%s %s — %s" % [role_label, name, occupation]
 	lbl.add_theme_color_override("font_color", color)
 	cast_container.add_child(lbl)
 
