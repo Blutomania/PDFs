@@ -116,8 +116,9 @@ Or all of them at once, plus the rest of the free suite:
 ```bash
 for s in check_godot_wiring check_mystery_playable check_doc_claims check_decisions \
          check_solvability check_narrative test_narrative_checks test_palette test_icons \
-         test_background_field test_share_rule test_deal test_apf \
-         test_crime_scene_map test_registry_staleness; do
+         test_background_field test_share_rule test_casefiles test_apf \
+         test_crime_scene_map test_registry_staleness test_gate_and_ledger \
+         test_arrangement test_extraction_fatal_errors; do
   printf '%-30s ' "$s"; python3 "scripts/$s.py" >/dev/null 2>&1 && echo PASS || echo FAIL
 done
 python3 scripts/build_palette.py --check && python3 scripts/build_icons.py --check
