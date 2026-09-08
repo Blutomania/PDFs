@@ -319,5 +319,8 @@
     "passed": true,
     "blocking": 0,
     "warnings": 0
+  },
+  "_meta": {
+    "viability_rating": 10
   }
 }
