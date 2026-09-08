@@ -877,6 +877,29 @@ that the superseded text has become history and belongs here instead.
     picture for the playtest** — a list of named findings, per §6's option (a). The map is
     deferred, not cancelled, and the round-robin witness placement stays a real bug regardless.
 
+    **[Session 43] The first person other than the owner sat down at it, screenshot by screenshot,
+    and ResultScreen's solution breakdown was reading straight off `solution.key_evidence` — bare
+    evidence ids ("E2", "E8", "E10") — even though `_format_plot_reveal()` had resolved them to
+    names server-side since before this session started. The server was doing the work and the
+    client was throwing it away.** Nothing in `/accuse`'s response ever carried it: the route
+    returned `{"correct", "won"}` and left the reveal to a follow-up `GET /result` that
+    `accusation.gd` never called. Fixed by having `/accuse` build and return the same
+    `_build_resolution_reveal()` payload it already broadcasts on a win, so one round trip carries
+    `plot_reveal` (clue ids resolved to `{id, name, description}`) and a new `gameplay_stats`
+    (`rounds_played`, `rounds_total`, `elapsed_seconds` — the last measured from `apf.py`'s new
+    `opened_ts`, set when the assignment opens, not when the room was created, so lobby chat
+    doesn't count as play). Single-player keeps a local equivalent, `_local_plot_reveal()`, since
+    that path never calls `/accuse` at all. `result_screen.gd` now reads `plot_reveal` for four
+    relabelled fields ("The Culprit:", "The Crime:", "His/Her Motive:", "Key Clues:" — the pronoun
+    is the owner's own fallback, offered when told no gender field exists in the schema) and drops
+    "How to deduce" for the new stats block, per instruction: the deduction is the player's, not
+    the game's to narrate back to them. Verified over real HTTP against a live server
+    (`scripts/walk_apf_game.py`'s equivalent walked by hand) — E2/E8/E10 come back as "Dr. Voss's
+    Field Examination Notes", "Contaminated Saffron Tin" and "Forged Partnership Dissolution
+    Instrument" on the accepted mystery, and `gameplay_stats` reports real elapsed seconds.
+    `scripts/test_apf.py` and `scripts/check_godot_wiring.py` still pass; not run in Godot, same
+    caveat as everything else in this item.
+
 24. **[DONE, Session 37 — August 26, 2026] One palette, three surfaces.** The client had no
     styling at all; the phone had a palette it invented; the brand documented a third and was
     rendered by nothing. Two of those brasses were `#c8a96e` and `#C9A227` — near enough to read

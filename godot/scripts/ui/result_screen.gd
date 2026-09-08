@@ -16,6 +16,7 @@ extends Control
 # ---------------------------------------------------------------------------
 @onready var verdict_label: Label = $ScrollContainer/MainVBox/VerdictLabel
 @onready var solution_label: RichTextLabel = $ScrollContainer/MainVBox/SolutionLabel
+@onready var stats_label: RichTextLabel = $ScrollContainer/MainVBox/StatsLabel
 @onready var rating_row: HBoxContainer = $ScrollContainer/MainVBox/RatingRow
 @onready var play_again_button: Button = $ScrollContainer/MainVBox/Buttons/PlayAgainButton
 @onready var review_button: Button = $ScrollContainer/MainVBox/Buttons/ReviewButton
@@ -43,7 +44,7 @@ func _populate() -> void:
 	var correct: bool = result.get("correct", false)
 	var suspect: String = result.get("suspect_guessed", "?")
 	var culprit: String = result.get("culprit", "?")
-	var solution: Dictionary = result.get("solution", {})
+	var plot: Dictionary = result.get("plot_reveal", {})
 
 	if correct:
 		verdict_label.text = "Correct! %s is the culprit." % culprit
@@ -52,25 +53,60 @@ func _populate() -> void:
 		verdict_label.text = "Wrong. You accused %s — the real culprit was %s." % [suspect, culprit]
 		verdict_label.add_theme_color_override("font_color", Palette.NEGATIVE)
 
-	# Full solution breakdown
-	var key_ev: Array = solution.get("key_evidence", [])
+	# Full solution breakdown. plot_reveal.key_evidence entries are already
+	# {id, name, description} -- resolved server-side (_format_plot_reveal(),
+	# or locally on the single-player path via _local_plot_reveal()) -- so
+	# this screen shows clue NAMES and never a bare id like "E2" (owner,
+	# playtest SolvedSept7).
+	var key_ev: Array = plot.get("key_evidence", [])
+	var clue_names: Array = []
+	for entry in key_ev:
+		clue_names.append(str(entry.get("name", "?")))
+
 	# GDScript has no implicit adjacent-string concatenation -- the `+` are
 	# required, and without them this file fails to PARSE, so the whole script
 	# never loads and every line in it silently does nothing.
 	var sol_text: String = (
-		"[b]Culprit:[/b] %s\n"
-		+ "[b]Method:[/b] %s\n"
-		+ "[b]Motive:[/b] %s\n"
-		+ "[b]Key evidence:[/b] %s\n\n"
-		+ "[b]How to deduce:[/b]\n%s"
+		"[b]The Culprit:[/b] %s\n"
+		+ "[b]The Crime:[/b] %s\n"
+		+ "[b]His/Her Motive:[/b] %s\n"
+		+ "[b]Key Clues:[/b] %s"
 	) % [
-		solution.get("culprit", "?"),
-		solution.get("method", "?"),
-		solution.get("motive", "?"),
-		", ".join(key_ev),
-		solution.get("how_to_deduce", "?"),
+		plot.get("culprit", culprit),
+		plot.get("method", "?"),
+		plot.get("motive", "?"),
+		", ".join(clue_names) if not clue_names.is_empty() else "?",
 	]
 	solution_label.text = sol_text
+
+	_populate_stats(result.get("gameplay_stats", {}))
+
+## Rounds played and elapsed time, in place of "How to deduce" (owner, playtest
+## SolvedSept7: "remove the how to deduce section, INSTEAD let's surface
+## gameplay stats"). Empty on the single-player/legacy path -- no APF session
+## ran, so there is nothing true to report, and the block stays hidden rather
+## than showing a guessed zero.
+func _populate_stats(stats: Dictionary) -> void:
+	if stats.is_empty():
+		stats_label.visible = false
+		return
+	stats_label.visible = true
+	var rounds_played: int = stats.get("rounds_played", 0)
+	var rounds_total: int = stats.get("rounds_total", 0)
+	var elapsed: int = stats.get("elapsed_seconds", 0)
+	stats_label.text = (
+		"[b]Rounds played:[/b] %d of %d\n"
+		+ "[b]Time played:[/b] %s"
+	) % [rounds_played, rounds_total, _format_duration(elapsed)]
+
+## "127 seconds" means nothing at a table -- minutes and seconds, the way a
+## player would actually say it back.
+func _format_duration(seconds: int) -> String:
+	var m: int = seconds / 60
+	var s: int = seconds % 60
+	if m == 0:
+		return "%d sec" % s
+	return "%d min %d sec" % [m, s]
 
 # ---------------------------------------------------------------------------
 # Full disclosure (docs/PLAYTEST_FLOW.md, "Full disclosure closes the game")

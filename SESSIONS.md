@@ -3132,6 +3132,93 @@ it. Porting the Aug 12 flow and then immediately rewriting it would build the sa
 
 ---
 
+## Session 43 — September 8, 2026 (CYM: the first playtest, screen by screen, and a bug the owner's own eyes caught that no checker could)
+
+**Branch:** `claude/playtest-flow-docs-qmqlti`. Session 42 built APF and said, twice, that nobody
+had played it. This session is that: the owner walked their own playtest screenshots one at a
+time — `CaseDisplay`, `ApfRound`, `ResultScreen` — and gave detailed feedback on each, which was
+implemented, verified without a Godot binary (checkers, and PIL/cairosvg renders where visual
+confirmation mattered), committed, and reported back before moving to the next screen.
+
+### CaseDisplay (owner's screenshot: StartPageSept7)
+
+Centered the mystery title in the header bar; added a "The Scene:" heading above the case summary;
+replaced `[VICTIM]` / `[SUSPECT]` / `[WITNESS]` placeholder tokens with "The Victim:", "Suspect N:",
+"Witness N:"; added the brand mark to every screen via a new `Chrome.gd` autoload rather than
+touching nine `.tscn` files; added a randomly-assigned clue icon and suspect icon to each list row;
+renamed `[E1]` etc. to "Clue 1:". Confirmed the icon sources were unusable as delivered — several
+were raster images wrapped in an SVG shell, the same defect `build_icons.py --check` already knew
+to refuse — and used the accompanying PNGs directly rather than treating the wrapper as vector art.
+The suspect-icon folder was named `icons/suspects/` (plural) against code expecting `icons/suspect/`
+(singular); renamed rather than changing the convention, since every other set is singular.
+
+### ApfRound (owner's screenshot: FindingsSept7)
+
+"On The Table" → "Shared Information:". Every finding is now a bullet excerpt (`_first_sentence()`)
+with a "Full Finding" expand link, so a table can move faster without every finding being read in
+full aloud — a real defect surfaced here: naive ". "-splitting broke "Dr. Voss" into a false
+sentence end, fixed with a title-abbreviation guard and checked against all 18 real findings in the
+accepted mystery, not invented examples. "Still Standing" was renamed to "not yet cleared" — the
+owner does not want the game telling players who to accuse or clear, which "still standing" implied.
+Suspect rows got an FPO placeholder square in place of nothing, honestly labelled as a stand-in for
+an image the game doesn't have yet rather than pretending a portrait exists.
+
+### Fonts (owner-initiated, between screens)
+
+The owner uploaded Cinzel Decorative (Black/Bold/Regular) mid-session, previously only Nunito Sans
+existed. Wired Black into `DisplayLabel` (the brand name), Bold into `MysteryTitleLabel` and a new
+`VerdictLabel` variation for ResultScreen's banner — a distinct variation from the mystery title
+because a verdict and a mystery title are different things even though they share a weight.
+`TitleLabel` (functional headers) deliberately stays Nunito Sans; mixing the two was the owner's own
+instruction, given once as a general rule and once as a specific exception for the verdict banner.
+Found and flagged proactively, not asked about: Cinzel Decorative has no true lowercase glyphs — it
+silently renders lowercase input as small-caps, confirmed by PIL rendering rather than assumed. The
+owner's font upload also silently overwrote `OFL.txt`, dropping Nunito Sans's license entirely;
+split into `OFL-NunitoSans.txt` and `OFL-CinzelDecorative.txt` since the boilerplate bodies matched
+but the copyright lines didn't.
+
+### ResultScreen (owner's screenshot: SolvedSept7)
+
+Four label renames — "Culprit:" → "The Culprit:", "Method:" → "The Crime:", "Motive:" → "His/Her
+Motive:" (the owner's own offered fallback, given no gender field exists anywhere in the character
+schema — checked rather than guessed), "Key evidence:" → "Key Clues:" — plus one real bug the
+relabeling exposed: **the screen was showing bare evidence ids ("E2", "E8", "E10") instead of clue
+names**, and the fix wasn't a text change. `_format_plot_reveal()` had resolved ids to names
+server-side since before this session, but nothing on the client ever asked for it — `/accuse`
+returned only `{"correct", "won"}` and `accusation.gd` never made the follow-up call that would have
+gotten the resolved data. Fixed by having `/accuse` build and return the same reveal payload it
+already broadcasts to the room on a win. Full accounting: `docs/DECISIONS.md` item 23.
+
+Also per instruction: removed the "How to deduce" section outright — the owner does not want the
+game narrating the player's own reasoning back to them — and replaced it with a gameplay-stats
+block (rounds played of rounds total, elapsed time since the assignment opened). The elapsed clock
+starts at `apf.py`'s new `opened_ts`, timestamped when the deal happens, not when the room is
+created, so time spent chatting in the lobby isn't counted as play.
+
+### Verification
+
+- `scripts/check_godot_wiring.py`, `scripts/check_doc_claims.py`, `scripts/check_decisions.py`,
+  `scripts/test_apf.py`, `scripts/test_share_rule.py` — all pass.
+- A live `uvicorn` process, walked by hand over real HTTP through `/apf/open` → four rounds →
+  `/apf/disclose` → `/accuse`: `plot_reveal.key_evidence` came back as "Dr. Voss's Field
+  Examination Notes", "Contaminated Saffron Tin" and "Forged Partnership Dissolution Instrument" —
+  not "E2", "E8", "E10" — and `gameplay_stats` reported real rounds and elapsed seconds.
+- PIL-rendered previews of the icon contrast fix and the new ResultScreen layout, sent to the
+  owner directly, since no Godot binary is reachable from this session (see CLAUDE.md's Godot
+  notes) and every visual claim in this session was checked against a render rather than assumed.
+
+### NOT done
+
+**Still nobody has run any of this in Godot.** Every fix this session addressed something the
+owner's own eyes caught in a screenshot, which is real signal a checker can't produce — but it is
+also evidence that `check_godot_wiring.py` reading scene files rather than loading them is a real
+gap: the E2/E8/E10 bug, the icon-wrapper defect and the font lowercase issue were all invisible to
+every automated check that ran clean throughout. `VerifyScenes.gd` and `ApplyTheme.gd` still need
+the owner's machine. Session continues screen by screen; no further screenshot had arrived as of
+this entry.
+
+---
+
 ## Session 42 — September 7, 2026 (CYM: the rhythm gets built, and running it finds what reading it did not)
 
 **Branch:** `claude/playtest-flow-docs-qmqlti`, level with `main` at `ca67def`. Picking up exactly

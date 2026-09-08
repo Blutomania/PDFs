@@ -40,6 +40,13 @@ bbcode_enabled = true
 fit_content = true
 text = ""
 
+[node name="StatsLabel" type="RichTextLabel" parent="ScrollContainer/MainVBox"]
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+text = ""
+visible = false
+
 [node name="Separator1" type="HSeparator" parent="ScrollContainer/MainVBox"]
 layout_mode = 2
 

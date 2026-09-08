@@ -187,6 +187,12 @@ def open_session(mystery: dict, players: Sequence[dict],
     return {
         "rounds": rounds,
         "round": 0,                       # nothing assigned yet
+        # When PLAY actually started, not when the room was created --
+        # "how long did the game go" (owner, playtest SolvedSept7) means
+        # elapsed since the deal, not since people were still chatting in the
+        # lobby. create_game()'s own "ts" in server/main.py answers a
+        # different question and is not reused here for that reason.
+        "opened_ts": time.time(),
         "player_order": ids,
         "names": {str(p["id"]): p.get("name", "Player") for p in players},
         "casefiles": {pid: [f.to_dict() for f in casefile]

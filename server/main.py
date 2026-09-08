@@ -1113,6 +1113,28 @@ def _fallback_resolution_narrative(game: dict, plot_reveal: dict) -> str:
     return "The case is closed, but this mystery carries no written resolution."
 
 
+def _gameplay_stats(game: dict) -> Optional[dict]:
+    """Rounds played and elapsed time, for the result screen (owner, playtest
+    SolvedSept7: replaces "how to deduce" with what actually happened at the
+    table). None when there is nothing to report -- a legacy gather-loop game
+    never called /apf/open and has no "apf" session at all, and that is a
+    real state, not a bug to paper over with zeroes.
+
+    "Rounds" and "elapsed" both come from the APF session, not from the room:
+    apf.open_session()'s own "opened_ts" is when the DEAL happened, not when
+    the room was created -- a table that spent ten minutes chatting in the
+    lobby before dealing should not have those ten minutes counted as play.
+    """
+    session = game.get("apf")
+    if not session or "opened_ts" not in session:
+        return None
+    return {
+        "rounds_played": session["round"],
+        "rounds_total": session["rounds"],
+        "elapsed_seconds": max(0, round(time.time() - session["opened_ts"])),
+    }
+
+
 def _build_resolution_reveal(game: dict, winner_id: str) -> dict:
     """
     Shared by the game_won broadcast and GET /result so a client that missed
@@ -1153,6 +1175,7 @@ def _build_resolution_reveal(game: dict, winner_id: str) -> dict:
         "plot_reveal": plot_reveal,
         "winner_findings": winner_findings,
         "resolution_narrative": game["resolution_narrative"],
+        "gameplay_stats": _gameplay_stats(game),
     }
 
 
@@ -2344,15 +2367,25 @@ def accuse(game_id: str, req: AccuseRequest):
         "accused_name": req.culprit_name,
         "correct": correct,
     })
+    reveal: dict = {}
     if won:
+        # Computed ONCE and reused for both the broadcast and this call's own
+        # response -- _build_resolution_reveal() already caches the narrative
+        # on the game, so a second call would be free, but there is no reason
+        # to make two calls do one job. The accuser gets the full reveal
+        # (plot_reveal with clue NAMES already resolved, not bare ids;
+        # gameplay_stats) in the same round trip that told them they won,
+        # rather than needing a follow-up GET /result the client would
+        # otherwise have to remember to make.
+        reveal = _build_resolution_reveal(game, req.player_id)
         _broadcast_sync(game_id, "game_won", {
             "winner_player_id": req.player_id,
             "winner_name": player["name"],
             "solution": solution,
-            **_build_resolution_reveal(game, req.player_id),
+            **reveal,
         })
 
-    return {"correct": correct, "won": won}
+    return {"correct": correct, "won": won, **reveal}
 
 
 @app.get("/games/{game_id}/result")
