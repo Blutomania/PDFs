@@ -136,17 +136,35 @@ func _style_fonts(t: Theme) -> void:
 	t.set_font("normal_font", "RichTextLabel", regular)
 	t.set_font("bold_font", "RichTextLabel", bold if bold else regular)
 
-	## Weight carries the hierarchy now that colour and size already do. Display
-	## and titles take Bold; section headings and the one primary action take
-	## SemiBold; everything else stays Regular, which is most of the screen.
+	## Weight carries the hierarchy now that colour and size already do.
+	## TitleLabel takes Bold NunitoSans; section headings and the one primary
+	## action take SemiBold; everything else stays Regular, which is most of
+	## the screen. The Window's OS-level title bar text stays NunitoSans Bold
+	## too -- a decorative display face in tiny native titlebar chrome is a
+	## legibility risk for no visible payoff, and it is not in-game content.
 	if bold:
-		for variation: String in ["DisplayLabel", "TitleLabel", "MysteryTitleLabel"]:
-			t.set_font("font", variation, bold)
+		t.set_font("font", "TitleLabel", bold)
 		t.set_font("title_font", "Window", bold)
 	if semibold:
 		t.set_font("font", "HeadingLabel", semibold)
 		t.set_font("font", "PrimaryButton", semibold)
 		t.set_font("font", "DangerButton", semibold)
+
+	## DisplayLabel and MysteryTitleLabel are BRAND and MYSTERY-TITLE moments
+	## -- the game's own name on MainMenu/Lobby, and a generated mystery's own
+	## dramatic title on CaseDisplay -- not functional screen headers. Cinzel
+	## Decorative there; NunitoSans everywhere else. Deliberately NOT applied
+	## to TitleLabel, which is used broadly for workaday status headers
+	## ("Round 2 of 4", "Set Your Mystery") that are read fast during play --
+	## a heavy decorative serif risks looking overwrought there, and this was
+	## a scope call flagged to the owner rather than assumed (font upload,
+	## playtest SolvedSept7).
+	var display_black: Font = _font("CinzelDecorative-Black.ttf")
+	var display_bold: Font = _font("CinzelDecorative-Bold.ttf")
+	if display_black:
+		t.set_font("font", "DisplayLabel", display_black)
+	if display_bold:
+		t.set_font("font", "MysteryTitleLabel", display_bold)
 
 
 func _font(file_name: String) -> Font:

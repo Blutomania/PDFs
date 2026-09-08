@@ -579,6 +579,28 @@ that the superseded text has become history and belongs here instead.
     means re-pitching fill values on the source SVG — a decision for whoever owns the mark. Flagged
     to the owner in the same turn rather than left for a screenshot to surface on its own.
 
+    **[FIXED, same playtest — the owner asked for it once shown the rendered mark, not once
+    shown a percentage.]** A rendered preview (this session had no engine, so `cairosvg` stood
+    in) made the 53% figure legible rather than abstract: the candle-smoke/question-mark swirl
+    was nearly invisible against the ground while the candle-and-figure — already white — read
+    fine. Isolating the geometry (`svgelements`, bounding boxes rather than colour alone) found
+    the 53% was **one path**: the smoke, a single near-black (`#010101`) fill sitting entirely
+    above the candle-and-figure region, contrast 2.08:1 against the ground on its own. Every
+    other path in the mark belongs to the figure and was never the problem.
+
+    Re-pitched to `#989898` — a neutral gray, not the interface's `LINE` token (`#7090AD`,
+    which also clears the floor, at exactly 3.00:1): the mark's own black/white/red palette is
+    a standalone identity, not a UI element, and importing the app's blue accent into it would
+    be a bigger, uninvited change than fixing legibility. `#989898` measures 3.48:1 against the
+    ground — above the `(INK_FAINT, GROUND, 3.0, "field labels on the ground (large only)")` /
+    `(LINE, GROUND, 3.0, ...)` floor `palette.py`'s own contract already sets for large graphical
+    content on the raw ground, with real margin rather than sitting exactly on the line.
+
+    **Result: 7% of the mark's ink at or below 2.5:1, down from 53%** — `scripts/check_brand_contrast.py`,
+    re-run rather than estimated. The remainder is edge antialiasing on the now-lighter smoke
+    shape plus a few incidental near-black details on the figure (tie, buttons) that were never
+    part of the 53% and were not touched. One fill value changed; nothing else in the mark did.
+
     **Unrelated, noticed while checking and worth one look before building on generation:** an old
     batch summary in `mystery_database/generated/` shows **13 of 14 generations failing** on JSON
     parse errors (`Unterminated string`, `Expecting property name`). It is from March and 16

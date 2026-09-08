@@ -264,7 +264,7 @@ cat godot/apply_theme_report.txt
 
 | Line | What it means |
 |---|---|
-| `fonts` | Whether Nunito Sans actually resolved. On a fresh checkout, if it says the fonts are missing, let the import finish and run it again |
+| `fonts` | Two lines now, not one — Nunito Sans (the `default_font`, most of the UI) and, since the font upload in playtest SolvedSept7, Cinzel Decorative (`DisplayLabel` and `MysteryTitleLabel` only — the game's own name and a generated mystery's title, not the workaday screen headers). On a fresh checkout, if either says NOT loaded, let the import finish and run it again. **Not yet confirmed on a real machine** — this row describes what `ApplyTheme.gd` is coded to report, not a run that has happened; the first real run should update this note the way Session 40's did above |
 | `MISSES` | Every theme item name the engine does not have. Each is a line of `Style.gd` silently doing nothing. **`none` is the good answer** |
 | `wrote` / `set` | The `.tres` was written and the project setting points at it |
 

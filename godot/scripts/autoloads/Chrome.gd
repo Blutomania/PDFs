@@ -15,13 +15,19 @@
 ## own root Window in _ready() and it survives every scene swap for free,
 ## already-drawn, before the tenth screen is even a file.
 ##
-## CONTRAST IS MEASURED AND MARGINAL, NOT SOLVED. scripts/check_brand_contrast.py
-## found 53% of the negative mark's ink at or below 2.5:1 against CYM's slate
-## ground (docs/DECISIONS.md item 17, Session 33). That is a property of the
-## artwork, not of this wiring -- fixing it means re-pitching fill values on
-## the source SVG, a decision for whoever owns the mark, not a default this
-## file should invent. Flagged here so the next reader does not have to
-## re-derive it from a screenshot.
+## CONTRAST WAS MEASURED, FLAGGED, AND FIXED -- IN THAT ORDER. Session 33
+## measured 53% of the negative mark's ink at or below 2.5:1 against CYM's
+## slate ground; the whole 53% turned out to be ONE path, the smoke/question-
+## mark swirl, drawn as a single near-black fill sitting on its own above the
+## candle-and-figure (which was never the problem -- it is white and already
+## reads fine). Re-pitched to #989898 -- a neutral gray, not the UI's blue
+## LINE token, since the mark's own black/white/red palette is not the
+## interface's palette and does not need to match it. Now 7% at or below
+## 2.5:1, and that remainder is edge antialiasing plus a few incidental dark
+## details on the figure (tie, buttons), not the smoke. docs/DECISIONS.md
+## item 17 carries the full before/after; scripts/check_brand_contrast.py
+## reproduces both numbers on demand rather than either being trusted as a
+## one-time claim.
 
 extends Node
 
