@@ -5,6 +5,123 @@ Use this file to onboard any new session without losing context.
 
 ---
 
+## Session 44 — September 9, 2026 (CYM: PR #49 merged, the Sept8 playtest walked screen by screen, and the first real suspect icon set)
+
+**Branch:** `claude/compassionate-johnson-jye9vd`. Two threads: closing out Session 42/43's still-open
+PR, and a fresh playtest walkthrough (owner's screenshots tagged `*Sept8`) in the same rhythm Session
+43 established — one screen at a time, feedback implemented, checkers run, committed, reported back
+before moving on.
+
+### PR #49 was never merged
+
+Session 43 closed with the branch "in sync with `origin`, `main` already merged in" — true of the
+branch, but nobody had merged the branch INTO `main` the other direction. It sat open as PR #49 since
+September 7: 27 commits, both Session 42's rhythm build and Session 43's whole playtest pass, none of
+it live. Verified clean before merging: `check_doc_claims.py`, `check_decisions.py`,
+`test_apf.py` (58/58), `check_godot_wiring.py` all passed on the branch tip. Merged (`4663934`), local
+`main` synced, this session's own branch fast-forwarded to match (it carried no commits of its own).
+**Worth a standing habit:** confirm a prior session's PR actually merged before assuming its work is
+live, not just that its branch matches `main`.
+
+### MainMenu (startSept8)
+
+`DisplayLabel` (the main-menu wordmark) dropped from Cinzel Decorative Black to Bold — owner call,
+Black read too heavy. Collapses Session 43's three-tier weight system (Black/Bold/Regular) to two
+(Bold/Regular); `Style.gd`'s own comment rewritten to say so rather than describe a tier that no
+longer exists.
+
+### Browse Saved Mysteries (BrowseSept8)
+
+Star rating moved out of the row's text string into a real right-aligned column — `ItemList` can't
+do two columns with one string per row, so it was replaced with a scrollable `VBoxContainer` of
+button-rows (title+difficulty label, fixed-width star label), styled to match `ItemList`'s own
+hover/selected look via a new `BrowseRowButton` variation. Also fixed a stuck "Loading saved
+mysteries…" status label that never cleared on success. **A "missing" SMURF mystery turned out not
+to be a bug**: `the_stolen_star_of_smurf_village`, generated back in April, is genuinely broken
+(a two-name culprit string matching no character, an undersized/unsolvable finding pool) and sits in
+`rejected/` as item 18's own founding example — the gate is doing exactly what it was built to do.
+
+### CaseDisplay and ResultScreen (whiteoutSept8, whiteoutSept8B, ResultSept8, ResultSept8B)
+
+Both screens shared one root cause for text clipping at the right edge: a stale fixed-width
+`offset_right` on their main `VBoxContainer`, left over from before it went container-managed, plus
+no `horizontal_scroll_mode` on the wrapping `ScrollContainer` to stop content growing past the
+viewport. Same fix on both. That was also the real answer to "the title should be centered on my
+monitor" — the title was already centered within its own box, the box just wasn't the width of the
+actual window.
+
+CaseDisplay: cast/evidence icons had no size-flag lock, so an `HBoxContainer` row's default cross-axis
+fill stretched them to match a tall wrapped label next to them, rendering far larger than their coded
+20×20 — pinned to `SHRINK` on both axes. Difficulty and estimated playtime dropped from the display
+(data stays on `MysteryData`, just not shown). `[A1]`/`[L1]` storage-id tags dropped from investigation
+areas and leads.
+
+ResultScreen: the verdict banner split into two `Label`s sharing one row — "Correct!"/"Wrong." at
+35px (a real bug fix along the way: it had been rendering at 28px, not its own declared 30px,
+because of a stale per-node override that predated this session), the rest of the sentence at 28px,
+forced single-line with ellipsis overrun as a safety net for the longer "Wrong" message. Added a
+portrait slot to the left of the solution text using the same seeded `Icons.suspect()` mechanism
+CaseDisplay's cast rows already use. Base body text (`Palette.TYPE_SCALE["body"]`) bumped 16px → 18px
+game-wide via `palette.py`, regenerated through `build_palette.py`; WCAG contrast re-verified, still
+passes.
+
+### Interrogation (InterrogationSept8)
+
+The suspect `OptionButton` dropdown replaced with a clickable grid — one card per interrogatable
+character, portrait over name, either half selects the same card (one `Button` per cell, both the
+icon and the label set to `MOUSE_FILTER_IGNORE`). Selection is a real radio-button group via Godot's
+`ButtonGroup` + `toggle_mode`, not manual selection-tracking. The question box and Ask button moved
+into one row (Ask to the right, not stacked below) that stays hidden until a card is selected. New
+`SuspectCardButton` theme variation, same hover/selected visual language as `BrowseRowButton`.
+
+### The first real suspect icon set
+
+Dispatched a research agent to find license-clear generic avatar sources; the owner then showed a
+concrete style reference (a flat mugshot-silhouette-with-"?" placeholder) that narrowed the brief
+substantially — one generic anonymous set, not per-mystery-era avatars — and asked for variety (the
+existing seeded-icon picker needs an array to draw from, not one image, or every suspect in a cast
+would show the same placeholder). Agent's shortlist: SVG Repo's CC0-tagged collection was the only
+source with both a literal mugshot icon and enough flat, single-color body-silhouette variants to
+populate that array, with zero attribution and no new render path needed (already flat/tintable,
+unlike Kenney.nl's alternative — CC0 too, but full-color illustrated sprites).
+
+This sandbox's network policy blocks svgrepo.com directly (confirmed via the proxy, not assumed), so
+the owner pulled the files themselves and sent a zip — which this session CAN unpack (`unzip`,
+`zipfile`). 22 SVGs came over; 15 made it into `icons/suspect/` and through `build_icons.py`.
+7 excluded, documented in the new `icons/suspect/README.md`: `stalin-svgrepo-com.svg` (a caricature
+of a specific real historical figure, excluded outright regardless of licensing), a bathroom
+pictogram and two off-theme novelty icons, and three detailed 5-color "upper-body" professional
+illustrations that don't fit the flat-silhouette tint pipeline. `IconSet.SUSPECT` now lists 18
+entries (15 new + the 3 existing PNGs) — the interrogation grid and ResultScreen portrait will show
+real art the moment a suspect's seeded pick lands on one, no further wiring needed.
+
+**Flagged, not fixed:** the resulting set skews toward masculine-presenting archetypes (one explicit
+`woman-silhouette` against several male-labeled ones), since the three female-labeled sources were
+the ones excluded on style grounds. Also flagged: SVG Repo's CC0 claim was checked by the owner at
+pull time but not independently re-verified from this repo (network-blocked); worth a re-check
+before anything here ships publicly.
+
+### Verification
+
+`check_godot_wiring.py`, `check_doc_claims.py`, `test_apf.py`, `test_palette.py`, `test_icons.py` all
+pass after every change this session. **Nothing was confirmed inside the actual Godot engine** — no
+binary is reachable from this session (see CLAUDE.md's Godot notes); every fix here is checker-verified
+and reasoned from the scene/script files, not rendered and looked at.
+
+### Next session
+
+1. **Confirm all of this actually renders correctly in Godot** — the overflow fix, the icon sizing,
+   the suspect grid, the new portrait slot. None of it has been seen by the engine's own loader yet.
+2. **Re-verify the SVG Repo licenses** for the 15 new suspect icons directly, before treating them as
+   more than an FPO placeholder set (`icons/suspect/README.md` has the exact list).
+3. **The 11 held-back anthology PDFs (item 7)** are still untouched, and still blocked on the same
+   thing they always were: the raw source files exist only on the owner's machine, never committed
+   (`mystery_database/new_sources/` is gitignored). This session didn't get to them.
+4. Consider the suspect-icon set's gender-skew flag above — either source a few more female-presenting
+   flat silhouettes, or decide it doesn't matter for an anonymous, non-signaling icon set.
+
+---
+
 ## Session — September 09, 2026 at 02:11
 **Branch:** `claude/compassionate-johnson-jye9vd`
 **Latest commit:** `4663934`
