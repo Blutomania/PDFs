@@ -178,15 +178,13 @@ func _style_fonts(t: Theme) -> void:
 	## a scope call flagged to the owner rather than assumed (font upload,
 	## playtest SolvedSept7).
 	##
-	## THE TIER IS BY WEIGHT, NOT BY SCREEN. Black is reserved for the game's
-	## own identity (DisplayLabel only); MysteryTitleLabel and VerdictLabel
-	## share Bold -- both are in-fiction dramatic beats one notch below the
-	## brand name itself, not two different things arbitrarily styled alike.
-	var display_black: Font = _font("CinzelDecorative-Black.ttf")
+	## All three share Bold. DisplayLabel wore Black through playtest
+	## SolvedSept7/WaitingSept7; owner called it too heavy on startSept8 and
+	## dropped it a tier, so there is no longer a weight distinction between
+	## the brand name and the other two dramatic-moment labels.
 	var display_bold: Font = _font("CinzelDecorative-Bold.ttf")
-	if display_black:
-		t.set_font("font", "DisplayLabel", display_black)
 	if display_bold:
+		t.set_font("font", "DisplayLabel", display_bold)
 		t.set_font("font", "MysteryTitleLabel", display_bold)
 		t.set_font("font", "VerdictLabel", display_bold)
 

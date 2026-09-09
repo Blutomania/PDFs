@@ -120,7 +120,7 @@ func _report_fonts(theme: Theme) -> void:
 	var has_display: bool = theme.has_font("font", "DisplayLabel")
 	var has_mystery_title: bool = theme.has_font("font", "MysteryTitleLabel")
 	if has_display and has_mystery_title:
-		_say("  fonts   Cinzel Decorative loaded (DisplayLabel: Black, MysteryTitleLabel: Bold).")
+		_say("  fonts   Cinzel Decorative loaded (DisplayLabel: Bold, MysteryTitleLabel: Bold).")
 	elif has_display or has_mystery_title:
 		_say("  fonts   Cinzel Decorative PARTIALLY loaded -- one of the two .ttf files is missing.")
 	else:
