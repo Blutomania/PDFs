@@ -26,6 +26,21 @@ const WITNESS: Array[String] = [
 
 const SUSPECT: Array[String] = [
 	"res://assets/icons/suspect/Suspect2.png",
+	"res://assets/icons/suspect/businessman-person-2-svgrepo-com.svg",
+	"res://assets/icons/suspect/detective-face-svgrepo-com.svg",
+	"res://assets/icons/suspect/detective-svgrepo-com.svg",
+	"res://assets/icons/suspect/dictator-svgrepo-com.svg",
+	"res://assets/icons/suspect/evil-combatant-svgrepo-com.svg",
+	"res://assets/icons/suspect/gentleman-person-svgrepo-com.svg",
+	"res://assets/icons/suspect/m-i-b-svgrepo-com.svg",
+	"res://assets/icons/suspect/male-person-2-svgrepo-com.svg",
+	"res://assets/icons/suspect/male-student-1-svgrepo-com.svg",
+	"res://assets/icons/suspect/masquerade-gentleman-svgrepo-com.svg",
+	"res://assets/icons/suspect/mug-shot-svgrepo-com.svg",
+	"res://assets/icons/suspect/person-silhouette-svgrepo-com.svg",
+	"res://assets/icons/suspect/policeman-svgrepo-com.svg",
 	"res://assets/icons/suspect/suspect1.png",
 	"res://assets/icons/suspect/suspect3.png",
+	"res://assets/icons/suspect/thief-svgrepo-com.svg",
+	"res://assets/icons/suspect/woman-silhouette-svgrepo-com.svg",
 ]
