@@ -3270,6 +3270,34 @@ every automated check that ran clean throughout. `VerifyScenes.gd` and `ApplyThe
 the owner's machine — see `docs/F5_CHECKLIST.md` for the exact steps. Session continues screen by
 screen; no further screenshot had arrived as of this entry.
 
+### It happened — the walkthrough ran, and item 23's oldest open caveat is closed
+
+Later the same session, Ezra Greene ran the F5 checklist for real and played **two mysteries
+through to the result screen and rated them** — 9 (`the_neriin_in_the_pilchard_barrel`) and 10
+(`whiteout_at_shackleton_base`). **"Nobody has played it" has been standing in item 23 since
+Session 42; it is no longer true.** The ratings are committed (`52590af`), not just observed —
+`_meta.viability_rating` on both mystery files, which is the actual creator-signal feedback loop
+CLAUDE.md's design principles describe, not a proxy for it.
+
+**The checklist itself had two real bugs, both found only by someone actually walking it — the
+exact failure mode `docs/F5_CHECKLIST.md`'s own opening paragraph exists to catch.** (1) The free
+checker loop still named `test_deal`, which stopped existing when `deal.py` became `casefiles.py`;
+it had been reporting a false FAIL on every real walk since, silently, because nobody had run the
+loop for real since the rename. Fixed to `test_casefiles`, and the loop gained four checkers it had
+never picked up. (2) Worse: the Globals-panel autoload table still said **four** entries ending in
+"`Style` must be last," never updated when `Chrome` landed as the fifth in Session 42/43. Followed
+exactly as written, this led to `Style` being moved to last and `Chrome` bumped off the bottom —
+backwards, since `Chrome` draws the brand mark on top of whatever theme `Style` already built.
+Caught only because the owner reported "Style wasn't last, so I moved it last" and "Chrome was
+last" in the same breath, which read as a contradiction until the doc was checked against
+`CLAUDE.md`'s own autoload list. Both fixed (`ee75aa6`, `48246ef`); the corrected order is
+`GameState, ApiClient, NetworkManager, Style, Chrome`, Chrome last.
+
+**Not yet known:** whether `VerifyScenes.gd` and `ApplyTheme.gd` were actually run, and which
+mystery took which path (APF vs. the pre-APF gather loop — `whiteout_at_shackleton_base` was not
+`apf_ready` last this session checked, so a rating on it likely means the gather-loop path, not
+APF). Worth confirming next session rather than assumed.
+
 ---
 
 ## Session 42 — September 7, 2026 (CYM: the rhythm gets built, and running it finds what reading it did not)

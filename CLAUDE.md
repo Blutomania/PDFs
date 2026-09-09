@@ -502,14 +502,19 @@ exoneration that completes it.** In the prompt, untested. One generation should 
 **Decided (Session 38): no crime-scene picture for the playtest** — a list of named findings. The
 map is deferred, not cancelled.
 
-**Not verified, and the list is short.** (a) **Nothing here has been run in Godot.** The scene and
-scripts pass `scripts/check_godot_wiring.py`, which reads scene files rather than loading them —
-necessary, not sufficient. `VerifyScenes.gd` and `ApplyTheme.gd` are the two checks that use the
-engine's own loader and they need the owner's machine. (b) **Nobody has played it.** Every number in
-the difficulty ladder is arithmetic, not a measurement: whether a two-finding stash at HARD *feels*
-like a decision is a question only a table answers. (c) **APF needs at least two players** —
-constraint 2 is unsatisfiable at one, because the only casefile is the whole assignment. A solo walk-through
-has to add seats.
+**Not verified, and the list is shorter than it was.** (a) **Nothing here has been confirmed run
+through `VerifyScenes.gd` / `ApplyTheme.gd`.** The scene and scripts pass `scripts/check_godot_wiring.py`,
+which reads scene files rather than loading them — necessary, not sufficient. Those two checks use
+the engine's own loader and need the owner's machine; whether they were actually run during the
+Session 43 walkthrough is unconfirmed. (b) **[Session 43] Somebody played it — this is no longer
+open.** Ezra Greene ran the F5 checklist for real and played two mysteries through to the result
+screen, rating them 9 (`the_neriin_in_the_pilchard_barrel`) and 10 (`whiteout_at_shackleton_base`).
+Committed as `_meta.viability_rating` on both files. Not yet known: which path each took —
+`whiteout_at_shackleton_base` was not `apf_ready` last this was checked, so that rating likely
+reflects the pre-APF gather loop, not the rhythm this item is actually about. Worth confirming
+before treating either number as evidence about the difficulty ladder specifically. (c) **APF needs
+at least two players** — constraint 2 is unsatisfiable at one, because the only casefile is the
+whole assignment. A solo walk-through has to add seats.
 
 **The one play-time Claude call left on the critical path is the resolution narrative.** Session 42
 stopped it being fatal — a failed call now falls back to the mystery's own resolution prose — but
