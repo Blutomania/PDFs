@@ -139,14 +139,12 @@ func _populate() -> void:
 		_add_evidence_row(i, _mystery.evidence[i])
 
 	# --- Gameplay notes ---
+	## Difficulty and estimated playtime dropped from this label (owner,
+	## playtest whiteoutSept8) -- no benefit to a player seeing either at the
+	## start or middle of a game. _mystery.difficulty/estimated_playtime stay
+	## on MysteryData; this screen just stops surfacing them.
 	var twists_text := " · ".join(_mystery.key_twists) if _mystery.key_twists else "none"
-	gameplay_label.text = (
-		"Difficulty: %s  ·  Playtime: %s\nKey twists: %s" % [
-			_mystery.difficulty,
-			_mystery.estimated_playtime,
-			twists_text,
-		]
-	)
+	gameplay_label.text = "Key twists: %s" % twists_text
 
 	# --- Investigation areas ---
 	_populate_areas()
@@ -181,6 +179,13 @@ func _add_cast_row(role_label: String, name: String, occupation: String, color: 
 		icon_rect.texture = icon_tex
 		icon_rect.custom_minimum_size = Vector2(20, 20)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		## Without this, the HBoxContainer row's default FILL cross-axis sizing
+		## stretches the icon to match a tall wrapped sibling label -- exactly
+		## what blew these up to fill most of the screen on playtest
+		## whiteoutSept8. SHRINK pins the rect to custom_minimum_size no matter
+		## how tall the row gets.
+		icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon_rect.modulate = Icons.tint()
 		row.add_child(icon_rect)
 
@@ -215,6 +220,13 @@ func _add_evidence_row(index: int, ev: MysteryData.EvidenceData) -> void:
 		icon_rect.texture = icon_tex
 		icon_rect.custom_minimum_size = Vector2(20, 20)
 		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		## Without this, the HBoxContainer row's default FILL cross-axis sizing
+		## stretches the icon to match a tall wrapped sibling label -- exactly
+		## what blew these up to fill most of the screen on playtest
+		## whiteoutSept8. SHRINK pins the rect to custom_minimum_size no matter
+		## how tall the row gets.
+		icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon_rect.modulate = Icons.tint()
 		row.add_child(icon_rect)
 
@@ -302,7 +314,9 @@ func _populate_areas() -> void:
 	areas_container.add_child(header)
 	for area in _mystery.investigation_areas:
 		var lbl := Label.new()
-		lbl.text = "  [%s] %s" % [area.id, area.name]
+		## No bracketed [A1]/[A2] tag (owner, playtest whiteoutSept8) -- area.id
+		## stays the STORAGE key elsewhere; this screen only ever reads it.
+		lbl.text = "  %s" % area.name
 		lbl.tooltip_text = area.description
 		areas_container.add_child(lbl)
 
@@ -319,7 +333,9 @@ func _populate_leads() -> void:
 	leads_container.add_child(header)
 	for lead in _mystery.leads:
 		var lbl := Label.new()
-		lbl.text = "  [%s] %s — %s" % [lead.id, lead.title, lead.brief]
+		## No bracketed [L1]/[L2] tag (owner, playtest whiteoutSept8) -- lead.id
+		## stays the STORAGE key elsewhere; this screen only ever reads it.
+		lbl.text = "  %s — %s" % [lead.title, lead.brief]
 		lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		leads_container.add_child(lbl)
 
