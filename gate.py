@@ -21,7 +21,7 @@ REPAIR loop can, and would: iterate a model against these checks until they go
 green and you stop selecting for good mysteries and start selecting for
 mysteries shaped like the checks. the_light_that_went_out is the standing proof
 that the checks are not the same as quality -- it passed every structural rule
-in this file, dealt cleanly, survived 81/81 hoarding patterns, and gave its
+in this file, assigned cleanly, survived 81/81 hoarding patterns, and gave its
 answer away in the prose. Repair-to-green would have shipped it, confidently.
 
 CAST AND ORPHAN ARE ADVISORY, DELIBERATELY. check_narrative.py's own header says
@@ -45,7 +45,7 @@ _ROOT = Path(__file__).resolve().parent
 if str(_ROOT / "scripts") not in sys.path:
     sys.path.insert(0, str(_ROOT / "scripts"))
 
-import deal  # noqa: E402
+import casefiles  # noqa: E402
 from check_narrative import RULES, audit_data  # noqa: E402
 from coherence_validator import check_mystery  # noqa: E402
 from generation_ledger import FAILURE_CLASSES  # noqa: E402
@@ -55,7 +55,7 @@ ADVISORY_RULES = {"CAST.UNKNOWN_PERSON", "CAST.ORPHAN"}
 
 # APF's shape (docs/PLAYTEST_FLOW.md): four players, one witness statement, one
 # crime-scene clue and one lead result each. Feasibility is the cheap half of
-# deal.py -- pure set arithmetic, no dealing attempts, no API call -- so the gate
+# casefiles.py -- pure set arithmetic, no assignment attempts, no API call -- so the gate
 # can afford to ask it on every generation.
 GATE_PLAYER_COUNT = 4
 
@@ -107,7 +107,7 @@ def _worst(classes) -> Optional[str]:
 def _dedupe(violations: List[dict]) -> List[dict]:
     """One row per (rule, subject), keeping first-seen order.
 
-    check_narrative.py and deal.py independently implement five of the same
+    check_narrative.py and casefiles.py independently implement five of the same
     fair-play rules, so a mystery that narrows to every suspect trips
     NARR.NARROWS_ALL twice -- once from each. Both are correct; counting the
     defect twice would quietly inflate every by_rule figure the ledger produces,
@@ -115,7 +115,7 @@ def _dedupe(violations: List[dict]) -> List[dict]:
 
     NOT keyed on the message: the two files word the same rule differently, so
     matching prose would never collapse anything. It is keyed on rule plus
-    subject, which is exactly why deal.py's issues carry subject ids at all --
+    subject, which is exactly why casefiles.py's issues carry subject ids at all --
     without them "E1 narrows to everybody" from one file and the same finding
     from the other look like two separate defects.
     """
@@ -146,7 +146,7 @@ def evaluate(mystery: dict, name: str = "<memory>", legacy: bool = False) -> Ver
     report IS refused -- which is item 18's actual case,
     the_stolen_star_of_smurf_village, and it is the only file on disk that moves.
 
-    check_narrative and deal still run on legacy mysteries and their findings are
+    check_narrative and assignment still run on legacy mysteries and their findings are
     still recorded, as advisory. The data is worth having; the retroactive
     verdict is not.
     """
@@ -182,19 +182,19 @@ def evaluate(mystery: dict, name: str = "<memory>", legacy: bool = False) -> Ver
         blocking = not legacy and v["rule_id"] not in ADVISORY_RULES
         (violations if blocking else advisory).append(v)
 
-    # --- 3. Deal feasibility: reasons this can never be dealt at APF's shape.
+    # --- 3. Assignment feasibility: reasons this can never be assigned at APF's shape.
     # feasibility_issues() is the cheap structural half -- pure set arithmetic,
-    # no dealing attempts -- and since Session 41 it names its rules, so the
+    # no assignment attempts -- and since Session 41 it names its rules, so the
     # overlap with the narrative checker deduplicates below instead of counting
     # one defect twice.
     try:
         (advisory if legacy else violations).extend(
-            deal.feasibility_issues(mystery, GATE_PLAYER_COUNT))
+            casefiles.feasibility_issues(mystery, GATE_PLAYER_COUNT))
     except Exception as exc:                       # noqa: BLE001
-        # A raise here is itself a refusal to deal, and the reason belongs in
+        # A raise here is itself a refusal to assignment, and the reason belongs in
         # the ledger rather than in a traceback that kills the generation.
         (advisory if legacy else violations).append({
-            "rule_id": "DEAL.ERROR",
+            "rule_id": "CASE.ERROR",
             "failure_class": "unplayable",
             "subject_ids": [],
             "message": f"{type(exc).__name__}: {exc}",

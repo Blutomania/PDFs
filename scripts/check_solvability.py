@@ -13,10 +13,10 @@ the OTHER direction, and it is present in 16 of 17:
     the reasoning cites evidence that key_evidence does not contain.
 
 Up to six items per mystery, a mean of about three. That matters more than the
-direction section 4 proposed, because APF's constrained deal is specified over
+direction section 4 proposed, because APF's constrained assignment is specified over
 "the evidence that proves the case". If that set is read from `key_evidence`,
-the deal can hand a player every key item and still not give them what the
-solution's own reasoning uses. The deal would satisfy its constraints and the
+the assignment can casefile a player every key item and still not give them what the
+solution's own reasoning uses. The assignment would satisfy its constraints and the
 player still could not get there.
 
 So this script reports both directions and treats the second as the real one.
@@ -151,7 +151,7 @@ def main() -> int:
         print(f"  {len(cite_gap)}/{n} cite evidence the key list omits "
               f"-- {extra} items, up to "
               f"{max(len(r['cited_not_key']) for r in cite_gap)} in one mystery.")
-        print("     APF's deal is specified over the evidence that proves the "
+        print("     APF's assignment is specified over the evidence that proves the "
               "case. Read that\n     from key_evidence and it is short by these.")
     print(f"  {dangling}/{n} cite an evidence ID that does not exist.")
     print(f"  {missing}/{n} list key evidence absent from evidence[] "

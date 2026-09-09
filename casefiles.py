@@ -1,16 +1,16 @@
 """
-deal.py — APF's constrained deal (root CLAUDE.md item 23, build-order step 2).
+casefiles.py — APF's constrained assignment (root CLAUDE.md item 23, build-order step 2).
 
-Findings are DEALT, NOT GATHERED. This module takes a generated mystery and
-hands each player a small set of findings, subject to constraints that make the
+Findings are ASSIGNED, NOT GATHERED. This module takes a generated mystery and
+casefiles each player a small set of findings, subject to constraints that make the
 game winnable without making it a lottery. It is pure computation: no API call,
-deterministic from a seed, and a failed deal is simply re-dealt at zero cost
-(docs/PLAYTEST_FLOW.md, "The deal is a separate step from generation").
+deterministic from a seed, and a failed assignment is simply re-run at zero cost
+(docs/PLAYTEST_FLOW.md, "The assignment is a separate step from generation").
 
 WHY A POINTER AND NOT DUPLICATED FIELDS. Only evidence[] carries elimination
 data -- `exonerates` / `implicates`, added in Session 38. A witness statement
 and a lead result carry none, so two of APF's three finding kinds were inert:
-they could not participate in the set arithmetic all three deal constraints
+they could not participate in the set arithmetic all three assignment constraints
 are defined over. The fix is a `reveals` pointer on witnesses, leads and areas
 naming the evidence they surface. Elimination data therefore lives in exactly
 ONE place and a witness's exoneration cannot drift out of agreement with the
@@ -21,7 +21,7 @@ rejected. See docs/INVESTIGATION_DESIGN.md §4.
 THE ARITHMETIC. A finding set eliminates the suspects exonerated by the evidence
 it reveals. The set SOLVES when exactly one suspect is left standing and that
 suspect is the culprit. Everything below is that one predicate applied to
-different subsets: all hands together, each hand alone, and each hand's
+different subsets: all casefiles together, each casefile alone, and each casefile's
 contribution to a single exoneration.
 
 IT IS A RACE TO PROOF, NOT A RACE TO THE BEST BET. Owner's decision, Session
@@ -33,13 +33,21 @@ independent routes to each exoneration puts survival at 81/81, one route puts
 it at 75/81. The rule therefore lives in the generation prompt, and this
 constraint is what stops a mystery that ignores it from reaching a table.
 
-THE WORD IS "FINDING", EVERYWHERE. Owner's instruction, twice. The domain
-object is a finding -- it has a name, a description, a type and a relevance,
-and server/main.py already agrees (witness_findings, investigation_findings,
-lead_findings). Borrowed game-shop vocabulary is not a synonym for it: this is
-a social deduction game, and describing the mechanic in the language of a deck
-makes it read as one. If a client one day draws a finding as a rectangle, that
-is that client's business and its word to choose.
+THE VOCABULARY IS INVESTIGATION, NOT CARD GAME. Owner's instruction, three
+times -- and the third time was needed because the first two only fixed the
+NOUN. "Finding" replaced "clue"/"card", and every verb and container around it
+survived: things were dealt, into hands, by deal.py, under a DEFAULT_HAND_SPEC.
+A metaphor rebuilds itself from whatever parts you leave standing.
+
+So: findings are ASSIGNED, to a player's CASEFILE, by this module. There are no
+decks, no hands, no deals and nothing is played. This is a social deduction
+game about what people choose to say, and describing it in the language of a
+card table makes it read as one. If a client one day draws a finding as a
+rectangle, that is that client's business and its word to choose.
+
+Where the old vocabulary came from is recorded in docs/DECISIONS.md item 34 --
+it entered as a note about reusing another project's UI components, not as a
+design decision, which is exactly why nobody defended it and it still spread.
 
 WHAT THIS DOES NOT DO. It does not judge whether a clue's prose actually
 supports the link it declares. A model can emit reveals: ["E3"] on a statement
@@ -56,20 +64,20 @@ import random
 from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Sequence, Set
 
-# APF's hand: one witness statement, one crime-scene clue, one lead result
+# APF's casefile: one witness statement, one crime-scene clue, one lead result
 # (docs/PLAYTEST_FLOW.md step 4). "Ideally" is load-bearing in that sentence --
 # a mystery has 3-4 witnesses and 4 leads against 4 players, so the pools run
-# dry and the deal substitutes. See _FALLBACK_KIND.
-DEFAULT_HAND_SPEC = ("witness", "clue", "lead")
+# dry and the assignment substitutes. See _FALLBACK_KIND.
+DEFAULT_CASEFILE_SPEC = ("witness", "clue", "lead")
 
 # Which pool a slot falls back to when its own is exhausted. evidence[] is the
 # largest pool in every mystery on disk (6-10 items against 3-4 witnesses and
 # 4 leads), so it is the only sensible donor.
 _FALLBACK_KIND = "clue"
 
-# How many DISTINCT hands each required exoneration must land in.
+# How many DISTINCT casefiles each required exoneration must land in.
 #
-# This is the replacement for PLAYTEST_FLOW's third deal constraint, which
+# This is the replacement for PLAYTEST_FLOW's third assignment constraint, which
 # Session 38 measured as not well-formed: "becomes solvable once the minimum
 # share threshold is met" cannot hold, because share_min is a fraction of a
 # player's OWN findings and the player chooses which to share -- so meeting the
@@ -77,16 +85,16 @@ _FALLBACK_KIND = "clue"
 # reach it is a finding nobody may keep, which deletes the hoarding decision.
 #
 # Redundancy is the option that survives that argument, and it does double duty:
-# Session 38 also found the difficulty ladder is inert at a three-finding hand
+# Session 38 also found the difficulty ladder is inert at a three-finding casefile
 # (EASY/MEDIUM/HARD all resolve to "share 2, keep 1" -- a percentage has no
 # resolution over three items), and named redundancy as difficulty's natural
-# home. EASY puts each exoneration in two hands so somebody will share it; HARD
+# home. EASY puts each exoneration in two casefiles so somebody will share it; HARD
 # puts it in exactly one so withholding really bites.
 #
 # MEDIUM AND HARD ARE THE SAME VALUE, AND THAT IS FORCED, NOT LAZY. The
 # redundancy ceiling is set by constraint 2 (see feasibility()): at APF's shape
 # -- 4 players, EXACTLY 4 suspects, so 3 required exonerations -- redundancy 3
-# would force some hand to hold all three and solve alone. The ceiling is 2, so
+# would force some casefile to hold all three and solve alone. The ceiling is 2, so
 # only two rungs exist. Difficulty gets a third only from a second dial:
 # suspect count or red-herring density, both named by Session 38. Moving the
 # ladder here fixed EASY-vs-the-rest and did NOT fix MEDIUM-vs-HARD.
@@ -105,9 +113,9 @@ REDUNDANCY_BY_DIFFICULTY = {"EASY": 2, "HARD": 1, "MEDIUM": 1}
 
 # How many findings a player may withhold. PASSED IN, NEVER COMPUTED HERE:
 # _min_share_required() in server/main.py is THE definition of the share rule
-# (Session 38 removed a second copy that had drifted), and deal.py recomputing
+# (Session 38 removed a second copy that had drifted), and casefiles.py recomputing
 # it from share_min would put the duplication straight back. 1 is what that rule
-# yields at APF's three-finding hand for every difficulty.
+# yields at APF's three-finding casefile for every difficulty.
 DEFAULT_HOARD_ALLOWANCE = 1
 
 # APF's specified cast (docs/PLAYTEST_FLOW.md, and the generation prompt's
@@ -117,15 +125,15 @@ DEFAULT_HOARD_ALLOWANCE = 1
 # harder or easier version of the same game, it is a different one.
 APF_SUSPECT_COUNT = 4
 
-# Re-dealing is free, so the ceiling is generous. It exists to bound a mystery
-# that cannot be dealt at all, and when it is hit the feasibility report -- not
+# Re-running the assignment is free, so the ceiling is generous. It exists to bound a mystery
+# that cannot be assigned at all, and when it is hit the feasibility report -- not
 # the attempt count -- is what says why.
 MAX_ATTEMPTS = 400
 
 
 @dataclass
 class Finding:
-    """One dealt finding. `reveals` is the join key to evidence[]."""
+    """One assigned finding. `reveals` is the join key to evidence[]."""
     id: str
     kind: str          # "witness" | "clue" | "lead"
     title: str
@@ -137,21 +145,21 @@ class Finding:
 
 
 @dataclass
-class DealResult:
-    hands: List[List[Finding]]
+class AssignmentResult:
+    casefiles: List[List[Finding]]
     ok: bool
     issues: List[str] = field(default_factory=list)
     attempts: int = 0
     seed: int = 0
     redundancy: int = 1
-    # Quality of the dealing, not of the mystery -- see best_deal().
+    # Quality of the assignment, not of the mystery -- see best_assignment().
     monopoly: int = 0            # hoarding patterns where exactly one player can prove it
     patterns: int = 0            # hoarding patterns examined
     seeds_tried: int = 1
 
     def to_dict(self) -> dict:
         return {
-            "hands": [[c.to_dict() for c in h] for h in self.hands],
+            "casefiles": [[c.to_dict() for c in h] for h in self.casefiles],
             "ok": self.ok,
             "issues": list(self.issues),
             "attempts": self.attempts,
@@ -200,13 +208,13 @@ def evidence_by_id(mystery: dict) -> Dict[str, dict]:
 
 
 def build_pool(mystery: dict) -> List[Finding]:
-    """Every finding that could be dealt, in three kinds.
+    """Every finding that could be assigned, in three kinds.
 
     A clue finding reveals ITSELF -- an evidence item is its own join key, which
-    is why dealing from evidence[] alone would need no pointer at all. The
+    is why assignment from evidence[] alone would need no pointer at all. The
     pointer exists for the other two kinds.
 
-    INVESTIGATION AREAS ARE DELIBERATELY NOT DEALT. APF has no traversal, so
+    INVESTIGATION AREAS ARE DELIBERATELY NOT ASSIGNED. APF has no traversal, so
     "you searched the library" is a sentence about a move nobody makes. They
     still carry `reveals` in the schema because the map is deferred, not
     cancelled (CLAUDE.md item 23), and a second schema change would cost a
@@ -287,7 +295,7 @@ def narrowed_by(findings: Sequence[Finding], mystery: dict,
     requires the culprit be implicated by something so the answer does not read
     as arbitrary, which makes single-name lists normal and correct. Read as a
     narrowing constraint, a single-name list says "only Brandt could have done
-    it", i.e. one finding that is the whole answer: whoever is dealt it wins
+    it", i.e. one finding that is the whole answer: whoever is assigned it wins
     alone without anyone sharing anything, which is the exact failure the
     lighthouse mystery was rejected for. `narrows` is a CONSTRAINT over a set and must name
     at least two people; `implicates` keeps its old meaning untouched.
@@ -346,7 +354,7 @@ def solves(findings: Sequence[Finding], mystery: dict,
 
 
 # --------------------------------------------------------------------------
-# Feasibility — why a deal cannot be made, before trying 400 times
+# Feasibility — why an assignment cannot be made, before trying 400 times
 # --------------------------------------------------------------------------
 
 # Every reason feasibility() can refuse a mystery, and what kind of broken each
@@ -361,23 +369,23 @@ def solves(findings: Sequence[Finding], mystery: dict,
 # change; naming them identically means the gate deduplicates them instead of
 # counting one defect twice.
 FEASIBILITY_RULES = {
-    "DEAL.NO_SUSPECTS":              "incoherent",
-    "DEAL.SUSPECT_COUNT":            "unplayable",
-    "DEAL.NO_CULPRIT":               "incoherent",
-    "DEAL.CULPRIT_NOT_SUSPECT":      "incoherent",
+    "CASE.NO_SUSPECTS":              "incoherent",
+    "CASE.SUSPECT_COUNT":            "unplayable",
+    "CASE.NO_CULPRIT":               "incoherent",
+    "CASE.CULPRIT_NOT_SUSPECT":      "incoherent",
     "REVEAL.DANGLING":               "incoherent",
-    "DEAL.EXONERATES_STRANGER":      "below_standard",
+    "CASE.EXONERATES_STRANGER":      "below_standard",
     "NARR.CULPRIT_EXONERATED":       "unplayable",
     "NARR.NARROWS_SINGLE":           "spoiled_prose",
     "NARR.NARROWS_ALL":              "below_standard",
     "NARR.NARROWS_STRANGER":         "below_standard",
     "NARR.NARROWS_EXCLUDES_CULPRIT": "unplayable",
     "NARR.NARROWING_LOAD_BEARING":   "unplayable",
-    "DEAL.POOL_UNSOLVABLE":          "unplayable",
-    "DEAL.REDUNDANCY_CEILING":       "unplayable",
-    "DEAL.REDUNDANCY_UNREACHABLE":   "unplayable",
-    "DEAL.SOLO_SOLVE":               "unplayable",
-    "DEAL.POOL_TOO_SMALL":           "unplayable",
+    "CASE.POOL_UNSOLVABLE":          "unplayable",
+    "CASE.REDUNDANCY_CEILING":       "unplayable",
+    "CASE.REDUNDANCY_UNREACHABLE":   "unplayable",
+    "CASE.SOLO_SOLVE":               "unplayable",
+    "CASE.POOL_TOO_SMALL":           "unplayable",
 }
 
 
@@ -396,22 +404,22 @@ def _add(issues: List[dict], rule_id: str, message: str, subjects=()) -> None:
 
 def feasibility(mystery: dict, player_count: int,
                 redundancy: int = 1,
-                hand_spec: Sequence[str] = DEFAULT_HAND_SPEC) -> List[str]:
+                casefile_spec: Sequence[str] = DEFAULT_CASEFILE_SPEC) -> List[str]:
     """The reasons, as prose. Unchanged public behaviour — every existing caller
-    and scripts/test_deal.py read this list of strings."""
+    and scripts/test_casefiles.py read this list of strings."""
     return [i["message"] for i in
-            feasibility_issues(mystery, player_count, redundancy, hand_spec)]
+            feasibility_issues(mystery, player_count, redundancy, casefile_spec)]
 
 
 def feasibility_issues(mystery: dict, player_count: int,
                        redundancy: int = 1,
-                       hand_spec: Sequence[str] = DEFAULT_HAND_SPEC) -> List[dict]:
-    """Cheap structural reasons this mystery can never be dealt.
+                       casefile_spec: Sequence[str] = DEFAULT_CASEFILE_SPEC) -> List[dict]:
+    """Cheap structural reasons this mystery can never be assigned.
 
-    WHY THIS EXISTS. Without it, an undealable mystery looks exactly like an
+    WHY THIS EXISTS. Without it, an unassignable mystery looks exactly like an
     unlucky one: 400 failed attempts and no explanation. Every check below
-    turns "the deal failed" into a sentence naming the mystery's defect, which
-    is the difference between re-dealing and regenerating.
+    turns "the assignment failed" into a sentence naming the mystery's defect, which
+    is the difference between re-running the assignment and regenerating.
     """
     issues: List[dict] = []
     ev_by_id = evidence_by_id(mystery)
@@ -421,24 +429,24 @@ def feasibility_issues(mystery: dict, player_count: int,
     required = required_exonerations(mystery)
 
     if not sus:
-        _add(issues, "DEAL.NO_SUSPECTS", "no suspects: characters[] has nobody with role 'suspect'")
+        _add(issues, "CASE.NO_SUSPECTS", "no suspects: characters[] has nobody with role 'suspect'")
     elif len(sus) != APF_SUSPECT_COUNT:
         # APF'S ARITHMETIC IS SIZED FOR FOUR, and asserting it in the prompt was
         # not enough -- `snow_on_the_engawa` came back with three and nothing
         # caught it. THREE IS NOT MERELY SMALLER, IT IS A DIFFERENT GAME: two
         # required exonerations instead of three means any single finding
-        # carrying both clears everybody and solves outright, so the deal cannot
+        # carrying both clears everybody and solves outright, so the assignment cannot
         # be fair no matter how well the mystery is written. The redundancy
         # ceiling reasoning below assumes 4 as well.
-        _add(issues, "DEAL.SUSPECT_COUNT",
+        _add(issues, "CASE.SUSPECT_COUNT",
              f"{len(sus)} suspects, not {APF_SUSPECT_COUNT}: at {len(sus)} there are only "
              f"{max(0, len(sus) - 1)} required exoneration(s), so one finding carrying them all "
-             f"solves the case and no deal can be fair",
+             f"solves the case and no assignment can be fair",
              sorted(sus))
     if not cul:
-        _add(issues, "DEAL.NO_CULPRIT", "no culprit: solution.culprit is empty")
+        _add(issues, "CASE.NO_CULPRIT", "no culprit: solution.culprit is empty")
     elif cul not in sus:
-        _add(issues, "DEAL.CULPRIT_NOT_SUSPECT", f"culprit {cul!r} is not among the suspects {sorted(sus)}", [cul])
+        _add(issues, "CASE.CULPRIT_NOT_SUSPECT", f"culprit {cul!r} is not among the suspects {sorted(sus)}", [cul])
 
     # Dangling pointers. A reveals id naming no evidence item is silently
     # inert in exonerated_by(), so it must be loud here.
@@ -454,7 +462,7 @@ def feasibility_issues(mystery: dict, player_count: int,
     for eid, item in ev_by_id.items():
         for n in (item.get("exonerates") or []):
             if str(n).strip() and str(n).strip() not in known:
-                _add(issues, "DEAL.EXONERATES_STRANGER", f"evidence {eid} exonerates {str(n).strip()!r}, who is not a suspect", [eid])
+                _add(issues, "CASE.EXONERATES_STRANGER", f"evidence {eid} exonerates {str(n).strip()!r}, who is not a suspect", [eid])
     if cul and cul in exonerated_by(pool, ev_by_id):
         _add(issues, "NARR.CULPRIT_EXONERATED", f"the culprit {cul!r} is exonerated by the evidence; nobody can be accused", [cul])
 
@@ -480,7 +488,7 @@ def feasibility_issues(mystery: dict, player_count: int,
         if len(live) < 2:
             _add(issues, "NARR.NARROWS_SINGLE",
                 f"evidence {eid} narrows to {named}, which is {len(live)} actual suspect(s) -- "
-                f"that is the whole answer in one finding, and whoever is dealt it wins "
+                f"that is the whole answer in one finding, and whoever is assigned it wins "
                 f"without sharing", [eid])
         # A narrowing naming EVERY suspect rules nobody out. The first real
         # generation to write a narrowing clue produced exactly this -- a rifle
@@ -517,19 +525,19 @@ def feasibility_issues(mystery: dict, player_count: int,
     # no subset of it can.
     if sus and cul and not solves(pool, mystery, ev_by_id):
         standing = sorted(set(sus) - exonerated_by(pool, ev_by_id))
-        _add(issues, "DEAL.POOL_UNSOLVABLE", 
+        _add(issues, "CASE.POOL_UNSOLVABLE", 
             "the full finding pool does not solve the mystery -- "
             f"suspects left standing: {standing or ['(none)']}, expected exactly [{cul!r}]"
         )
 
     # Constraints 2 and 3 pull AGAINST each other, and the ceiling is where
-    # they meet. Each of the R required exonerations sits in >= k hands, so
-    # there are >= R*k (exoneration, hand) incidences over P hands, and by
-    # pigeonhole some hand holds >= ceil(R*k/P) of them. When that reaches R,
-    # that hand holds EVERY exoneration -- and a hand holding every exoneration
-    # solves alone, which is constraint 2. So the deal is not unlucky at that
+    # they meet. Each of the R required exonerations sits in >= k casefiles, so
+    # there are >= R*k (exoneration, casefile) incidences over P casefiles, and by
+    # pigeonhole some casefile holds >= ceil(R*k/P) of them. When that reaches R,
+    # that casefile holds EVERY exoneration -- and a casefile holding every exoneration
+    # solves alone, which is constraint 2. So the assignment is not unlucky at that
     # point, it is impossible, and burning 400 attempts to discover it would
-    # report "no valid deal" for something arithmetic settles up front.
+    # report "no valid assignment" for something arithmetic settles up front.
     #
     # THIS IS WHY THERE IS NO THREE-RUNG REDUNDANCY LADDER. At APF's specified
     # shape -- 4 players, EXACTLY 4 suspects, so R = 3 -- the ceiling is 2.
@@ -537,84 +545,84 @@ def feasibility_issues(mystery: dict, player_count: int,
     # dial (suspect count or red-herring density, per Session 38) to get a
     # third rung; redundancy alone cannot provide one.
     if required and player_count and redundancy > 1:
-        worst_hand = math.ceil(len(required) * redundancy / player_count)
-        if worst_hand >= len(required):
-            _add(issues, "DEAL.REDUNDANCY_CEILING", 
+        worst_casefile = math.ceil(len(required) * redundancy / player_count)
+        if worst_casefile >= len(required):
+            _add(issues, "CASE.REDUNDANCY_CEILING", 
                 f"redundancy {redundancy} is impossible at {player_count} players with "
-                f"{len(required)} required exoneration(s): some hand must then hold all "
+                f"{len(required)} required exoneration(s): some casefile must then hold all "
                 f"{len(required)} and would solve alone (constraint 2). "
                 f"Ceiling here is {max(1, (player_count * (len(required) - 1)) // len(required))}."
             )
 
     # Constraint 3 must be reachable: an exoneration carried by fewer distinct
-    # findings than the redundancy level can never reach that many hands.
+    # findings than the redundancy level can never reach that many casefiles.
     if redundancy > 1:
         for r in sorted(required):
             carriers = [c for c in pool if r in exonerated_by([c], ev_by_id)]
             if len(carriers) < redundancy:
-                _add(issues, "DEAL.REDUNDANCY_UNREACHABLE", 
+                _add(issues, "CASE.REDUNDANCY_UNREACHABLE", 
                     f"exoneration of {r!r} is carried by {len(carriers)} finding(s) "
-                    f"but redundancy {redundancy} needs {redundancy} distinct hands"
+                    f"but redundancy {redundancy} needs {redundancy} distinct casefiles"
                 , [r])
 
     # Constraint 2 must be reachable: if one finding solves outright, whoever gets
-    # it wins alone and the deal is a lottery by construction.
+    # it wins alone and the assignment is a lottery by construction.
     for finding in pool:
         if sus and cul and solves([finding], mystery, ev_by_id):
-            _add(issues, "DEAL.SOLO_SOLVE", f"finding {finding.id} solves the mystery by itself; no deal can be fair", [finding.id])
+            _add(issues, "CASE.SOLO_SOLVE", f"finding {finding.id} solves the mystery by itself; no assignment can be fair", [finding.id])
 
-    hand_size = len(hand_spec)
-    if len(pool) < player_count * hand_size:
-        _add(issues, "DEAL.POOL_TOO_SMALL", 
-            f"pool has {len(pool)} findings, short of {player_count} players x {hand_size} = "
-            f"{player_count * hand_size}"
+    casefile_size = len(casefile_spec)
+    if len(pool) < player_count * casefile_size:
+        _add(issues, "CASE.POOL_TOO_SMALL", 
+            f"pool has {len(pool)} findings, short of {player_count} players x {casefile_size} = "
+            f"{player_count * casefile_size}"
         )
 
     return issues
 
 
 # --------------------------------------------------------------------------
-# The deal
+# The assignment
 # --------------------------------------------------------------------------
 
-def _violations(hands: List[List[Finding]], mystery: dict,
+def _violations(casefiles: List[List[Finding]], mystery: dict,
                 ev_by_id: Dict[str, dict], redundancy: int,
                 require_proof_under_hoarding: bool = True,
                 hoard_allowance: int = DEFAULT_HOARD_ALLOWANCE,
                 forbid_prover_monopoly: bool = False) -> List[str]:
-    """The constraints, checked against one candidate deal."""
+    """The constraints, checked against one candidate assignment."""
     out: List[str] = []
-    all_findings = [f for h in hands for f in h]
+    all_findings = [f for h in casefiles for f in h]
 
-    # 1. the union of all dealt findings eliminates all but one suspect
+    # 1. the union of all assigned findings eliminates all but one suspect
     if not solves(all_findings, mystery, ev_by_id):
         standing = sorted(set(suspects(mystery)) - exonerated_by(all_findings, ev_by_id))
         out.append(f"union does not solve; standing: {standing or ['(none)']}")
 
-    # 2. no single player's hand does that alone
-    for i, hand in enumerate(hands):
-        if solves(hand, mystery, ev_by_id):
-            out.append(f"hand {i} solves alone")
+    # 2. no single player's casefile does that alone
+    for i, casefile in enumerate(casefiles):
+        if solves(casefile, mystery, ev_by_id):
+            out.append(f"casefile {i} solves alone")
 
-    # 3. each required exoneration reaches at least `redundancy` distinct hands
+    # 3. each required exoneration reaches at least `redundancy` distinct casefiles
     if redundancy > 1:
         for r in sorted(required_exonerations(mystery)):
-            holders = sum(1 for h in hands if r in exonerated_by(h, ev_by_id))
+            holders = sum(1 for h in casefiles if r in exonerated_by(h, ev_by_id))
             if holders < redundancy:
-                out.append(f"exoneration of {r!r} reaches {holders} hand(s), needs {redundancy}")
+                out.append(f"exoneration of {r!r} reaches {holders} casefile(s), needs {redundancy}")
 
     # SHORT-CIRCUIT. Constraints 4 and 5 each enumerate every hoarding pattern
     # -- 81 at APF's shape, each running solves() once per player -- so they are
     # roughly three orders of magnitude more expensive than the three above. A
-    # deal that already fails a cheap constraint is going to be rejected either
+    # assignment that already fails a cheap constraint is going to be rejected either
     # way, so spending that on it is pure waste: with a 400-attempt ceiling it
-    # was ~130,000 needless set operations per refused deal.
+    # was ~130,000 needless set operations per refused assignment.
     if out:
         return out
 
     # 4. proof survives hoarding -- the owner's "race to proof", enumerated
     if require_proof_under_hoarding:
-        ok, total, _ = proof_survives_hoarding(hands, mystery, ev_by_id, hoard_allowance)
+        ok, total, _ = proof_survives_hoarding(casefiles, mystery, ev_by_id, hoard_allowance)
         if ok < total:
             out.append(
                 f"proof dies under hoarding in {total - ok} of {total} patterns; "
@@ -623,9 +631,9 @@ def _violations(hands: List[List[Finding]], mystery: dict,
     # 5. a race needs at least two runners -- no single player may hold a
     #    monopoly on reaching proof. OFF BY DEFAULT: it is a stricter reading of
     #    the owner's "race to proof" than the words strictly require, it costs
-    #    deals, and it is theirs to turn on.
+    #    assigns, and it is theirs to turn on.
     if forbid_prover_monopoly:
-        counts = prover_counts(hands, mystery, ev_by_id, hoard_allowance)
+        counts = prover_counts(casefiles, mystery, ev_by_id, hoard_allowance)
         mono = counts.get(1, 0)
         if mono:
             total = sum(counts.values())
@@ -636,7 +644,7 @@ def _violations(hands: List[List[Finding]], mystery: dict,
     return out
 
 
-def proof_survives_hoarding(hands: List[List[Finding]], mystery: dict,
+def proof_survives_hoarding(casefiles: List[List[Finding]], mystery: dict,
                            ev_by_id: Optional[Dict[str, dict]] = None,
                            hoard_allowance: int = DEFAULT_HOARD_ALLOWANCE) -> tuple:
     """Can somebody still PROVE it after every player withholds their best finding?
@@ -646,8 +654,8 @@ def proof_survives_hoarding(hands: List[List[Finding]], mystery: dict,
     proof." That is a claim about what must remain true after players hoard, so
     it is checked by enumeration rather than argued about.
 
-    A player knows everything shared PLUS their own hand -- you always know what
-    you kept -- so proof is reachable when ANY player's shared-pool-plus-own-hand
+    A player knows everything shared PLUS their own casefile -- you always know what
+    you kept -- so proof is reachable when ANY player's shared-pool-plus-own-casefile
     solves. At APF's shape that is 4 players x 3 choices = 81 patterns, the same
     81 docs/PLAYTEST_FLOW.md already cites for the pick-list, and set operations
     at zero API cost.
@@ -658,21 +666,21 @@ def proof_survives_hoarding(hands: List[List[Finding]], mystery: dict,
     CARRIERS -- how many separate findings in the mystery can clear a given
     suspect. At one carrier per suspect proof dies in 6 of 81 patterns; at two
     it survives all 81, at redundancy 1 and 2 alike. That is why the fix landed
-    in the generation prompt as "two independent routes" rather than as a deal
+    in the generation prompt as "two independent routes" rather than as an assignment
     setting.
     """
     ev_by_id = evidence_by_id(mystery) if ev_by_id is None else ev_by_id
     # Each player independently chooses which `hoard_allowance` findings to keep.
     per_player = [list(itertools.combinations(range(len(h)), hoard_allowance))
-                  for h in hands]
+                  for h in casefiles]
     reachable = 0
     failing: List[tuple] = []
     patterns = list(itertools.product(*per_player))
     for pattern in patterns:
-        shared = [f for i, hand in enumerate(hands)
-                  for j, f in enumerate(hand) if j not in pattern[i]]
-        provers = sum(1 for i in range(len(hands))
-                      if solves(shared + list(hands[i]), mystery, ev_by_id))
+        shared = [f for i, casefile in enumerate(casefiles)
+                  for j, f in enumerate(casefile) if j not in pattern[i]]
+        provers = sum(1 for i in range(len(casefiles))
+                      if solves(shared + list(casefiles[i]), mystery, ev_by_id))
         if provers:
             reachable += 1
         elif len(failing) < 3:
@@ -680,7 +688,7 @@ def proof_survives_hoarding(hands: List[List[Finding]], mystery: dict,
     return reachable, len(patterns), failing
 
 
-def prover_counts(hands: List[List[Finding]], mystery: dict,
+def prover_counts(casefiles: List[List[Finding]], mystery: dict,
                   ev_by_id: Optional[Dict[str, dict]] = None,
                   hoard_allowance: int = DEFAULT_HOARD_ALLOWANCE) -> Dict[int, int]:
     """{how many players could prove it: in how many hoarding patterns}.
@@ -692,39 +700,39 @@ def prover_counts(hands: List[List[Finding]], mystery: dict,
     player could reach it -- always the same player, the one holding the
     single-route finding, because a hoarder still knows what they kept. That
     passes "race to proof" and is not a race. Two routes cuts the monopoly to
-    27 of 81, and a monopoly-free deal exists at other seeds, so it is a
-    property the dealer can search for rather than one the writing must
+    27 of 81, and a monopoly-free assignment exists at other seeds, so it is a
+    property the assignment can search for rather than one the writing must
     guarantee.
     """
     ev_by_id = evidence_by_id(mystery) if ev_by_id is None else ev_by_id
     per_player = [list(itertools.combinations(range(len(h)), hoard_allowance))
-                  for h in hands]
+                  for h in casefiles]
     counts: Dict[int, int] = {}
     for pattern in itertools.product(*per_player):
-        shared = [f for i, hand in enumerate(hands)
-                  for j, f in enumerate(hand) if j not in pattern[i]]
-        n = sum(1 for i in range(len(hands))
-                if solves(shared + list(hands[i]), mystery, ev_by_id))
+        shared = [f for i, casefile in enumerate(casefiles)
+                  for j, f in enumerate(casefile) if j not in pattern[i]]
+        n = sum(1 for i in range(len(casefiles))
+                if solves(shared + list(casefiles[i]), mystery, ev_by_id))
         counts[n] = counts.get(n, 0) + 1
     return counts
 
 
-def deal(mystery: dict, player_count: int, seed: int = 0,
+def assign(mystery: dict, player_count: int, seed: int = 0,
          redundancy: Optional[int] = None,
-         hand_spec: Sequence[str] = DEFAULT_HAND_SPEC,
+         casefile_spec: Sequence[str] = DEFAULT_CASEFILE_SPEC,
          max_attempts: int = MAX_ATTEMPTS,
          require_proof_under_hoarding: bool = True,
          hoard_allowance: int = DEFAULT_HOARD_ALLOWANCE,
-         forbid_prover_monopoly: bool = False) -> DealResult:
-    """Deal `player_count` hands under the three constraints.
+         forbid_prover_monopoly: bool = False) -> AssignmentResult:
+    """Assignment `player_count` casefiles under the three constraints.
 
     Deterministic in `seed`: the same (mystery, players, seed) always gives the
-    same hands, so a reconnecting player gets back the hand they left rather
+    same casefiles, so a reconnecting player gets back the casefile they left rather
     than a reshuffled one -- the same property background_field.py needs for
     the same reason.
 
-    Returns a DealResult rather than raising. A deal that cannot be made is
-    diagnostic data about the MYSTERY -- the caller decides between re-dealing
+    Returns an AssignmentResult rather than raising. An assignment that cannot be made is
+    diagnostic data about the MYSTERY -- the caller decides between re-running the assignment
     with a new seed and regenerating -- and an exception would throw that away.
     """
     if redundancy is None:
@@ -734,15 +742,15 @@ def deal(mystery: dict, player_count: int, seed: int = 0,
     ev_by_id = evidence_by_id(mystery)
     pool = build_pool(mystery)
 
-    blocking = feasibility(mystery, player_count, redundancy, hand_spec)
+    blocking = feasibility(mystery, player_count, redundancy, casefile_spec)
     if blocking:
-        return DealResult(hands=[], ok=False, issues=blocking, attempts=0,
+        return AssignmentResult(casefiles=[], ok=False, issues=blocking, attempts=0,
                           seed=seed, redundancy=redundancy)
 
     rng = random.Random(seed)
     last: List[str] = []
 
-    hand_size = len(hand_spec)
+    casefile_size = len(casefile_spec)
     required = sorted(required_exonerations(mystery))
 
     for attempt in range(1, max_attempts + 1):
@@ -752,19 +760,19 @@ def deal(mystery: dict, player_count: int, seed: int = 0,
         for bucket in by_kind.values():
             rng.shuffle(bucket)
 
-        hands: List[List[Finding]] = [[] for _ in range(player_count)]
+        casefiles: List[List[Finding]] = [[] for _ in range(player_count)]
         used: Set[str] = set()
-        # Kinds each hand still wants, so the seeding pass below can consume a
+        # Kinds each casefile still wants, so the seeding pass below can consume a
         # slot and the fill pass knows what is left.
-        wanted: List[List[str]] = [list(hand_spec) for _ in range(player_count)]
+        wanted: List[List[str]] = [list(casefile_spec) for _ in range(player_count)]
 
         # SEEDING PASS -- place the findings that DECIDE the case first.
         #
-        # WHY THIS EXISTS. The first version dealt purely by kind and let the
-        # constraints reject bad deals. That works while the pool is small, and
+        # WHY THIS EXISTS. The first version assigned purely by kind and let the
+        # constraints reject bad assigns. That works while the pool is small, and
         # stops working the moment it is not: the second real generation
         # returned 21 findings of which only 4 carried any exoneration, so a
-        # 12-of-21 deal chosen by KIND had to catch all three eliminations by
+        # 12-of-21 assignment chosen by KIND had to catch all three eliminations by
         # luck, and 400 attempts did not. Raising the evidence floor to 9 made
         # the pool bigger and the luck worse. Constraint 1 is a COVERING
         # requirement, and a covering requirement should be constructed, not
@@ -774,40 +782,40 @@ def deal(mystery: dict, player_count: int, seed: int = 0,
             carriers = [f for f in pool
                         if f.id not in used and r in exonerated_by([f], ev_by_id)]
             rng.shuffle(carriers)
-            # Spread across distinct hands, which is also what redundancy wants;
-            # prefer hands with room, in a rotated order so hand 0 is not always
+            # Spread across distinct casefiles, which is also what redundancy wants;
+            # prefer casefiles with room, in a rotated order so casefile 0 is not always
             # the one that gets the decisive finding.
             order = list(range(player_count))
             rng.shuffle(order)
             placed = 0
-            for hand_idx in order:
+            for casefile_idx in order:
                 if placed >= max(1, redundancy) or not carriers:
                     break
-                if len(hands[hand_idx]) >= hand_size:
+                if len(casefiles[casefile_idx]) >= casefile_size:
                     continue
                 finding = carriers.pop()
-                hands[hand_idx].append(finding)
+                casefiles[casefile_idx].append(finding)
                 used.add(finding.id)
-                if finding.kind in wanted[hand_idx]:
-                    wanted[hand_idx].remove(finding.kind)
-                elif wanted[hand_idx]:
-                    wanted[hand_idx].pop()
+                if finding.kind in wanted[casefile_idx]:
+                    wanted[casefile_idx].remove(finding.kind)
+                elif wanted[casefile_idx]:
+                    wanted[casefile_idx].pop()
                 placed += 1
 
-        # FILL PASS -- slot-major over what each hand still wants.
+        # FILL PASS -- slot-major over what each casefile still wants.
         # Slot-major, not player-major. MEASURED, NOT ASSUMED: with one slot per
         # kind and a single shared fallback pool, the two orders produce the
         # SAME distribution -- an earlier version of this comment claimed
         # player-major would "give player 0 the full spec and player 3 three
         # fallbacks", and a negative test proved that false. It is kept because
-        # it stays correct if hand_spec ever takes two slots of one kind, where
-        # player-major would let an early hand take both copies of a scarce kind
-        # before any later hand takes one.
-        for _ in range(hand_size):
-            for hand_idx, hand in enumerate(hands):
-                if len(hand) >= hand_size:
+        # it stays correct if casefile_spec ever takes two slots of one kind, where
+        # player-major would let an early casefile take both copies of a scarce kind
+        # before any later casefile takes one.
+        for _ in range(casefile_size):
+            for casefile_idx, casefile in enumerate(casefiles):
+                if len(casefile) >= casefile_size:
                     continue
-                slot = wanted[hand_idx].pop(0) if wanted[hand_idx] else _FALLBACK_KIND
+                slot = wanted[casefile_idx].pop(0) if wanted[casefile_idx] else _FALLBACK_KIND
                 src = [f for f in by_kind.get(slot, []) if f.id not in used]
                 if not src:
                     src = [f for f in by_kind.get(_FALLBACK_KIND, []) if f.id not in used]
@@ -817,78 +825,78 @@ def deal(mystery: dict, player_count: int, seed: int = 0,
                     short = True
                     break
                 finding = src[0]
-                hand.append(finding)
+                casefile.append(finding)
                 used.add(finding.id)
             if short:
                 break
-        if short or any(len(h) < hand_size for h in hands):
-            last = ["ran out of findings while dealing"]
+        if short or any(len(h) < casefile_size for h in casefiles):
+            last = ["ran out of findings while assignment"]
             continue
 
-        last = _violations(hands, mystery, ev_by_id, redundancy,
+        last = _violations(casefiles, mystery, ev_by_id, redundancy,
                            require_proof_under_hoarding, hoard_allowance,
                            forbid_prover_monopoly)
         if not last:
-            return DealResult(hands=hands, ok=True, issues=[], attempts=attempt,
+            return AssignmentResult(casefiles=casefiles, ok=True, issues=[], attempts=attempt,
                               seed=seed, redundancy=redundancy)
 
-    return DealResult(
-        hands=[], ok=False,
-        issues=[f"no valid deal in {max_attempts} attempts; last: " + "; ".join(last)],
+    return AssignmentResult(
+        casefiles=[], ok=False,
+        issues=[f"no valid assignment in {max_attempts} attempts; last: " + "; ".join(last)],
         attempts=max_attempts, seed=seed, redundancy=redundancy,
     )
 
 
 # --------------------------------------------------------------------------
-# Choosing a dealing, not just finding a legal one
+# Choosing an assignment, not just finding a legal one
 # --------------------------------------------------------------------------
 
 DEFAULT_SEED_SEARCH = 20
 
 
-def best_deal(mystery: dict, player_count: int,
+def best_assignment(mystery: dict, player_count: int,
               seeds: int = DEFAULT_SEED_SEARCH,
-              **kwargs) -> DealResult:
-    """Deal several times and keep the fairest dealing. Free — pure computation.
+              **kwargs) -> AssignmentResult:
+    """Assignment several times and keep the fairest assignment. Free — pure computation.
 
-    WHY THIS IS NOT deal() WITH A BETTER DEFAULT. `deal()` stops at the first
-    dealing that is LEGAL. It never asks whether it is GOOD, and those are
+    WHY THIS IS NOT assign() WITH A BETTER DEFAULT. `assign()` stops at the first
+    assignment that is LEGAL. It never asks whether it is GOOD, and those are
     different questions with different answers: on the first accepted mystery,
     `the_neriin_in_the_pilchard_barrel`, seed 7 left exactly one player able to
     prove the case in 27 of 81 hoarding patterns -- the very figure `totality`
     was rejected for -- while 13 of 20 seeds gave ZERO, and proof survived 81/81
     on every seed tried. Same mystery, same rules, same constraints satisfied.
-    The difference was entirely which findings landed in which hands.
+    The difference was entirely which findings landed in which casefiles.
 
-    So monopoly on proof is a property of the DEALING, not of the story, and it
-    is worth choosing rather than accepting. Re-dealing costs nothing (this
-    module's whole premise), which makes taking the first legal shuffle a
+    So monopoly on proof is a property of the ASSIGNMENT, not of the story, and it
+    is worth choosing rather than accepting. Re-running the assignment costs nothing (this
+    module's whole premise), which makes taking the first legal distribution a
     strange thing to have been doing.
 
-    SELECTION, NOT PROHIBITION, and that distinction is the design. deal() takes
+    SELECTION, NOT PROHIBITION, and that distinction is the design. assign() takes
     `forbid_prover_monopoly` and makes it a hard constraint -- which means a
-    mystery where NO dealing avoids a monopoly returns no hands at all, and a
-    table gets nothing. Selecting instead always returns a dealing, the least
+    mystery where NO assignment avoids a monopoly returns no casefiles at all, and a
+    table gets nothing. Selecting instead always returns an assignment, the least
     bad one available, and reports how good it managed to be. Degrading is
     better than refusing when the alternative is an empty table.
 
-    DETERMINISM SURVIVES. deal() promises the same (mystery, players, seed)
-    always gives the same hands, because a reconnecting player must get their
-    own hand back. That still holds: this searches seeds and returns the
-    winner with `seed` set to it, so the chosen dealing is reproducible by
-    calling deal() with that seed directly.
+    DETERMINISM SURVIVES. assign() promises the same (mystery, players, seed)
+    always gives the same casefiles, because a reconnecting player must get their
+    own casefile back. That still holds: this searches seeds and returns the
+    winner with `seed` set to it, so the chosen assignment is reproducible by
+    calling assign() with that seed directly.
 
-    Stops early on a perfect dealing, so the common case costs one or two
-    deals rather than `seeds` of them.
+    Stops early on a perfect assignment, so the common case costs one or two
+    assigns rather than `seeds` of them.
     """
     ev_by_id = evidence_by_id(mystery)
-    best: Optional[DealResult] = None
+    best: Optional[AssignmentResult] = None
 
     for n, seed in enumerate(range(seeds), start=1):
-        result = deal(mystery, player_count, seed=seed, **kwargs)
+        result = assign(mystery, player_count, seed=seed, **kwargs)
         if not result.ok:
             # A feasibility refusal is about the mystery and will repeat for
-            # every seed, so there is nothing to search. An unlucky deal might
+            # every seed, so there is nothing to search. An unlucky assignment might
             # not repeat, so keep going.
             if result.attempts == 0:
                 result.seeds_tried = n
@@ -896,7 +904,15 @@ def best_deal(mystery: dict, player_count: int,
             best = best or result
             continue
 
-        counts = prover_counts(result.hands, mystery, ev_by_id)
+        # FORWARD THE ALLOWANCE. This used to call prover_counts() with its
+        # default of 1 while assign() was constraining at whatever the caller
+        # passed -- so a session with a two-finding stash checked
+        # proof-survives-hoarding at two and then chose its seed by a monopoly
+        # measured at one. Two different hoarding models, one of which the rules
+        # do not permit. apf.py derives the allowance from the difficulty ladder
+        # (see apf.stash_allowance), which is what made the mismatch reachable.
+        counts = prover_counts(result.casefiles, mystery, ev_by_id,
+                               kwargs.get("hoard_allowance", DEFAULT_HOARD_ALLOWANCE))
         result.monopoly = counts.get(1, 0)
         result.patterns = sum(counts.values())
         result.seeds_tried = n
@@ -908,5 +924,5 @@ def best_deal(mystery: dict, player_count: int,
 
     if best is not None:
         best.seeds_tried = n
-    return best if best is not None else DealResult(hands=[], ok=False,
+    return best if best is not None else AssignmentResult(casefiles=[], ok=False,
                                                     issues=["no seeds tried"])

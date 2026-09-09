@@ -552,12 +552,114 @@ that the superseded text has become history and belongs here instead.
       otherwise scopes to MYF. A noir question mark is a different object from a strewn field, so
       this may well be fine — but deliberately, not by drift.
 
+    **[DECIDED, playtest StartPageSept7] The desktop half.** Owner: put the logo upper-left on
+    every screen. That is the negative mark, at the exact placement this item already specified
+    for desktop/TV — so the "different marks per device" question above is now answered for the
+    Godot client specifically, not for the room as a whole. The phone half (organic monogram,
+    top-centre) is untouched and still open; `mobile.html` has no chrome pass of any kind yet, so
+    there is nothing there to place it against. The question-mark-motif point directly above was
+    NOT re-litigated when this was asked — flagged to the owner in the same turn the mark was
+    wired in, not decided unilaterally either way.
+
+    **Built as `godot/scripts/autoloads/Chrome.gd`**, a fifth autoload, for the same reason
+    `Style.gd` is one: `change_scene_to_file()` discards and rebuilds the current-scene tree
+    wholesale, so anything living inside a `.tscn` needs adding nine separate times today and
+    again for every screen this project ever grows. Chrome adds its `CanvasLayer` straight to
+    `get_tree().root` in `_ready()`, which survives every scene swap for free. Also built:
+    `scripts/build_brand.py`, the same "generated, then checked" mirror `palette.py` and `icons/`
+    already use, copying `brand/NEWnegative_CYM.svg` byte-exact into
+    `godot/assets/brand/negative_mark.svg` — no recolouring, because a brand mark is a fixed
+    identity rather than a retintable icon, which is exactly the distinction `build_icons.py`
+    draws for the OTHER direction (why it recolours the clue/witness sets and this script does
+    not).
+
+    **The contrast measurement above is unchanged and was surfaced again before wiring anything
+    in**, not silently inherited: 53% of the negative mark's ink still sits at or below 2.5:1
+    against the slate ground. This is a property of the artwork, not of the wiring, and fixing it
+    means re-pitching fill values on the source SVG — a decision for whoever owns the mark. Flagged
+    to the owner in the same turn rather than left for a screenshot to surface on its own.
+
+    **[FIXED, same playtest — the owner asked for it once shown the rendered mark, not once
+    shown a percentage.]** A rendered preview (this session had no engine, so `cairosvg` stood
+    in) made the 53% figure legible rather than abstract: the candle-smoke/question-mark swirl
+    was nearly invisible against the ground while the candle-and-figure — already white — read
+    fine. Isolating the geometry (`svgelements`, bounding boxes rather than colour alone) found
+    the 53% was **one path**: the smoke, a single near-black (`#010101`) fill sitting entirely
+    above the candle-and-figure region, contrast 2.08:1 against the ground on its own. Every
+    other path in the mark belongs to the figure and was never the problem.
+
+    Re-pitched to `#989898` — a neutral gray, not the interface's `LINE` token (`#7090AD`,
+    which also clears the floor, at exactly 3.00:1): the mark's own black/white/red palette is
+    a standalone identity, not a UI element, and importing the app's blue accent into it would
+    be a bigger, uninvited change than fixing legibility. `#989898` measures 3.48:1 against the
+    ground — above the `(INK_FAINT, GROUND, 3.0, "field labels on the ground (large only)")` /
+    `(LINE, GROUND, 3.0, ...)` floor `palette.py`'s own contract already sets for large graphical
+    content on the raw ground, with real margin rather than sitting exactly on the line.
+
+    **Result: 7% of the mark's ink at or below 2.5:1, down from 53%** — `scripts/check_brand_contrast.py`,
+    re-run rather than estimated. The remainder is edge antialiasing on the now-lighter smoke
+    shape plus a few incidental near-black details on the figure (tie, buttons) that were never
+    part of the 53% and were not touched. One fill value changed; nothing else in the mark did.
+
     **Unrelated, noticed while checking and worth one look before building on generation:** an old
     batch summary in `mystery_database/generated/` shows **13 of 14 generations failing** on JSON
     parse errors (`Unterminated string`, `Expecting property name`). It is from March and 16
     mysteries have generated cleanly since, so it is probably long fixed — but a background keyed
     to the title inherits whatever the current failure rate is. Worth one real generation run to
     confirm before building on top of it.
+
+    **[Session 43] The organic monogram landed on Godot too — one screen, `Lobby.tscn`, top-centre
+    — and its contrast was audited and fixed the same session, not left as a caveat this time.**
+    A first pass spot-checked five fill values by hand and called it "roughly the same shape as the
+    negative mark's old defect" — wrong, and worth recording why: `scripts/check_brand_contrast.py`,
+    actually run rather than sampled, measured **73% of the mark's 309,450 opaque pixels at or below
+    2.5:1** against the ground. That is the same number the 2027 measurement above already reported
+    (49% → 73% after the vector re-cut) — it was never fixed, only the negative mark was. Ten times
+    the negative mark's remaining 7%, and its own worst fill sits at 1.12:1 — genuinely invisible,
+    not merely weak.
+
+    **This is not a one-path fix.** The negative mark's 53% traced to a single near-black fill on
+    one path; the organic mark's palette is 125 distinct fills forming a continuous terracotta
+    gradient with no clean offender to isolate, topping out around 4.3:1 at its lightest. Re-pitching
+    it would mean transforming the whole gradient, not changing one value, and would be editing the
+    owner's actual artwork rather than fixing a wiring defect — the checker's own printed verdict was
+    *"drawn for a light ground — re-pitch the values into the light half of the scale, or give the
+    mark a light plate to sit on."* Put to the owner as that choice, once the plate's own numbers
+    were known rather than assumed: white clears the most of the mark's own fills of every
+    background tried (5 of 125 still under 2.5:1, worst 2.35:1 — against 25 of 125 on `Palette.INK`
+    and 22 of 125 on a warm ivory tried in between). **Owner chose the plate.**
+
+    **Built as `Palette.PLATE` (`#FFFFFF`) in `palette.py`**, regenerated through into
+    `Palette.gd` and `mobile.html` the same "one file decides, two clients are generated from it"
+    way every other colour here does — deliberately NOT added to `CONTRAST_CONTRACT`, because that
+    contract measures flat UI ink against a UI background and this is a raster mark's own many-
+    coloured ink against a card behind it, a different kind of measurement with its own checker
+    already. `Lobby.tscn` gained a `PlatePanel`-styled `Panel` sized slightly larger than the mark
+    and placed immediately before it in node order, so it draws behind. No source SVG was touched.
+
+    **[REVERTED, same session, before it reached a second playtest.]** Rendered and sent for a
+    look, the way the negative-mark fix above was — and this time the answer was not a number, it
+    was *"No, I lied. I hate that mockup. I will come up with something to use instead."* `Palette.PLATE`,
+    the `PlatePanel` variation, and `Lobby.tscn`'s plate node are all gone again; `OrganicMark` sits
+    exactly where it did before the plate, contrast problem and all. **The measurement stands and
+    the problem is real** — 73% of the mark's ink is still at or below 2.5:1 against the ground, and
+    that has not changed — but the remedy is now the owner's own replacement artwork, not a fix
+    applied to `NEWorganic_cym.svg` sight-unseen. Worth carrying forward as the general lesson the
+    negative mark's fix did not teach: a percentage clearing a floor is not the same claim as
+    "the owner likes how this looks," and only one of those two is actually the bar.
+
+    **[Session 43, same conversation] The organic mark is gone from `Lobby.tscn`, replaced by the
+    owner's own placeholder.** `icons/new logo/CYM_temp-removebg-preview.svg`, uploaded to `main`
+    directly, copied to `godot/assets/brand/logo_temp.svg` and wired into the renamed `LogoMark`
+    node — a plain swap, not run through the `build_brand.py` mirror pipeline, because the owner's
+    own words for it were *"I don't love it here either. Need to get an artist on it."* Sizing was
+    recomputed for its actual aspect (747×334, wider than the organic mark's 449×375) rather than
+    reusing the old box, which would have letterboxed it. Measured anyway, so the next person does
+    not have to guess: `scripts/check_brand_contrast.py` puts it at **66% of its ink at or below
+    2.5:1** against `Palette.GROUND` — more of it flatly invisible (52.8%) than the organic mark's
+    own worst band ever was. No fix applied, on purpose, per the lesson two paragraphs up: this is
+    a placeholder, not a decision to hold to a floor. Whatever the artist delivers should be
+    measured before it is wired in for anything but a look.
 
 18. **[CLOSED, Session 41 — September 3 2026] A BLOCKING coherence report does not stop a
     mystery being saved, served, or played.** Not a coherence-engine failure — the opposite. The
@@ -586,7 +688,7 @@ that the superseded text has become history and belongs here instead.
     | Class | Means | The case that named it |
     |---|---|---|
     | *incoherent* | the story does not hang together | `the_stolen_star_of_smurf_village` |
-    | *unplayable* | the story is fine, the game cannot be dealt or won | `the_lantern_keeper's_last_light` |
+    | *unplayable* | the story is fine, the game cannot be assigned or won | `the_lantern_keeper's_last_light` |
     | *spoiled_prose* | every field correct, the text gives the answer away | `the_light_that_went_out` |
     | *below_standard* | playable, winnable, not good enough to serve | `totality` |
 
@@ -681,7 +783,7 @@ that the superseded text has become history and belongs here instead.
     there. It **was** a stage-1 playtest-killer — it ends with someone staring at a screen that
     rejects every button.
 
-    **Do not go and fix this.** APF deals findings instead of letting players gather them, so
+    **Do not go and fix this.** APF assigns findings instead of letting players gather them, so
     there is no phase to be trapped in, nothing to block, and every player holds findings by
     construction. The mechanic that carries the bug is gone (`docs/INVESTIGATION_DESIGN.md` §5,
     fix 0). The diagnosis stays on the record because the phase gate returns with any future
@@ -724,57 +826,99 @@ that the superseded text has become history and belongs here instead.
     Plus one gap inside a passing step: the Smurf negative case (accusing Smurfodex, which must
     read *wrong*) was not run. The procedure and its live Status line are `docs/F5_CHECKLIST.md`.
 
-23. **[IN PROGRESS — at step 3] Build APF.** The playtest shape is agreed and written down:
-    `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)". Findings are **dealt, not gathered**; the
+23. **[STEPS 1-4 BUILT, Session 42 — what is left is a table, not code] Build APF.** The playtest shape is agreed and written down:
+    `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)". Findings are **assigned, not gathered**; the
     only decision is which to share and which to keep, which is the mechanic this file's first
     paragraph calls the core innovation. It deletes exploration, the block pool, the phase gates
     and item 21's deadlock outright, and drops play-time API cost to roughly zero.
     Order (from `docs/INVESTIGATION_DESIGN.md` §7, reduced by APF):
     1. ~~`exonerates` / `implicates` on evidence + the set-arithmetic solvability check~~ —
        schema half landed Session 38 with the backwards-writing reorder (item 26).
-    2. ~~the constrained deal — pure computation, re-dealable at zero cost~~ — **[Session 39]
-       built as `deal.py`.** See below.
-    3. the share decision, the suspect board, the reveal — **now the start point**
-    4. `cinematic_brief: bool = True` for the paced text opening
+    2. ~~the constrained assignment — pure computation, re-runnable at zero cost~~ — **[Session 39]
+       built as `casefiles.py`.** See below.
+    3. ~~the share decision, the suspect board, the reveal~~ — **[Session 42] built.** See below.
+    4. ~~`cinematic_brief: bool = True` for the paced text opening~~ — **[Session 40]**
+       `_generate_opening_narration()` writes it, on by default. Pacing the beats is client-side
+       and free; that screen is unbuilt.
+
+    **[Session 42] Step 3, and the shape it took.** `apf.py` owns the RHYTHM; `casefiles.py` still owns
+    the CASE. That split is the whole design: which findings land in whose casefile is a solvability
+    question with a proof attached, and when each is turned face up is a pacing question with none.
+    Six `/apf/` routes serve it, all set arithmetic over an already-generated mystery, so a whole
+    game costs exactly what its one generation call cost.
+
+    **The share and the board are ONE screen, and that was a decision.** `ShareSelection.tscn` was
+    already built as a separate screen for the gather loop and it is untouched. Under the rhythm the
+    share belongs beside the board, because the board is what makes withholding legible without a
+    word of explanation: a face stays lit that you could have darkened, and everyone can see you
+    didn't. A separate screen hides the one thing that gives the decision weight.
+
+    **The board greys on `exonerates` and NEVER on `narrows`, even though `casefiles.solves()` counts
+    both.** Item 27 is explicit that a narrowing must never surface as "the culprit is one of these
+    two" — the clue says *man's size large* and the player looks at the cast and draws the line. A
+    board that greys a face on a narrowing does that reasoning for them and deletes the mechanic it
+    was built to serve. Asserted by a fixture, not left to a comment.
+
+    **Two defects found by RUNNING it, which no reading would have caught.** (a) `best_assignment()`
+    forwarded `hoard_allowance` into `assignment()` but not into the `prover_counts()` call it *selects*
+    the seed with — so a session whose rules permit a two-finding stash constrained proof-survival
+    at two and then chose its assignment by a monopoly measured at one. Only reachable once something
+    derived the allowance instead of taking the constant, which `apf.stash_allowance()` does.
+    (b) **Winning the game fired a live Claude call.** `_generate_resolution_narrative` is the last
+    play-time call site on the critical path, and a 401 took the whole win down with a 500. The
+    stage-1 test is *reach the result screen without an error*, so the reveal now degrades to the
+    mystery's own already-generated resolution prose. Build-order step 5 still has to remove the
+    call; this stops it being fatal. `_winner_findings_summary` was also reading the gather loop's
+    phase lists, which under APF are empty — it now reads the assigned casefile.
+
+    **Verified two ways, both free.** `scripts/test_apf.py` proves the rules in-process (58
+    assertions, fixtures plus one pass over the accepted mystery at all three difficulties);
+    `scripts/walk_apf_game.py` plays a whole four-round game over real HTTP **with no API key at
+    all**, which is how both defects above were found.
+
+    **Not verified: it has never run in Godot, and nobody has played it.** The scene and scripts
+    pass `scripts/check_godot_wiring.py`, which reads scene files rather than loading them —
+    necessary, not sufficient. And every number in the difficulty ladder is arithmetic: whether a
+    two-finding stash at HARD *feels* like a decision is a question only a table answers.
 
     **[Session 39] Step 2's blocker was real and pointed at the wrong code.** Session 38 recorded
     it as *"a finding carries no evidence ID"* in the three finding constructors — but those are
     the **gather** routes (`/investigate-area`, `/follow-lead`, `/interrogate-witness`), and APF
-    deletes gathering. A dealt clue **is** an evidence item and carries its own id, so there is
+    deletes gathering. A assigned clue **is** an evidence item and carries its own id, so there is
     nothing to join.
 
-    **The gap that actually blocked the deal is larger and was not listed anywhere.** APF's hand
+    **The gap that actually blocked the assignment is larger and was not listed anywhere.** APF's casefile
     is one witness statement, one crime-scene clue, one lead result, and `exonerates` /
     `implicates` live **only** on `evidence[]`. Witness statements, leads and area discoveries
-    carried no elimination data at all, so **two of the three kinds in every hand were
-    structurally inert** — they could not participate in the set arithmetic that all three deal
-    constraints are defined over. A deal cannot guarantee "the union eliminates all but one
-    suspect" when two thirds of what it deals eliminates nobody by construction.
+    carried no elimination data at all, so **two of the three kinds in every casefile were
+    structurally inert** — they could not participate in the set arithmetic that all three assignment
+    constraints are defined over. An assignment cannot guarantee "the union eliminates all but one
+    suspect" when two thirds of what it assigns eliminates nobody by construction.
 
     **Closed with a `reveals` pointer**, on witnesses, leads and investigation areas, naming the
     evidence ids they surface. Elimination data therefore lives in exactly **one** place, and a
     witness's exoneration cannot drift out of agreement with the evidence item's. The considered
     alternative — copying `supports` / `exonerates` / `implicates` onto every kind — was rejected
     for precisely that reason: two authored copies of the same fact can disagree, and no
-    structural check could catch it. Areas carry the field but are **not dealt**, because APF has
+    structural check could catch it. Areas carry the field but are **not assigned**, because APF has
     no traversal; they have it so the deferred map does not cost a second paid generation round.
 
-    **The third deal constraint was replaced, not implemented.** `docs/PLAYTEST_FLOW.md` required
-    that a deal *"becomes solvable once the minimum share threshold is met"*, which Session 38
-    measured as not well-formed. `deal.py` takes a `redundancy` parameter instead — how many
-    distinct hands each required exoneration must reach. Redundancy 1 is §4's "accept it" option;
-    redundancy 2 is its "deal for redundancy" option; **"pigeonhole it" is not implemented** and
+    **The third assignment constraint was replaced, not implemented.** `docs/PLAYTEST_FLOW.md` required
+    that an assignment *"becomes solvable once the minimum share threshold is met"*, which Session 38
+    measured as not well-formed. `casefiles.py` takes a `redundancy` parameter instead — how many
+    distinct casefiles each required exoneration must reach. Redundancy 1 is §4's "accept it" option;
+    redundancy 2 is its "assignment for redundancy" option; **"pigeonhole it" is not implemented** and
     the module says so. Redundancy is also where **difficulty now lives**, because the share-rule
-    ladder is inert at a three-finding hand (Session 38): `REDUNDANCY_BY_DIFFICULTY` puts each
-    exoneration in two hands on EASY and one on HARD.
+    ladder is inert at a three-finding casefile (Session 38): `REDUNDANCY_BY_DIFFICULTY` puts each
+    exoneration in two casefiles on EASY and one on HARD.
 
     **Untested against a real generation.** That costs credits and is the next paid step — one
-    round now validates both Session 38's reorder and this pointer. `scripts/test_deal.py` and
+    round now validates both Session 38's reorder and this pointer. `scripts/test_casefiles.py` and
     `scripts/test_narrative_checks.py` carry fixtures because no mystery on disk has either
     field, and both suites were negative-tested by injecting each defect. **That pass found two
-    of the first-draft deal tests vacuous** — one was refused by the feasibility pre-check so the
+    of the first-draft assignment tests vacuous** — one was refused by the feasibility pre-check so the
     enforcing branch could be deleted with the suite still green, and one asserted a property
-    that held by construction — and corrected a code comment claiming a dealing-order benefit
+    that held by construction — and corrected a code comment claiming an assignment-order benefit
     that measurement showed does not exist.
     **[Session 38] One design question remains open, not five** — `docs/INVESTIGATION_DESIGN.md`
     §6 has been reconciled with APF. Four of the five were closed by APF rather than answered
@@ -785,6 +929,29 @@ that the superseded text has become history and belongs here instead.
     Owner also decided the question that was really underneath question 1: **no crime-scene
     picture for the playtest** — a list of named findings, per §6's option (a). The map is
     deferred, not cancelled, and the round-robin witness placement stays a real bug regardless.
+
+    **[Session 43] The first person other than the owner sat down at it, screenshot by screenshot,
+    and ResultScreen's solution breakdown was reading straight off `solution.key_evidence` — bare
+    evidence ids ("E2", "E8", "E10") — even though `_format_plot_reveal()` had resolved them to
+    names server-side since before this session started. The server was doing the work and the
+    client was throwing it away.** Nothing in `/accuse`'s response ever carried it: the route
+    returned `{"correct", "won"}` and left the reveal to a follow-up `GET /result` that
+    `accusation.gd` never called. Fixed by having `/accuse` build and return the same
+    `_build_resolution_reveal()` payload it already broadcasts on a win, so one round trip carries
+    `plot_reveal` (clue ids resolved to `{id, name, description}`) and a new `gameplay_stats`
+    (`rounds_played`, `rounds_total`, `elapsed_seconds` — the last measured from `apf.py`'s new
+    `opened_ts`, set when the assignment opens, not when the room was created, so lobby chat
+    doesn't count as play). Single-player keeps a local equivalent, `_local_plot_reveal()`, since
+    that path never calls `/accuse` at all. `result_screen.gd` now reads `plot_reveal` for four
+    relabelled fields ("The Culprit:", "The Crime:", "His/Her Motive:", "Key Clues:" — the pronoun
+    is the owner's own fallback, offered when told no gender field exists in the schema) and drops
+    "How to deduce" for the new stats block, per instruction: the deduction is the player's, not
+    the game's to narrate back to them. Verified over real HTTP against a live server
+    (`scripts/walk_apf_game.py`'s equivalent walked by hand) — E2/E8/E10 come back as "Dr. Voss's
+    Field Examination Notes", "Contaminated Saffron Tin" and "Forged Partnership Dissolution
+    Instrument" on the accepted mystery, and `gameplay_stats` reports real elapsed seconds.
+    `scripts/test_apf.py` and `scripts/check_godot_wiring.py` still pass; not run in Godot, same
+    caveat as everything else in this item.
 
 24. **[DONE, Session 37 — August 26, 2026] One palette, three surfaces.** The client had no
     styling at all; the phone had a palette it invented; the brand documented a third and was
@@ -925,7 +1092,7 @@ that the superseded text has become history and belongs here instead.
     reason to talk to each other — you read your own list and subtract privately.
 
     **The owner's example, which is the whole design:** *"A bloody men's glove."* On its own it
-    clears nobody. Hand it to somebody holding *"the CCTV shows Adachi in the control room all
+    clears nobody. Give it to somebody holding *"the CCTV shows Adachi in the control room all
     night"* and the two together name the killer. **Two findings that individually prove nothing
     combine into a proof**, which makes sharing the engine of the deduction rather than an
     obligation, and makes *"has anyone got anything on Adachi?"* a sentence a real player says
@@ -952,7 +1119,7 @@ that the superseded text has become history and belongs here instead.
 
     **What it needs.** The field already exists: `implicates` is on every evidence item and
     generation fills it in, but nothing reads it — `check_narrative.py` only asserts that the
-    culprit is implicated by *something*, so the answer does not feel arbitrary, and `deal.py`'s
+    culprit is implicated by *something*, so the answer does not feel arbitrary, and `casefiles.py`'s
     `solves()` uses `exonerates` alone. The change is to give `implicates` the meaning *"only
     these could have done it"* and have `solves()` intersect those sets as well as subtracting
     the exonerated, solving when exactly one name survives both.
@@ -994,7 +1161,7 @@ that the superseded text has become history and belongs here instead.
     is asked.
 
     **Stable rule ids, which is what makes it a dataset rather than an archive.**
-    `check_narrative.py` and `deal.py` emitted prose only — good for a person triaging a queue,
+    `check_narrative.py` and `casefiles.py` emitted prose only — good for a person triaging a queue,
     useless for counting. Both now name every rule they fire, the subject it fired on, and a
     failure class. Prose output is byte-identical; the structured form is additional. The two files
     independently implement five of the same fair-play rules, so their ids are shared deliberately
@@ -1086,7 +1253,7 @@ that the superseded text has become history and belongs here instead.
     superfluous or inactive ones?"*
 
     **The specific worry was tested first, and it was clean.** 55 rule ids are declared across
-    `check_narrative.RULES`, `deal.FEASIBILITY_RULES` and `coherence_validator`. **Every one is
+    `check_narrative.RULES`, `casefiles.FEASIBILITY_RULES` and `coherence_validator`. **Every one is
     reachable from a live code path — there are no dead rules.** 39 have never fired and are not
     named in a test, which sounds alarming and mostly is not: `P1.C2.no_victim` never firing means
     generation reliably writes a victim. That is cheap insurance working. What is new is that the
@@ -1113,26 +1280,26 @@ that the superseded text has become history and belongs here instead.
     are listed deliberately; one is marked *unenforceable* (whether a witness statement is TRUE is
     not a structural question, which is why deception is switched off rather than checked).
 
-31. **[BUILT, Session 41] The deal chooses a dealing instead of taking the first legal one.**
-    `deal()` stopped at the first shuffle satisfying the constraints. It asked *is this legal* and
+31. **[BUILT, Session 41] The assignment step chooses a distribution instead of taking the first legal one.**
+    `assignment()` stopped at the first shuffle satisfying the constraints. It asked *is this legal* and
     never *is this good*, and the first accepted mystery showed how much that costs: at seed 7,
     exactly one player could prove the case in **27 of 81** hoarding patterns — the same figure
     `totality` was rejected for — while **13 of 20 seeds gave zero**, and proof survived 81/81 on
     every seed tried. Same mystery, same rules, same constraints met. The only difference was which
-    findings landed in which hands.
+    findings landed in which casefiles.
 
-    **So monopoly on proof is a property of the DEALING, not the story.** `best_deal()` tries seeds,
+    **So monopoly on proof is a property of the ASSIGNMENT, not the story.** `best_assignment()` tries seeds,
     scores each by monopoly count and keeps the best, stopping early on a perfect one — usually one
-    or two deals rather than twenty.
+    or two assigns rather than twenty.
 
-    **Selection, not prohibition,** and that is the design choice. `deal()` already had
-    `forbid_prover_monopoly`, off by default because it costs deals: as a hard constraint a mystery
-    where no dealing avoids a monopoly returns no hands at all, and a table gets nothing. Selecting
-    always returns a dealing — the least bad available — and reports how good it managed to be.
+    **Selection, not prohibition,** and that is the design choice. `assignment()` already had
+    `forbid_prover_monopoly`, off by default because it costs assigns: as a hard constraint a mystery
+    where no assignment avoids a monopoly returns no casefiles at all, and a table gets nothing. Selecting
+    always returns a distribution — the least bad available — and reports how good it managed to be.
     Degrading beats refusing when the alternative is an empty table.
 
-    Determinism survives, which matters because a reconnecting player must get their own hand back:
-    the winning seed is returned in the result and reproduces the same hands through plain `deal()`.
+    Determinism survives, which matters because a reconnecting player must get their own casefile back:
+    the winning seed is returned in the result and reproduces the same casefiles through plain `assignment()`.
 
 32. **[DECIDED, Session 41 — owner] The game ends in full disclosure.** When the final round
     closes, every finding still held by every player becomes public, each shown with the name of
@@ -1163,13 +1330,13 @@ that the superseded text has become history and belongs here instead.
     earlier sessions could not, and because the only reason to wait is a constraint that will lift
     on its own.
 
-    **The problem it solves.** Session 38 measured the share ladder as inert at APF's hand size —
+    **The problem it solves.** Session 38 measured the share ladder as inert at APF's casefile size —
     EASY, MEDIUM and HARD all resolve to the same requirement — and Session 39 moved difficulty
-    onto deal redundancy instead, only to find that ladder has **two rungs, not three**:
+    onto assignment redundancy instead, only to find that ladder has **two rungs, not three**:
     `REDUNDANCY_BY_DIFFICULTY` puts MEDIUM and HARD at the same value because the ceiling forbids
     a third. That ceiling is arithmetic, from `feasibility()`: with R required exonerations over P
-    players, redundancy r forces some hand to hold `ceil(R × r / P)`, and when that reaches R the
-    hand solves alone. At four suspects (R = 3) over four players the ceiling is **2**.
+    players, redundancy r forces some casefile to hold `ceil(R × r / P)`, and when that reaches R the
+    casefile solves alone. At four suspects (R = 3) over four players the ceiling is **2**.
 
     **Add one suspect and the ceiling rises.** R = 4 gives a ceiling of 3 — a genuine third rung,
     with no new mechanism:
@@ -1192,8 +1359,59 @@ that the superseded text has become history and belongs here instead.
     coherence barely scales with cast size (a six-suspect story hangs together as readily as a
     four-suspect one); what scales is game structure, which is exactly where every recent failure
     has been. A minimum also hands the model a structural parameter to choose, which is precisely
-    what produced `snow_on_the_engawa`'s three-suspect cast and the unfair deal that followed.
+    what produced `snow_on_the_engawa`'s three-suspect cast and the unfair assignment that followed.
 
     **The trigger for revisiting is therefore not a decision, it is a number:** once a mystery
     reliably carries enough findings to support both a longer rhythm and a fifth suspect's alibi
     load, this becomes free. Until then `APF_SUSPECT_COUNT` stays at 4 and is enforced.
+
+34. **[SETTLED, Session 42 — owner's third telling] The vocabulary is investigation, not card
+    game.** No decks, no cards, no hands, no deals, and nothing is *played*. Findings are
+    **assigned**, into a player's **casefile**, by `casefiles.py`. This is a social deduction game
+    about what people choose to say, and describing it in the language of a card table makes it
+    read as one.
+
+    **Where it came from, because "we keep drifting back" is a symptom and this is the cause.**
+    Commit `0db3d9b`, 25 August 2026 — the commit that first specified APF. Under a heading about
+    what the UI now has to carry:
+
+    > **The data is already card-shaped**: a finding has a name, a description, a type, a
+    > relevance. Dealt, held, played. MYF has `GameCard.jsx` (155 lines), `CardHand.jsx` (67),
+    > `CardPicker.jsx` (104) — not portable to Godot, but straight into `mobile.html`, and the
+    > visual language carries either way.
+
+    **It entered as a UI-REUSE argument, never as a design one.** Mind Your Friends genuinely is a
+    card game and genuinely has those components. Somebody noticed they had the right *shape* for
+    "a discrete object given to a player and held", and wrote *"the data is already card-shaped"*
+    as shorthand for *"MYF's components would fit here"*. Nobody ever argued that CYM should feel
+    like a card game — so nobody ever defended the claim, and it spread precisely because it was
+    never a claim.
+
+    Then the shorthand became the vocabulary, in four sessions: *card-shaped* → *dealt, held,
+    played* → *the deal* → *the hand* → *deal.py* → *DEFAULT_HAND_SPEC* → a *.card* CSS class on
+    the phone client every player looks at.
+
+    **The first two corrections failed because they only fixed the NOUN.** *deal.py*'s docstring
+    recorded *"THE WORD IS 'FINDING', EVERYWHERE. Owner's instruction, twice."* — and it was
+    obeyed: no clue was called a card anywhere. Every verb and container around it survived
+    untouched. **A metaphor rebuilds itself from whatever parts you leave standing**, which is why
+    a third telling was needed and why this one moved the module name, the rule ids, the function
+    names, the CSS class and the prose together.
+
+    **What was deliberately NOT rewritten**, because rewriting it would be a different kind of
+    error:
+    - **`SESSIONS.md`** — append-only. Editing history so it agrees with today is the exact thing
+      that file exists to prevent, and Session 38 already had to rebuild `CLAUDE.md` because that
+      rule was ignored.
+    - **The ledger's stored rule ids.** 45 rows carry `DEAL.*`. They are folded onto the new
+      `CASE.*` names at READ time by `generation_ledger.LEGACY_RULE_IDS`, so a rule's cost history
+      stays under one heading without a single stored row being altered.
+    - **Mystery JSON, `part_registry.json`, and the corpus findings documents.** Those contain
+      prose from published fiction and from party-game research that legitimately discusses card
+      games. That is content, not vocabulary we chose.
+    - **"handedness"** in the generation prompt, which is a forensic property of a person, and
+      ordinary English like *hand-written* or *handing someone a build*.
+
+    **The standing rule for future sessions:** if a word would be at home on a box that says
+    "2–6 players, ages 10+", it is the wrong word. Reach for the investigation instead — findings,
+    casefiles, statements, the record, what reached the table.

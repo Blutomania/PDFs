@@ -15,7 +15,7 @@
 ##
 ## HOW IT APPLIES WITHOUT TOUCHING A SINGLE SCENE. `get_tree().root` is a
 ## Window, Window has a `theme`, and every Control inherits its nearest
-## ancestor's theme. So one assignment in _ready() restyles all eight screens,
+## ancestor's theme. So one assignment in _ready() restyles all nine screens,
 ## and no .tscn node tree is edited to get it. That matters beyond tidiness:
 ## editing scene files is precisely where the last session's defects lived.
 ##
@@ -136,17 +136,59 @@ func _style_fonts(t: Theme) -> void:
 	t.set_font("normal_font", "RichTextLabel", regular)
 	t.set_font("bold_font", "RichTextLabel", bold if bold else regular)
 
-	## Weight carries the hierarchy now that colour and size already do. Display
-	## and titles take Bold; section headings and the one primary action take
-	## SemiBold; everything else stays Regular, which is most of the screen.
+	## Weight carries the hierarchy now that colour and size already do.
+	## TitleLabel takes Bold NunitoSans; section headings and the one primary
+	## action take SemiBold; everything else stays Regular, which is most of
+	## the screen. The Window's OS-level title bar text stays NunitoSans Bold
+	## too -- a decorative display face in tiny native titlebar chrome is a
+	## legibility risk for no visible payoff, and it is not in-game content.
 	if bold:
-		for variation: String in ["DisplayLabel", "TitleLabel", "MysteryTitleLabel"]:
-			t.set_font("font", variation, bold)
+		t.set_font("font", "TitleLabel", bold)
 		t.set_font("title_font", "Window", bold)
 	if semibold:
 		t.set_font("font", "HeadingLabel", semibold)
 		t.set_font("font", "PrimaryButton", semibold)
 		t.set_font("font", "DangerButton", semibold)
+	## PlayerNameLabel is sized to match DisplayLabel (owner, playtest
+	## WaitingSept7: player names as big as the room code) but stays
+	## NunitoSans, not Cinzel Decorative -- these render free-typed player
+	## names, and Cinzel Decorative has no true lowercase glyphs (playtest
+	## SolvedSept7's font follow-up), which would turn an ordinary name into
+	## small caps nobody asked for.
+	##
+	## CodeLabel is the SAME correction applied to the room code itself (owner,
+	## playtest WaitingSept7, immediately after seeing a render: the code was
+	## "hard to read in that font"). An alphanumeric code is exactly the string
+	## Cinzel Decorative's small-caps rendering hurts most -- it was never a
+	## brand moment the way the main-menu wordmark is, it is a string someone
+	## has to type correctly on a phone across the room. DisplayLabel now means
+	## ONLY the main-menu wordmark again.
+	if bold:
+		t.set_font("font", "PlayerNameLabel", bold)
+		t.set_font("font", "CodeLabel", bold)
+
+	## DisplayLabel, MysteryTitleLabel and VerdictLabel are BRAND and
+	## DRAMATIC-MOMENT text -- the game's own name on MainMenu/Lobby, a
+	## generated mystery's own title on CaseDisplay, and the win/lose banner
+	## on ResultScreen -- not functional screen headers. Cinzel Decorative
+	## there; NunitoSans everywhere else. Deliberately NOT applied to
+	## TitleLabel, which is used broadly for workaday status headers
+	## ("Round 2 of 4", "Set Your Mystery") that are read fast during play --
+	## a heavy decorative serif risks looking overwrought there, and this was
+	## a scope call flagged to the owner rather than assumed (font upload,
+	## playtest SolvedSept7).
+	##
+	## THE TIER IS BY WEIGHT, NOT BY SCREEN. Black is reserved for the game's
+	## own identity (DisplayLabel only); MysteryTitleLabel and VerdictLabel
+	## share Bold -- both are in-fiction dramatic beats one notch below the
+	## brand name itself, not two different things arbitrarily styled alike.
+	var display_black: Font = _font("CinzelDecorative-Black.ttf")
+	var display_bold: Font = _font("CinzelDecorative-Bold.ttf")
+	if display_black:
+		t.set_font("font", "DisplayLabel", display_black)
+	if display_bold:
+		t.set_font("font", "MysteryTitleLabel", display_bold)
+		t.set_font("font", "VerdictLabel", display_bold)
 
 
 func _font(file_name: String) -> Font:
@@ -366,13 +408,21 @@ func _style_windows(t: Theme) -> void:
 ## is caught before the engine is even opened.
 ##
 ## Keep this list SHORT. Every variation is a decision someone has to make at
-## every label they add, and the ones below cover the roles the eight screens
+## every label they add, and the ones below cover the roles the nine screens
 ## actually contain.
 func _declare_variations(t: Theme) -> void:
 	## The product's own name, on the main menu. Nowhere else.
 	t.set_type_variation("DisplayLabel", "Label")
 	t.set_color("font_color", "DisplayLabel", Palette.BRASS)
 	t.set_font_size("font_size", "DisplayLabel", Palette.TYPE_DISPLAY)
+
+	## A code someone has to read back correctly -- the room code, in the
+	## lobby. Same size and colour as DisplayLabel, deliberately not the same
+	## variation: see the font note in _style_fonts for why this one stays
+	## NunitoSans.
+	t.set_type_variation("CodeLabel", "Label")
+	t.set_color("font_color", "CodeLabel", Palette.BRASS)
+	t.set_font_size("font_size", "CodeLabel", Palette.TYPE_DISPLAY)
 
 	## One per screen, at the top: "The Case", "Interrogation", "Verdict".
 	t.set_type_variation("TitleLabel", "Label")
@@ -384,6 +434,27 @@ func _declare_variations(t: Theme) -> void:
 	t.set_type_variation("MysteryTitleLabel", "Label")
 	t.set_color("font_color", "MysteryTitleLabel", Palette.BRASS)
 	t.set_font_size("font_size", "MysteryTitleLabel", Palette.TYPE_TITLE)
+
+	## The outcome banner on ResultScreen -- "Correct! X is the culprit." /
+	## "Wrong. You accused X." A DIFFERENT variation from MysteryTitleLabel
+	## on purpose (owner, font follow-up on playtest SolvedSept7): a verdict
+	## is not a mystery title, even though both are the one big dramatic
+	## announcement a screen opens on and both now wear Cinzel Decorative.
+	## Base colour is INK and is never actually seen -- result_screen.gd
+	## overrides it to POSITIVE or NEGATIVE the instant it sets the text --
+	## kept here anyway so the variation is never colourless before that runs.
+	t.set_type_variation("VerdictLabel", "Label")
+	t.set_color("font_color", "VerdictLabel", Palette.INK)
+	t.set_font_size("font_size", "VerdictLabel", Palette.TYPE_TITLE)
+
+	## A player's name, wherever roster matters more than anywhere else it
+	## appears in the product: the lobby (owner, playtest WaitingSept7 -- "who
+	## you are playing with is high up in a hierarchy of import" for a social
+	## game). Same size as DisplayLabel/the room code, deliberately not the
+	## same variation -- see the font note in _style_fonts for why.
+	t.set_type_variation("PlayerNameLabel", "Label")
+	t.set_color("font_color", "PlayerNameLabel", Palette.INK)
+	t.set_font_size("font_size", "PlayerNameLabel", Palette.TYPE_DISPLAY)
 
 	## Section headers within a screen: "Suspects", "Evidence", "Witnesses".
 	t.set_type_variation("HeadingLabel", "Label")

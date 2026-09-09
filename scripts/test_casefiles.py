@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-test_deal.py -- fixture tests for deal.py, APF's constrained deal.
+test_casefiles.py -- fixture tests for casefiles.py, APF's constrained assignment.
 
 WHY FIXTURES AND NOT THE CORPUS. No mystery on disk carries `reveals` or
 `exonerates`: the schema landed in Session 38 and has never been generated
@@ -8,11 +8,11 @@ against. All 17 generated mysteries would therefore pass every check below
 vacuously, which is the same trap Session 38 named for check_narrative.py --
 "a branch with no input is a branch nobody ran".
 
-Each test names the constraint it proves and asserts the deal REFUSES a
+Each test names the constraint it proves and asserts the assignment REFUSES a
 mystery that violates it. A test suite that only proves the happy path would
-pass just as well against a deal() that returned ok=True unconditionally.
+pass just as well against an assign() that returned ok=True unconditionally.
 
-Zero API calls. Run: python3 scripts/test_deal.py
+Zero API calls. Run: python3 scripts/test_casefiles.py
 """
 
 import os
@@ -20,7 +20,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-import deal as D
+import casefiles as C
 
 
 # --------------------------------------------------------------------------
@@ -29,7 +29,7 @@ import deal as D
 
 def mystery(evidence, witnesses=(), leads=(), culprit="Vale",
             suspects=("Vale", "Ortiz", "Brand", "Chen"), difficulty="MEDIUM"):
-    """A minimal mystery carrying only what the deal reads.
+    """A minimal mystery carrying only what the assignment reads.
 
     Four suspects and one culprit means three required exonerations, which is
     PLAYTEST_FLOW's specified shape rather than the 2-3 suspects most of the
@@ -56,7 +56,7 @@ def mystery(evidence, witnesses=(), leads=(), culprit="Vale",
 
 
 def solvable_fixture(difficulty="MEDIUM"):
-    """A mystery that CAN be dealt: three exonerations spread over six items,
+    """A mystery that CAN be assigned: three exonerations spread over six items,
     each carried by two separate evidence items so redundancy 2 is reachable,
     and no single item clearing more than one suspect."""
     ev = [
@@ -76,10 +76,10 @@ def tight_redundancy_fixture():
     """Redundancy 2 is FEASIBLE here but not free.
 
     Each required exoneration is carried by EXACTLY two findings, so
-    feasibility() passes -- two carriers can reach two hands. Whether they
-    actually DO is what _violations() has to enforce, because a deal that puts
-    both carriers of Ortiz in one hand satisfies constraints 1 and 2 and still
-    leaves Ortiz reaching a single hand.
+    feasibility() passes -- two carriers can reach two casefiles. Whether they
+    actually DO is what _violations() has to enforce, because an assignment that puts
+    both carriers of Ortiz in one casefile satisfies constraints 1 and 2 and still
+    leaves Ortiz reaching a single casefile.
 
     This is the fixture the first version of this suite lacked: its redundancy
     test was refused by the feasibility pre-check, so deleting the _violations
@@ -96,7 +96,7 @@ def carriers(n):
     """A mystery where exactly n DEALABLE FINDINGS can clear each suspect.
 
     Counted over the pool, not over evidence[]: a witness whose `reveals` names
-    E1 is a separate finding, dealt to a different player and hoarded
+    E1 is a separate finding, assigned to a different player and hoarded
     independently, so it is a genuine second route to the same exoneration.
 
     THIS WAS DEFINED TWICE AND THE COPIES DRIFTED. One pointed its witnesses at
@@ -138,28 +138,28 @@ def check(name, condition, detail=""):
 def test_arithmetic():
     print("\nthe arithmetic")
     m = solvable_fixture()
-    ev = D.evidence_by_id(m)
-    pool = D.build_pool(m)
+    ev = C.evidence_by_id(m)
+    pool = C.build_pool(m)
 
     check("required_exonerations is every suspect but the culprit",
-          D.required_exonerations(m) == {"Ortiz", "Brand", "Chen"},
-          str(D.required_exonerations(m)))
+          C.required_exonerations(m) == {"Ortiz", "Brand", "Chen"},
+          str(C.required_exonerations(m)))
 
-    check("the full pool solves", D.solves(pool, m, ev))
+    check("the full pool solves", C.solves(pool, m, ev))
 
     # Cardinality is not enough: clearing the culprit and two others leaves ONE
     # suspect standing and still gets the wrong person.
     wrong = [f for f in pool if f.id in ("E:E1", "E:E2")]
-    wrong.append(D.Finding(id="X", kind="clue", title="x", body="", reveals=["E9"]))
+    wrong.append(C.Finding(id="X", kind="clue", title="x", body="", reveals=["E9"]))
     m2 = mystery([("E9", ["Vale"], [])] + [("E1", ["Ortiz"], []), ("E2", ["Brand"], [])])
-    ev2 = D.evidence_by_id(m2)
-    pool2 = D.build_pool(m2)
-    standing = set(D.suspects(m2)) - D.exonerated_by(pool2, ev2)
+    ev2 = C.evidence_by_id(m2)
+    pool2 = C.build_pool(m2)
+    standing = set(C.suspects(m2)) - C.exonerated_by(pool2, ev2)
     check("a set clearing the culprit does not solve, even at the right count",
-          len(standing) == 1 and not D.solves(pool2, m2, ev2), f"standing={standing}")
+          len(standing) == 1 and not C.solves(pool2, m2, ev2), f"standing={standing}")
 
     check("a dangling reveals id contributes no exoneration",
-          D.exonerated_by([D.Finding("Z", "clue", "z", "", ["NOPE"])], ev) == set())
+          C.exonerated_by([C.Finding("Z", "clue", "z", "", ["NOPE"])], ev) == set())
 
 
 # --------------------------------------------------------------------------
@@ -167,37 +167,37 @@ def test_arithmetic():
 # --------------------------------------------------------------------------
 
 def test_constraint_1_union_solves():
-    print("\nconstraint 1 -- the union of all dealt findings eliminates all but one")
+    print("\nconstraint 1 -- the union of all assigned findings eliminates all but one")
     # Chen is never exonerated by anything, so two suspects always stand.
     ev = [("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", [], []),
           ("E4", [], []), ("E5", [], []), ("E6", [], [])]
     m = mystery(ev, [("Ada", "s", ["E1"]), ("Bo", "s", ["E2"]), ("Cy", "s", ["E3"])],
                 [("L1", ["E4"]), ("L2", ["E5"]), ("L3", ["E6"]), ("L4", [])])
-    r = D.deal(m, player_count=3, seed=1)
+    r = C.assign(m, player_count=3, seed=1)
     check("refuses a mystery whose evidence cannot eliminate to one", not r.ok)
     check("and says which suspect is left standing",
           any("Chen" in i for i in r.issues), str(r.issues))
 
 
 def test_constraint_2_no_solo_win():
-    print("\nconstraint 2 -- no single player's hand solves alone")
+    print("\nconstraint 2 -- no single player's casefile solves alone")
     # One item clears all three innocents: whoever draws it wins by itself.
     ev = [("E1", ["Ortiz", "Brand", "Chen"], []), ("E2", [], []), ("E3", [], []),
           ("E4", [], []), ("E5", [], []), ("E6", [], [])]
     m = mystery(ev, [("Ada", "s", ["E1"]), ("Bo", "s", ["E2"]), ("Cy", "s", ["E3"])],
                 [("L1", ["E4"]), ("L2", ["E5"]), ("L3", ["E6"]), ("L4", [])])
-    r = D.deal(m, player_count=3, seed=1)
+    r = C.assign(m, player_count=3, seed=1)
     check("refuses a mystery where one finding solves outright", not r.ok)
     check("and names the finding that does it",
           any("solves the mystery by itself" in i for i in r.issues), str(r.issues))
 
-    # And the per-hand check fires even when no SINGLE finding solves: two
-    # findings that together clear all three, landing in one hand.
+    # And the per-casefile check fires even when no SINGLE finding solves: two
+    # findings that together clear all three, landing in one casefile.
     m2 = solvable_fixture()
-    ok = D.deal(m2, player_count=4, seed=7)
-    check("a well-formed mystery still deals", ok.ok, str(ok.issues))
-    check("and no hand solves alone",
-          ok.ok and not any(D.solves(h, m2) for h in ok.hands))
+    ok = C.assign(m2, player_count=4, seed=7)
+    check("a well-formed mystery still assigns", ok.ok, str(ok.issues))
+    check("and no casefile solves alone",
+          ok.ok and not any(C.solves(h, m2) for h in ok.casefiles))
 
 
 def test_constraint_3_redundancy():
@@ -213,77 +213,77 @@ def test_constraint_3_redundancy():
     # purpose: this fixture gives each exoneration exactly ONE carrier, so proof
     # does not survive hoarding, and leaving it on would make this a test of the
     # wrong constraint. The next case asserts that it does fire here.
-    r1 = D.deal(m, player_count=3, seed=3, redundancy=1,
+    r1 = C.assign(m, player_count=3, seed=3, redundancy=1,
                 require_proof_under_hoarding=False)
-    check("deals at redundancy 1 with the proof constraint off", r1.ok, str(r1.issues))
+    check("assigns at redundancy 1 with the proof constraint off", r1.ok, str(r1.issues))
 
-    r1p = D.deal(m, player_count=3, seed=3, redundancy=1)
-    check("and the SAME deal is refused with it on, because one route per "
+    r1p = C.assign(m, player_count=3, seed=3, redundancy=1)
+    check("and the SAME assignment is refused with it on, because one route per "
           "suspect cannot survive hoarding",
           not r1p.ok and any("proof dies under hoarding" in i for i in r1p.issues),
           str(r1p.issues))
 
-    r2 = D.deal(m, player_count=3, seed=3, redundancy=2,
+    r2 = C.assign(m, player_count=3, seed=3, redundancy=2,
                 require_proof_under_hoarding=False)
     check("refuses the same mystery at redundancy 2", not r2.ok)
     check("and says the exoneration is carried by too few findings",
           any("carried by 1 finding" in i for i in r2.issues), str(r2.issues))
 
     # EASY should pick redundancy 2 off the difficulty, HARD 1.
-    easy = D.deal(solvable_fixture("EASY"), player_count=4, seed=11)
-    hard = D.deal(solvable_fixture("HARD"), player_count=4, seed=11)
-    check("EASY deals at redundancy 2", easy.redundancy == 2, str(easy.redundancy))
-    check("HARD deals at redundancy 1", hard.redundancy == 1, str(hard.redundancy))
+    easy = C.assign(solvable_fixture("EASY"), player_count=4, seed=11)
+    hard = C.assign(solvable_fixture("HARD"), player_count=4, seed=11)
+    check("EASY assigns at redundancy 2", easy.redundancy == 2, str(easy.redundancy))
+    check("HARD assigns at redundancy 1", hard.redundancy == 1, str(hard.redundancy))
 
     # The branch that actually enforces it, on a mystery feasibility lets through.
     tight = tight_redundancy_fixture()
-    ev = D.evidence_by_id(tight)
+    ev = C.evidence_by_id(tight)
     check("redundancy 2 is FEASIBLE on the tight fixture (so _violations, not "
           "feasibility, is what must enforce it)",
-          D.feasibility(tight, 3, redundancy=2) == [],
-          str(D.feasibility(tight, 3, redundancy=2)))
+          C.feasibility(tight, 3, redundancy=2) == [],
+          str(C.feasibility(tight, 3, redundancy=2)))
 
-    t = D.deal(tight, player_count=3, seed=2, redundancy=2)
-    check("the tight fixture still deals", t.ok, str(t.issues))
-    reach = {r: sum(1 for h in t.hands if r in D.exonerated_by(h, ev))
-             for r in D.required_exonerations(tight)}
-    check("and every exoneration really reaches two distinct hands",
+    t = C.assign(tight, player_count=3, seed=2, redundancy=2)
+    check("the tight fixture still assigns", t.ok, str(t.issues))
+    reach = {r: sum(1 for h in t.casefiles if r in C.exonerated_by(h, ev))
+             for r in C.required_exonerations(tight)}
+    check("and every exoneration really reaches two distinct casefiles",
           t.ok and all(v >= 2 for v in reach.values()), str(reach))
 
     # The ceiling, which is arithmetic rather than luck. R=3, P=4, k=3 forces
-    # some hand to hold all three exonerations, which is constraint 2.
-    over = D.deal(solvable_fixture(), player_count=4, seed=1, redundancy=3)
+    # some casefile to hold all three exonerations, which is constraint 2.
+    over = C.assign(solvable_fixture(), player_count=4, seed=1, redundancy=3)
     check("redundancy above the ceiling is refused as impossible, not merely unlucky",
           (not over.ok) and any("is impossible at" in i for i in over.issues), str(over.issues))
     check("and it is refused up front, without burning attempts",
           over.attempts == 0, str(over.attempts))
     check("the ceiling is reported, and at APF's shape it is 2",
           any("Ceiling here is 2" in i for i in over.issues), str(over.issues))
-    check("redundancy 2 is at the ceiling and still deals",
-          D.deal(solvable_fixture(), player_count=4, seed=1, redundancy=2).ok)
+    check("redundancy 2 is at the ceiling and still assigns",
+          C.assign(solvable_fixture(), player_count=4, seed=1, redundancy=2).ok)
     # A wider table lifts it: R=3, P=5 makes k=3 reachable again.
     check("a five-player table lifts the ceiling to 3",
           not any("is impossible at" in i
-                  for i in D.feasibility(solvable_fixture(), 5, redundancy=3)),
-          str(D.feasibility(solvable_fixture(), 5, redundancy=3)))
+                  for i in C.feasibility(solvable_fixture(), 5, redundancy=3)),
+          str(C.feasibility(solvable_fixture(), 5, redundancy=3)))
 
-    # _violations() tested directly, on a deal hand-built to break redundancy:
-    # both Ortiz carriers in hand 0. Constraints 1 and 2 still hold.
-    pool = {f.id: f for f in D.build_pool(tight)}
+    # _violations() tested directly, on an assignment casefile-built to break redundancy:
+    # both Ortiz carriers in casefile 0. Constraints 1 and 2 still hold.
+    pool = {f.id: f for f in C.build_pool(tight)}
     stacked = [
         [pool["E:E1"], pool["W:Ada"], pool["E:E6"]],   # both Ortiz carriers here
         [pool["E:E2"], pool["L:L1"], pool["E:E4"]],
         [pool["E:E3"], pool["L:L2"], pool["E:E5"]],
     ]
-    v2 = D._violations(stacked, tight, ev, redundancy=2)
-    v1 = D._violations(stacked, tight, ev, redundancy=1)
-    check("_violations reports an exoneration confined to one hand at redundancy 2",
-          any("Ortiz" in x and "1 hand" in x for x in v2), str(v2))
-    check("and the same deal is legal at redundancy 1", v1 == [], str(v1))
+    v2 = C._violations(stacked, tight, ev, redundancy=2)
+    v1 = C._violations(stacked, tight, ev, redundancy=1)
+    check("_violations reports an exoneration confined to one casefile at redundancy 2",
+          any("Ortiz" in x and "1 casefile" in x for x in v2), str(v2))
+    check("and the same assignment is legal at redundancy 1", v1 == [], str(v1))
 
 
 # --------------------------------------------------------------------------
-# Feasibility diagnostics -- the difference between re-dealing and regenerating
+# Feasibility diagnostics -- the difference between re-running the assignment and regenerating
 # --------------------------------------------------------------------------
 
 def test_the_glove():
@@ -299,41 +299,41 @@ def test_the_glove():
     ]
     m = mystery(ev, [("Ada", "s", ["E2"]), ("Bo", "s", ["E3"]), ("Cy", "s", ["E7"])],
                 [("L1", ["E4"]), ("L2", ["E5"]), ("L3", ["E6"])])
-    evb = D.evidence_by_id(m)
-    pool = {f.id: f for f in D.build_pool(m)}
+    evb = C.evidence_by_id(m)
+    pool = {f.id: f for f in C.build_pool(m)}
     glove, cctv = pool["E:G1"], pool["E:E1"]
 
     check("the glove alone clears nobody",
-          D.exonerated_by([glove], evb) == set())
-    check("and the glove alone does not solve", not D.solves([glove], m, evb))
-    check("the alibi alone does not solve", not D.solves([cctv], m, evb))
+          C.exonerated_by([glove], evb) == set())
+    check("and the glove alone does not solve", not C.solves([glove], m, evb))
+    check("the alibi alone does not solve", not C.solves([cctv], m, evb))
     check("but the two TOGETHER name the culprit -- two findings that "
           "individually prove nothing combine into a proof",
-          D.solves([glove, cctv], m, evb))
+          C.solves([glove, cctv], m, evb))
 
     check("the glove narrows to the men it names",
-          D.narrowed_by([glove], m, evb) == {"Vale", "Ortiz"})
+          C.narrowed_by([glove], m, evb) == {"Vale", "Ortiz"})
     check("a finding with no narrowing narrows nothing",
-          D.narrowed_by([cctv], m, evb) == set(D.suspects(m)))
+          C.narrowed_by([cctv], m, evb) == set(C.suspects(m)))
 
     # Two narrowing findings intersect.
     ev2 = list(ev) + [("G2", [], [], ["Vale", "Brand"])]
     m2 = mystery(ev2, [("Ada", "s", ["E2"]), ("Bo", "s", ["E3"]), ("Cy", "s", ["E7"])],
                  [("L1", ["E4"]), ("L2", ["E5"]), ("L3", ["E6"])])
-    evb2 = D.evidence_by_id(m2)
-    p2 = {f.id: f for f in D.build_pool(m2)}
+    evb2 = C.evidence_by_id(m2)
+    p2 = {f.id: f for f in C.build_pool(m2)}
     check("two narrowing findings INTERSECT rather than accumulate",
-          D.narrowed_by([p2["E:G1"], p2["E:G2"]], m2, evb2) == {"Vale"})
+          C.narrowed_by([p2["E:G1"], p2["E:G2"]], m2, evb2) == {"Vale"})
 
     check("subtraction still reaches the culprit without the glove at all, so "
           "narrowing is a faster route and never the only one",
-          D.solves([f for f in D.build_pool(m) if f.id != "E:G1"], m, evb))
+          C.solves([f for f in C.build_pool(m) if f.id != "E:G1"], m, evb))
 
     # --- fair play: the culprit must survive every narrowing ---
     lying = mystery([("G1", [], [], ["Ortiz", "Brand"]),
                      ("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", ["Chen"], []),
                      ("E4", ["Ortiz"], []), ("E5", ["Brand"], []), ("E6", ["Chen"], [])])
-    issues = D.feasibility(lying, 4)
+    issues = C.feasibility(lying, 4)
     check("a narrowing that excludes the culprit is refused",
           any("excludes the culprit" in i for i in issues), str(issues))
 
@@ -341,8 +341,8 @@ def test_the_glove():
                       ("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", ["Chen"], []),
                       ("E4", ["Ortiz"], []), ("E5", ["Brand"], []), ("E6", ["Chen"], [])])
     check("a narrowing naming ONE suspect is refused -- it is the answer on a finding",
-          any("1 actual suspect" in i for i in D.feasibility(single, 4)),
-          str(D.feasibility(single, 4)))
+          any("1 actual suspect" in i for i in C.feasibility(single, 4)),
+          str(C.feasibility(single, 4)))
 
     # Session 41, earned by `the_last_night_of_delacroix_&_sons`: its E9 narrowed
     # to [the culprit, THE VICTIM]. Two entries passed the old "at least two"
@@ -352,22 +352,22 @@ def test_the_glove():
                       ("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", ["Chen"], []),
                       ("E4", ["Ortiz"], []), ("E5", ["Brand"], []), ("E6", ["Chen"], [])])
     check("padding a narrowing with a non-suspect does not widen it",
-          any("1 actual suspect" in i for i in D.feasibility(padded, 4)),
-          str(D.feasibility(padded, 4)))
+          any("1 actual suspect" in i for i in C.feasibility(padded, 4)),
+          str(C.feasibility(padded, 4)))
 
     everyone = mystery([("G1", [], [], ["Vale", "Ortiz", "Brand", "Chen"]),
                         ("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", ["Chen"], []),
                         ("E4", ["Ortiz"], []), ("E5", ["Brand"], []), ("E6", ["Chen"], [])])
     check("a narrowing naming EVERY suspect is refused -- it rules nobody out",
-          any("rules nobody out" in i for i in D.feasibility(everyone, 4)),
-          str(D.feasibility(everyone, 4)))
+          any("rules nobody out" in i for i in C.feasibility(everyone, 4)),
+          str(C.feasibility(everyone, 4)))
 
     ghost = mystery([("G1", [], [], ["Vale", "Nobody"]),
                      ("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", ["Chen"], []),
                      ("E4", ["Ortiz"], []), ("E5", ["Brand"], []), ("E6", ["Chen"], [])])
     check("a narrowing naming a non-suspect is refused",
-          any("not suspects" in i for i in D.feasibility(ghost, 4)),
-          str(D.feasibility(ghost, 4)))
+          any("not suspects" in i for i in C.feasibility(ghost, 4)),
+          str(C.feasibility(ghost, 4)))
 
     # --- elimination must stay sufficient without any narrowing ---
     load_bearing = mystery([("G1", [], [], ["Vale", "Ortiz"]),
@@ -375,18 +375,18 @@ def test_the_glove():
                             ("E4", [], []), ("E5", [], []), ("E6", [], [])])
     check("a mystery solvable ONLY with the glove is refused, because withholding "
           "it would make the case unprovable",
-          any("load-bearing" in i for i in D.feasibility(load_bearing, 4)),
-          str(D.feasibility(load_bearing, 4)))
+          any("load-bearing" in i for i in C.feasibility(load_bearing, 4)),
+          str(C.feasibility(load_bearing, 4)))
 
     check("a well-formed glove mystery has no feasibility issues",
-          D.feasibility(m, 4) == [], str(D.feasibility(m, 4)))
+          C.feasibility(m, 4) == [], str(C.feasibility(m, 4)))
 
-    # --- and the deal must not hand one player both halves ---
-    r = D.deal(m, player_count=4, seed=3)
-    check("it still deals", r.ok, str(r.issues))
+    # --- and the assignment must not casefile one player both halves ---
+    r = C.assign(m, player_count=4, seed=3)
+    check("it still assigns", r.ok, str(r.issues))
     if r.ok:
-        check("and no hand holds a glove-plus-alibi pair that solves alone",
-              not any(D.solves(h, m, evb) for h in r.hands))
+        check("and no casefile holds a glove-plus-alibi pair that solves alone",
+              not any(C.solves(h, m, evb) for h in r.casefiles))
 
 
 def test_proof_survives_hoarding():
@@ -395,28 +395,28 @@ def test_proof_survives_hoarding():
     # many separate findings can clear a given suspect -- not redundancy.
 
 
-    one = D.deal(carriers(1), player_count=4, seed=4, require_proof_under_hoarding=False)
-    ok1, tot1, _ = D.proof_survives_hoarding(one.hands, carriers(1))
+    one = C.assign(carriers(1), player_count=4, seed=4, require_proof_under_hoarding=False)
+    ok1, tot1, _ = C.proof_survives_hoarding(one.casefiles, carriers(1))
     check("one route per suspect: proof does NOT always survive hoarding",
           one.ok and ok1 < tot1, f"{ok1}/{tot1}")
 
-    two = D.deal(carriers(2), player_count=4, seed=4)
-    ok2, tot2, _ = D.proof_survives_hoarding(two.hands, carriers(2))
+    two = C.assign(carriers(2), player_count=4, seed=4)
+    ok2, tot2, _ = C.proof_survives_hoarding(two.casefiles, carriers(2))
     check("two routes per suspect: proof survives EVERY hoarding pattern",
           two.ok and ok2 == tot2, f"{ok2}/{tot2}")
     check("and that holds at redundancy 1, so it is carriers and not redundancy "
           "that buys it",
-          D.deal(carriers(2), player_count=4, seed=4, redundancy=1).ok)
+          C.assign(carriers(2), player_count=4, seed=4, redundancy=1).ok)
 
     check("the enumeration covers 3^4 = 81 patterns at APF's shape",
           tot2 == 81, str(tot2))
 
     # A player knows what they kept: proof may rest on their own hoarded finding.
     m = carriers(2)
-    r = D.deal(m, player_count=4, seed=6)
-    evb = D.evidence_by_id(m)
-    check("a hand that solves only WITH its own kept finding still counts as proof",
-          r.ok and all(D.solves([f for h in r.hands for f in h], m, evb)
+    r = C.assign(m, player_count=4, seed=6)
+    evb = C.evidence_by_id(m)
+    check("a casefile that solves only WITH its own kept finding still counts as proof",
+          r.ok and all(C.solves([f for h in r.casefiles for f in h], m, evb)
                        for _ in [0]))
 
 
@@ -424,20 +424,20 @@ def test_no_prover_monopoly():
     print("\nconstraint 5 -- a race needs at least two runners (opt-in)")
 
 
-    check("it is OFF by default, so a monopoly deal is still legal",
-          D.deal(carriers(1), player_count=4, seed=4,
+    check("it is OFF by default, so a monopoly assignment is still legal",
+          C.assign(carriers(1), player_count=4, seed=4,
                  require_proof_under_hoarding=False).ok)
 
     one = carriers(1)
-    r = D.deal(one, player_count=4, seed=4, require_proof_under_hoarding=False,
+    r = C.assign(one, player_count=4, seed=4, require_proof_under_hoarding=False,
                forbid_prover_monopoly=True)
     check("one route per suspect can never be monopoly-free", not r.ok)
     check("and the refusal says so", any("monopoly" in i for i in r.issues), str(r.issues))
 
-    # MEASURED over 20 seeds each, with the constraint ON so the dealer is
+    # MEASURED over 20 seeds each, with the constraint ON so the assignment is
     # actually searching:
     #
-    #   carriers   proof-safe deal found   also monopoly-free
+    #   carriers   proof-safe assignment found   also monopoly-free
     #      1            0/20                    0/20
     #      2           20/20                    8/20
     #      3           20/20                   17/20
@@ -448,103 +448,103 @@ def test_no_prover_monopoly():
     # at three, which is why constraint 5 is opt-in and why this asserts it at
     # three rather than two.
     three = carriers(3)
-    t = D.deal(three, player_count=4, seed=4, forbid_prover_monopoly=True)
-    check("three carriers: a monopoly-free deal is found by re-dealing",
+    t = C.assign(three, player_count=4, seed=4, forbid_prover_monopoly=True)
+    check("three carriers: a monopoly-free assignment is found by re-running the assignment",
           t.ok, str(t.issues))
     if t.ok:
-        counts = D.prover_counts(t.hands, three)
+        counts = C.prover_counts(t.casefiles, three)
         check("and no pattern leaves exactly one player able to prove it",
               counts.get(1, 0) == 0, str(counts))
 
     two = carriers(2)
-    check("two carriers still always yields a PROOF-safe deal, which is the "
+    check("two carriers still always yields a PROOF-safe assignment, which is the "
           "rule the owner actually set",
-          all(D.deal(two, player_count=4, seed=s).ok for s in range(5)))
+          all(C.assign(two, player_count=4, seed=s).ok for s in range(5)))
 
     # prover_counts must actually count, not just report presence.
     check("prover_counts totals every hoarding pattern",
-          t.ok and sum(D.prover_counts(t.hands, three).values()) == 81,
-          str(sum(D.prover_counts(t.hands, three).values()) if t.ok else "n/a"))
+          t.ok and sum(C.prover_counts(t.casefiles, three).values()) == 81,
+          str(sum(C.prover_counts(t.casefiles, three).values()) if t.ok else "n/a"))
 
 
 def test_feasibility_diagnostics():
-    print("\nfeasibility -- why a deal cannot be made")
+    print("\nfeasibility -- why an assignment cannot be made")
     base = solvable_fixture()
 
     dangling = solvable_fixture()
     dangling["characters"][4]["reveals"] = ["E99"]
     check("a reveals pointer naming no evidence item is reported",
-          any("E99" in i for i in D.feasibility(dangling, 4)),
-          str(D.feasibility(dangling, 4)))
+          any("E99" in i for i in C.feasibility(dangling, 4)),
+          str(C.feasibility(dangling, 4)))
 
     misnamed = solvable_fixture()
     misnamed["evidence"][0]["exonerates"] = ["Dr. Ortiz"]
-    issues = D.feasibility(misnamed, 4)
+    issues = C.feasibility(misnamed, 4)
     check("an exonerates name matching no suspect is reported, not fuzzy-matched",
           any("Dr. Ortiz" in i and "not a suspect" in i for i in issues), str(issues))
 
     cleared = solvable_fixture()
     cleared["evidence"][6]["exonerates"] = ["Vale"]
     check("evidence exonerating the culprit is reported",
-          any("culprit" in i and "exonerated" in i for i in D.feasibility(cleared, 4)))
+          any("culprit" in i and "exonerated" in i for i in C.feasibility(cleared, 4)))
 
     nocul = solvable_fixture()
     nocul["solution"]["culprit"] = "Nobody"
     check("a culprit who is not a suspect is reported",
-          any("not among the suspects" in i for i in D.feasibility(nocul, 4)))
+          any("not among the suspects" in i for i in C.feasibility(nocul, 4)))
 
     check("a well-formed mystery has no feasibility issues",
-          D.feasibility(base, 4, redundancy=2) == [], str(D.feasibility(base, 4, redundancy=2)))
+          C.feasibility(base, 4, redundancy=2) == [], str(C.feasibility(base, 4, redundancy=2)))
 
     thin = solvable_fixture()
     thin["leads"] = []
     thin["evidence"] = thin["evidence"][:2]
     check("a pool too small for the table is reported",
-          any("short of" in i for i in D.feasibility(thin, 4)), str(D.feasibility(thin, 4)))
+          any("short of" in i for i in C.feasibility(thin, 4)), str(C.feasibility(thin, 4)))
 
 
 # --------------------------------------------------------------------------
-# Determinism and hand shape
+# Determinism and casefile shape
 # --------------------------------------------------------------------------
 
 def test_determinism_and_shape():
-    print("\ndeterminism and hand shape")
+    print("\ndeterminism and casefile shape")
     m = solvable_fixture()
 
-    a = D.deal(m, player_count=4, seed=42)
-    b = D.deal(m, player_count=4, seed=42)
-    check("the same seed gives the same hands",
+    a = C.assign(m, player_count=4, seed=42)
+    b = C.assign(m, player_count=4, seed=42)
+    check("the same seed gives the same casefiles",
           a.ok and b.ok and
-          [[f.id for f in h] for h in a.hands] == [[f.id for f in h] for h in b.hands])
+          [[f.id for f in h] for h in a.casefiles] == [[f.id for f in h] for h in b.casefiles])
 
-    check("every player gets a full hand",
-          a.ok and all(len(h) == len(D.DEFAULT_HAND_SPEC) for h in a.hands),
-          str([len(h) for h in a.hands]))
+    check("every player gets a full casefile",
+          a.ok and all(len(h) == len(C.DEFAULT_CASEFILE_SPEC) for h in a.casefiles),
+          str([len(h) for h in a.casefiles]))
 
-    dealt = [f.id for h in a.hands for f in h]
-    check("no finding is dealt twice", len(dealt) == len(set(dealt)))
+    assigned = [f.id for h in a.casefiles for f in h]
+    check("no finding is assigned twice", len(assigned) == len(set(assigned)))
 
     # A short witness pool must degrade fairly, not starve the last player.
     short = solvable_fixture()
     short["characters"] = [c for c in short["characters"]
                            if c.get("role") != "witness" or c["name"] in ("Ada", "Bo")]
-    s = D.deal(short, player_count=4, seed=5)
-    check("a short witness pool still fills every hand",
-          s.ok and all(len(h) == 3 for h in s.hands), str(s.issues))
-    # NOT "no hand stacks two witnesses" -- with one witness SLOT per hand that
+    s = C.assign(short, player_count=4, seed=5)
+    check("a short witness pool still fills every casefile",
+          s.ok and all(len(h) == 3 for h in s.casefiles), str(s.issues))
+    # NOT "no casefile stacks two witnesses" -- with one witness SLOT per casefile that
     # holds by construction and the assertion could never fail. The real
     # property is that a scarce kind is fully USED: two witnesses and four
-    # players must put a witness in exactly two hands, not zero (over-eager
-    # fallback) and not one (a witness left undealt).
-    witness_counts = [sum(1 for f in h if f.kind == "witness") for h in s.hands]
-    check("a scarce kind is fully dealt: 2 witnesses reach exactly 2 of 4 hands",
+    # players must put a witness in exactly two casefiles, not zero (over-eager
+    # fallback) and not one (a witness left unassigned).
+    witness_counts = [sum(1 for f in h if f.kind == "witness") for h in s.casefiles]
+    check("a scarce kind is fully assigned: 2 witnesses reach exactly 2 of 4 casefiles",
           s.ok and sum(witness_counts) == 2, str(witness_counts))
 
 
 def main():
-    print("deal.py -- constrained deal fixtures")
+    print("casefiles.py -- constrained assignment fixtures")
     test_arithmetic()
-    test_best_deal()
+    test_best_assignment()
     test_the_glove()
     test_constraint_1_union_solves()
     test_constraint_2_no_solo_win()
@@ -557,47 +557,47 @@ def main():
     if FAILURES:
         print(f"FAILED ({len(FAILURES)}): " + ", ".join(FAILURES))
         return 1
-    print("All deal constraints hold, and each refuses a mystery that violates it.")
+    print("All assignment constraints hold, and each refuses a mystery that violates it.")
     return 0
 
 
 
-def test_best_deal():
-    """Choosing a dealing rather than accepting the first legal one.
+def test_best_assignment():
+    """Choosing an assignment rather than accepting the first legal one.
 
     From the real measurement on the first accepted mystery: seed 7 left one
     player able to prove the case in 27 of 81 hoarding patterns, 13 of 20 seeds
     gave zero, and proof survived 81/81 on every seed. Same mystery, same rules.
     """
-    print("\nchoosing a dealing (best_deal)")
+    print("\nchoosing an assignment (best_assignment)")
     m = solvable_fixture()
 
-    r = D.best_deal(m, player_count=4)
-    check("best_deal returns a usable deal", r.ok, str(r.issues))
-    check("it reports the dealing's quality, not just legality",
+    r = C.best_assignment(m, player_count=4)
+    check("best_assignment returns a usable assignment", r.ok, str(r.issues))
+    check("it reports the assignment's quality, not just legality",
           r.patterns > 0, f"patterns={r.patterns}")
-    check("it stops early once a dealing has no monopoly",
+    check("it stops early once an assignment has no monopoly",
           r.monopoly > 0 or r.seeds_tried <= 20, f"seeds_tried={r.seeds_tried}")
 
-    # Determinism survives: the winning seed reproduces the winning hands.
-    again = D.deal(m, player_count=4, seed=r.seed)
-    check("the winning seed reproduces the same hands exactly",
-          [[f.id for f in h] for h in again.hands]
-          == [[f.id for f in h] for h in r.hands],
+    # Determinism survives: the winning seed reproduces the winning casefiles.
+    again = C.assign(m, player_count=4, seed=r.seed)
+    check("the winning seed reproduces the same casefiles exactly",
+          [[f.id for f in h] for h in again.casefiles]
+          == [[f.id for f in h] for h in r.casefiles],
           f"seed {r.seed} did not reproduce")
 
     # It must never be WORSE than taking the first seed, which is the whole point.
-    first = D.deal(m, player_count=4, seed=0)
+    first = C.assign(m, player_count=4, seed=0)
     if first.ok:
-        ev = D.evidence_by_id(m)
-        first_mono = D.prover_counts(first.hands, m, ev).get(1, 0)
-        check("and it is never worse than the first legal dealing",
+        ev = C.evidence_by_id(m)
+        first_mono = C.prover_counts(first.casefiles, m, ev).get(1, 0)
+        check("and it is never worse than the first legal assignment",
               r.monopoly <= first_mono, f"best {r.monopoly} vs first {first_mono}")
 
     # A mystery the FEASIBILITY check refuses fails identically for every seed,
-    # so searching must not burn 20 deals discovering that.
+    # so searching must not burn 20 assigns discovering that.
     bad = mystery([("E1", ["Ortiz", "Brand", "Chen"], []), ("E2", [], ["Vale"])])
-    rb = D.best_deal(bad, player_count=4)
+    rb = C.best_assignment(bad, player_count=4)
     check("an infeasible mystery is refused after ONE seed, not twenty",
           (not rb.ok) and rb.seeds_tried == 1, f"ok={rb.ok} seeds={rb.seeds_tried}")
 

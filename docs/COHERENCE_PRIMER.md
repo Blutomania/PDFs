@@ -180,7 +180,7 @@ be.
 - **A finding does not know which clue it came from.** What a player receives is a paragraph of text
   with an ID of its own. It carries no link back to the evidence list. So the elimination arithmetic
   and the things players actually hold are two systems with no connection between them — and the
-  planned "deal each player a fair hand" step cannot be built until they are joined.
+  planned "assignment each player a fair casefile" step cannot be built until they are joined.
 - **The solo case screen prints the answer key.** It shows a ★ beside critical evidence and an ✗
   beside red herrings. The multiplayer path hides this completely. One of the two is wrong.
 

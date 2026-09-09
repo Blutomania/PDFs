@@ -59,7 +59,7 @@ var share_min: float = 0.6                  ## Informational only — see share_
 ## does NOT compute this. It used to, from share_min, with ceil() where the
 ## server uses round() — the two disagreed in 6 of 18 realistic combinations and
 ## the client was always stricter, so it refused shares the server would have
-## accepted. At a two-finding hand it demanded both, deleting the choice the
+## accepted. With only two findings held it demanded both, deleting the choice the
 ## mechanic exists for. The server now sends the number with every finding
 ## response and these just hold it.
 var witness_share_required: int = 0
@@ -84,6 +84,61 @@ var block_pool: Dictionary = {
 	"investigation": [],   ## [area_id, ...]
 	"lead": [],            ## [lead_id, ...]
 }
+
+# ---------------------------------------------------------------------------
+# APF — the rhythm (docs/PLAYTEST_FLOW.md). Findings are ASSIGNED, one per player
+# per round, with a cumulative share checkpoint from round 2.
+#
+# NOTHING HERE IS DERIVED. The server sends the round, the requirement and the
+# board; this caches the last payload so a scene change does not cost a refetch.
+# The one number a client must never compute for itself is the share minimum —
+# see current_share_required() below and scripts/test_share_rule.py.
+# ---------------------------------------------------------------------------
+
+## True when this player created the room. Only the host may open a round or
+## close the case, so the round screen hides those controls for everyone else.
+var is_host: bool = false
+
+## How many rounds this mystery has, announced before play begins. Owner:
+## "the game TELLS the users… it creates tension and sets expectations."
+var apf_rounds: int = 0
+
+## The whole share ladder, also announced up front: apf_share_ladder[r - 1] is
+## how many findings must be on the table by the end of round r.
+var apf_share_ladder: Array = []
+
+## The last /apf/state payload. Empty until the first fetch.
+var apf_state: Dictionary = {}
+
+## Cache the announcement from POST /apf/open.
+func record_apf_open(data: Dictionary) -> void:
+	apf_rounds = int(data.get("rounds", 0))
+	apf_share_ladder = data.get("share_ladder", [])
+
+## Cache one /apf/state payload.
+func record_apf_state(data: Dictionary) -> void:
+	apf_state = data
+	if apf_rounds == 0:
+		apf_rounds = int(data.get("rounds", 0))
+	if apf_share_ladder.is_empty():
+		apf_share_ladder = data.get("share_ladder", [])
+
+## How many findings this player still owes the table. THE SERVER'S OWN ANSWER,
+## never a guess: erring permissive costs a rejected submit, erring strict
+## silently deletes a legal move. 0 when the server has said nothing, because
+## round 1 legitimately asks for nothing.
+func apf_outstanding() -> int:
+	return int(apf_state.get("share_outstanding", 0))
+
+## This player's assigned findings, each flagged with whether it has been shared.
+func apf_casefile() -> Array:
+	return apf_state.get("casefile", [])
+
+## The suspect board: [{name, cleared, cleared_by}, ...]. A row is greyed out
+## only by an EXONERATION somebody shared — never by a narrowing, which item 27
+## requires the player to draw for themselves.
+func apf_board() -> Array:
+	return apf_state.get("board", [])
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -197,4 +252,8 @@ func reset() -> void:
 	shared_clues = {"witness": [], "investigation": [], "lead": []}
 	block_pool = {"witness": [], "investigation": [], "lead": []}
 	is_multiplayer = false
+	is_host = false
+	apf_rounds = 0
+	apf_share_ladder = []
+	apf_state = {}
 	# Note: player_name is intentionally NOT reset between games

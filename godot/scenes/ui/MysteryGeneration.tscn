@@ -73,6 +73,23 @@ text = "Difficulty:"
 [node name="DifficultyOption" type="OptionButton" parent="VBox/MultiplayerSection"]
 layout_mode = 2
 
+[node name="SavedSeparator" type="HSeparator" parent="VBox/MultiplayerSection"]
+layout_mode = 2
+
+[node name="SavedLabel" type="Label" parent="VBox/MultiplayerSection"]
+theme_type_variation = &"FaintLabel"
+layout_mode = 2
+autowrap_mode = 3
+text = "Or host a mystery you already have — free, no generation:"
+
+[node name="SavedOption" type="OptionButton" parent="VBox/MultiplayerSection"]
+layout_mode = 2
+
+[node name="HostSavedButton" type="Button" parent="VBox/MultiplayerSection"]
+theme_type_variation = &"QuietButton"
+layout_mode = 2
+text = "Host this saved mystery"
+
 [node name="Spinner" type="ProgressBar" parent="VBox"]
 layout_mode = 2
 visible = false

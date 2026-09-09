@@ -122,6 +122,41 @@ def check_implicit_concat(script: Path, src: str):
     return fails
 
 
+def check_control_bytes(script: Path, raw: str):
+    """Flag a raw control byte (NUL and friends) sitting in the source text.
+
+    `Icons.gd` shipped a literal NUL byte inside a string literal --
+    `const _SEP: String = "<NUL>"` -- meant as "a character that cannot appear
+    in a real key or salt". The INTENT was fine; a raw NUL between the quotes
+    is not. GDScript's lexer cannot terminate a string containing one, so it
+    reports `Unterminated string` even though the quotes visibly balance, and
+    the whole script -- and everything that imports it -- fails to load. No
+    static check here had ever run a real GDScript grammar over the source, so
+    this sat invisible through every session until someone actually pressed F5
+    (Session 42; `CLAUDE.md` already names this exact gap: nothing in a session
+    environment can load a scene through the real engine, so a defect like this
+    stays invisible until a human's machine hits it).
+
+    Tab, newline and carriage return are legitimate inside a source file and
+    are excluded. Everything else in the C0 control range (0x00-0x1F) has no
+    business appearing literally in GDScript text -- the correct way to put a
+    control character INTO a string is the `\\uXXXX` escape, which is what this
+    fix uses and what this check does not flag.
+    """
+    fails = []
+    for i, ch in enumerate(raw):
+        code = ord(ch)
+        if code < 0x20 and ch not in "\t\n\r":
+            line = raw[:i].count("\n") + 1
+            fails.append(
+                f"{script.name}:{line}: raw control byte 0x{code:02x} in the source -- "
+                f"a literal control character inside a string literal parses as "
+                f"`Unterminated string`, not as the character; use a \\u{code:04x} "
+                f"escape instead"
+            )
+    return fails
+
+
 def check_python_docstrings(script: Path, src: str):
     """Flag Python-style \"\"\"docstrings\"\"\" -- valid GDScript, and dead weight.
 
@@ -366,6 +401,7 @@ def check_scripts():
     fails = []
     for script in sorted(GODOT.rglob("*.gd")):
         raw = script.read_text()
+        fails.extend(check_control_bytes(script, raw))
         fails.extend(check_python_docstrings(script, raw))
         fails.extend(check_implicit_concat(script, strip_comments(raw)))
     return fails

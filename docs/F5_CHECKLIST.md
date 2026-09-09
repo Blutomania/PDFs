@@ -24,7 +24,11 @@ during that walk, none of which any checker could see:
 | Interrogation | `#` comment lines in the `.tscn` dropped five panels and every child under them |
 | Result screen | GDScript has no implicit string concatenation, so the script never loaded and only static nodes rendered |
 
-**Still unverified:** steps 20 and 21 (the two paid ones), and step 17's negative case.
+**Still unverified:** steps 20 and 21 (the two paid ones), step 17's negative case, and — added
+Session 42 — **the entire APF path**. `ApfRound.tscn`, the new buttons on `CaseDisplay.tscn` and the
+full-disclosure section of `ResultScreen.tscn` pass `scripts/check_godot_wiring.py` and have never
+been loaded by the engine. That checker reads scene files rather than loading them, and all three
+defects in the table above are exactly the kind it cannot see.
 
 > **Renumbering note (Session 38).** This document used to open at "sync the repo" and keep its
 > setup instructions in an appendix — including a section headed *Step 0, do this first*, which sat
@@ -112,8 +116,9 @@ Or all of them at once, plus the rest of the free suite:
 ```bash
 for s in check_godot_wiring check_mystery_playable check_doc_claims check_decisions \
          check_solvability check_narrative test_narrative_checks test_palette test_icons \
-         test_background_field test_share_rule \
-         test_crime_scene_map test_registry_staleness; do
+         test_background_field test_share_rule test_casefiles test_apf \
+         test_crime_scene_map test_registry_staleness test_gate_and_ledger \
+         test_arrangement test_extraction_fatal_errors; do
   printf '%-30s ' "$s"; python3 "scripts/$s.py" >/dev/null 2>&1 && echo PASS || echo FAIL
 done
 python3 scripts/build_palette.py --check && python3 scripts/build_icons.py --check
@@ -144,6 +149,14 @@ python3 -m uvicorn main:app --port 8000
 
 **Expect** Uvicorn to print that it is running on `http://127.0.0.1:8000`. Leave it alone.
 
+> **`zsh: command not found: uvicorn`** — the most common first stumble, and it usually does NOT
+> mean the dependency is missing. `python3 -c "import uvicorn"` tells you which it is: an error
+> means the packages really are absent (go back to step 2); a silent success means only the
+> launcher *script* is off your `PATH`, which happens on Homebrew Python, on `pip install --user`,
+> and in any terminal where the venv is not active. That is why every command in this document says
+> **`python3 -m uvicorn`** rather than bare `uvicorn` — the `-m` form works whenever the package is
+> importable, so it never depends on `PATH` at all.
+
 Now, in your **second** terminal:
 
 ```bash
@@ -167,6 +180,23 @@ Either stop that process, or run on another port (`--port 8001`) and change `SER
 
 # Part 2 — Godot: open it, verify it, make the design visible
 
+### 4b. Play a whole APF game over HTTP, before opening Godot at all
+
+With the server up, this plays the accepted mystery end to end — create, join, assignment, four rounds,
+full disclosure, accusation, result:
+
+```bash
+python3 scripts/walk_apf_game.py
+```
+
+**No API key needed**: nothing here generates, it plays the mystery already on disk. Every line
+should say PASS.
+
+**Why this is worth 20 seconds.** It exercises the entire playtest path with the client removed, so
+a failure here is the server's and a failure later is the screen's. Session 42 found two defects
+with it that every in-process test passed through — one of them was that *winning the game* fired a
+live Claude call and 500'd without one.
+
 ## 5. Launch Godot and add the project
 
 Open the Godot executable. In the Project Manager, click **Import**, navigate to
@@ -179,7 +209,7 @@ committed. **Run** fails on it with *"Can't run project: Assets need to be impor
 
 Click **Edit** and let the initial import finish. The fonts and eight SVG icons are imported here.
 
-Then check **Project → Project Settings → Globals**. **Expect four entries**, in this order:
+Then check **Project → Project Settings → Globals**. **Expect five entries**, in this order:
 
 > **The tab is called Autoload in Godot 4.6 and earlier, and Globals from 4.7.** Same panel, same
 > contents; 4.7 renamed it. Verified on 4.7.2 (Session 40) after the owner went looking for an
@@ -191,16 +221,24 @@ Then check **Project → Project Settings → Globals**. **Expect four entries**
 | `GameState` | current mystery, phase, history |
 | `ApiClient` | HTTP and WebSocket calls to the backend |
 | `NetworkManager` | ENet singleton — present but wired to nothing |
-| `Style` | builds the theme. **Must be last** — it reads `Palette.gd` |
+| `Style` | builds the theme. Second-to-last — it reads `Palette.gd` |
+| `Chrome` | the brand mark, added on top of every screen. **Must be last** — it draws over whatever theme `Style` already set |
 
-If `Style` is missing or not last, that alone explains a completely unstyled game.
+**`Chrome` was added in Session 42/43 and this table was never updated to match** — a session
+walking this checklist as it read before this fix would see `Style` sitting one slot above the
+bottom, "must be last" right there in the row, and reasonably move `Style` below `Chrome` to
+match. That is backwards: `Chrome`'s whole job is to draw on top of `Style`'s theme, so `Style` has
+to run first. If you did this, **move `Chrome` back to the last position, below `Style`.**
+
+If `Chrome` is missing or not last, that alone explains a theme with no brand mark on it, or a mark
+that looks wrong because it drew before the theme it should sit on top of existed yet.
 
 ## 7. Run `VerifyScenes.gd` — before anything else
 
 In the Script editor, open `godot/scripts/tools/VerifyScenes.gd` and press
 **File → Run** (`Ctrl+Shift+X`). It takes no arguments, costs nothing, and needs no backend.
 
-It loads all eight screens through Godot's own loader and compares the nodes each `.tscn`
+It loads all nine screens through Godot's own loader and compares the nodes each `.tscn`
 *declares* against the nodes that actually exist once loaded. That is the comparison
 `check_godot_wiring.py` cannot make — it reads scene files, and Session 36 proved reading is not
 loading when `Interrogation.tscn` passed the checker with five panels missing at runtime.
@@ -235,7 +273,7 @@ cat godot/apply_theme_report.txt
 
 | Line | What it means |
 |---|---|
-| `fonts` | Whether Nunito Sans actually resolved. On a fresh checkout, if it says the fonts are missing, let the import finish and run it again |
+| `fonts` | Two lines now, not one — Nunito Sans (the `default_font`, most of the UI) and, since the font upload in playtest SolvedSept7, Cinzel Decorative (`DisplayLabel` and `MysteryTitleLabel` only — the game's own name and a generated mystery's title, not the workaday screen headers). On a fresh checkout, if either says NOT loaded, let the import finish and run it again. **Not yet confirmed on a real machine** — this row describes what `ApplyTheme.gd` is coded to report, not a run that has happened; the first real run should update this note the way Session 40's did above |
 | `MISSES` | Every theme item name the engine does not have. Each is a line of `Style.gd` silently doing nothing. **`none` is the good answer** |
 | `wrote` / `set` | The `.tres` was written and the project setting points at it |
 
@@ -503,7 +541,12 @@ the slate ground looks stark white. Anything drawing one should set `modulate`.
   warning can fire from saved data. They have no test case on disk.
 - **Multiplayer entirely** — lobby, room codes, the share mechanic, the WebSocket path, and
   `server/static/mobile.html`. Stage 3.
-- **APF** — `docs/DECISIONS.md` item 23, not built.
+- **APF's round screen** — `ApfRound.tscn` was built in Session 42 and **has never been loaded by
+  the engine.** It is the one screen on this list that is finished code with zero engine hours on
+  it, so walk it deliberately: assignment, watch a face grey out when somebody shares, confirm the round
+  refuses to advance while the checkpoint is open, close the case, and check the result screen names
+  who held what back. Needs at least two players — constraint 2 is unsatisfiable at one, so a solo
+  walk has to add a seat (join from a phone at `/play`, or `POST /games/{id}/join`).
 - **Anything visual.** Whether the screens read well is a judgement only a human at the screen can
   make. Note it as you go.
 

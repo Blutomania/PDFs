@@ -26,7 +26,7 @@ firing is optimising against the checker -- Goodhart, and `the_light_that_went_o
 is the standing proof that the checks are not the same as quality. This module
 adds pointers. It never touches a word of generated text.
 
-WHY IT REFUSES MORE OFTEN THAN IT ACTS, AND WHY THAT IS THE POINT. deal.py's own
+WHY IT REFUSES MORE OFTEN THAN IT ACTS, AND WHY THAT IS THE POINT. casefiles.py's own
 docstring names the risk: "a model can emit reveals: ["E3"] on a statement that
 says nothing about E3, and nothing structural can tell." A tool that wires
 anything to anything would manufacture exactly that lie and every checker would
@@ -34,7 +34,7 @@ go green over it. So a candidate must earn the pointer lexically -- it has to
 already be about that evidence -- and the wiring is then re-verified against the
 full gate, because adding a pointer can CREATE a violation: a witness who
 already reveals two exonerations and gains a third may now solve the case alone
-(deal.py constraint 2). Proposals that make the verdict worse are dropped.
+(casefiles.py constraint 2). Proposals that make the verdict worse are dropped.
 
 WHAT IT FOUND ON THE FIRST MYSTERY IT WAS POINTED AT, which is the reason the
 conservatism is not theoretical. In `the_last_night_of_delacroix_&_sons` no
@@ -71,7 +71,7 @@ def _severity(verdict) -> Tuple[int, int]:
     COUNTING VIOLATIONS IS NOT ENOUGH, and the test that proved it is in
     scripts/test_arrangement.py. Wiring a third exoneration onto a witness who
     already carried two took a mystery from three violations to two -- and the
-    two were a DEAL.SOLO_SOLVE, because that witness now cleared every innocent
+    two were a CASE.SOLO_SOLVE, because that witness now cleared every innocent
     single-handed. Fewer findings, strictly worse mystery: it traded two
     below_standard complaints for an unplayable one. Severity has to lead.
     """
@@ -269,7 +269,7 @@ def propose(mystery: dict) -> List[Proposal]:
             out.append(Proposal(
                 eid, clears, reason=(
                     f"nothing names {clears} while also being about {eid}. Nothing here can honestly "
-                    f"reveal it, and inventing a pointer would be the drift deal.py warns "
+                    f"reveal it, and inventing a pointer would be the drift casefiles.py warns "
                     f"about. Targeted ask: write one finding that surfaces {eid} "
                     f"({e.get('name', '')!r}) and so clears {clears}")))
         else:
@@ -285,7 +285,7 @@ def apply(mystery: dict, proposals: Sequence[Proposal],
     EACH WIRING IS VERIFIED, ONE AT A TIME, AGAINST THE FULL GATE. Adding a
     pointer is not automatically an improvement: a carrier already revealing two
     exonerations that gains a third may now solve the case alone, which is
-    deal.py's constraint 2 and a strictly worse mystery than the one we started
+    casefiles.py's constraint 2 and a strictly worse mystery than the one we started
     with. Applied in sequence so each is judged against the state the previous
     one left, rather than against the original.
     """

@@ -20,6 +20,7 @@ extends Control
 @onready var gameplay_label: Label = $ScrollContainer/MainVBox/GameplayLabel
 @onready var interrogate_button: Button = $ScrollContainer/MainVBox/Buttons/InterrogateButton
 @onready var accuse_button: Button = $ScrollContainer/MainVBox/Buttons/AccuseButton
+@onready var begin_rounds_button: Button = $ScrollContainer/MainVBox/Buttons/BeginRoundsButton
 @onready var viability_hbox: HBoxContainer = $ScrollContainer/MainVBox/ViabilityRow
 @onready var viability_label: Label = $ScrollContainer/MainVBox/ViabilityRow/ViabilityLabel
 @onready var areas_container: VBoxContainer = $ScrollContainer/MainVBox/AreasContainer
@@ -37,6 +38,12 @@ func _ready() -> void:
 	_populate()
 	interrogate_button.pressed.connect(_go_interrogate)
 	accuse_button.pressed.connect(_go_accuse)
+	begin_rounds_button.pressed.connect(_on_begin_rounds)
+	## THIS SCREEN IS APF'S OPENING: the crime, told, before any finding is
+	## assigned. Only the host can assignment, and only in a room -- a saved mystery
+	## opened from the browse list is one person reading, with nobody to share
+	## with, so the button stays hidden there.
+	begin_rounds_button.visible = GameState.is_host and not GameState.game_id.is_empty()
 	if not GameState.game_id.is_empty():
 		ApiClient.ws_event.connect(_on_ws_event)
 
@@ -45,17 +52,32 @@ func _exit_tree() -> void:
 		ApiClient.ws_event.disconnect(_on_ws_event)
 
 func _on_ws_event(event_name: String, data: Dictionary) -> void:
+	## The host assigned. Everyone in the room moves to the round screen together.
+	if event_name == "apf_opened":
+		GameState.record_apf_open(data)
+		_go_rounds()
+		return
 	if event_name == "clues_shared":
 		GameState.merge_shared_clues({
 			data.get("phase", "witness"): data.get("clues", [])
 		})
 		_rebuild_shared_intel()
 
+## These two headings are a matched PAIR by design (owner, playtest StartPageSept7):
+## "The Scene:" sits above the setting description, "The Crime:" sits above
+## what happened, and they read as one visual family — same weight, same
+## "word(s) + colon" shape. If either wording changes, change the other to
+## match; do not let them drift into two different heading conventions for
+## what is visually the same kind of label.
+const _SCENE_HEADING: String = "The Scene:"
+const _CRIME_HEADING: String = "The Crime:"
+
 func _populate() -> void:
 	title_label.text = _mystery.title
 
 	setting_label.text = (
-		"[b]%s[/b] — [i]%s[/i]\n%s" % [
+		"[b]%s[/b]\n[b]%s[/b] — [i]%s[/i]\n%s" % [
+			_SCENE_HEADING,
 			_mystery.location,
 			_mystery.time_period,
 			_mystery.setting_description,
@@ -63,7 +85,8 @@ func _populate() -> void:
 	)
 
 	crime_label.text = (
-		"[b]The Crime[/b]\n%s\n[i]When: %s[/i]\n[i]Discovered: %s[/i]" % [
+		"[b]%s[/b]\n%s\n[i]When: %s[/i]\n[i]Discovered: %s[/i]" % [
+			_CRIME_HEADING,
 			_mystery.what_happened,
 			_mystery.when_occurred,
 			_mystery.initial_discovery,
@@ -75,16 +98,26 @@ func _populate() -> void:
 	for child in cast_container.get_children():
 		child.queue_free()
 
+	## Role labels, not bracketed tags (owner, playtest StartPageSept7): "The
+	## Victim:", "Suspect 1:", "Witness 1:" — numbered per person within their
+	## own role, in cast order. `_add_cast_row` takes the finished label text
+	## rather than a bare tag, since numbering has to happen here where the
+	## index is available, not inside the row-builder.
 	var victim := _mystery.get_victim()
 	if victim.name:
-		_add_cast_row("VICTIM", victim.name, victim.occupation, Palette.NEGATIVE)
+		_add_cast_row("The Victim:", victim.name, victim.occupation, Palette.NEGATIVE)
 
-	for suspect in _mystery.get_suspects():
-		_add_cast_row("SUSPECT", suspect.name, suspect.occupation, Palette.BRASS)
+	var suspects := _mystery.get_suspects()
+	for i in range(suspects.size()):
+		## No `.id` field on CharacterData -- `.name` is the stable, unique-
+		## per-mystery key the server side already treats it as, so it is the
+		## right seed for Icons.suspect() too.
+		var suspect_icon: String = Icons.suspect(suspects[i].name, GameState.game_id)
+		_add_cast_row("Suspect %d:" % (i + 1), suspects[i].name, suspects[i].occupation, Palette.BRASS, suspect_icon)
 
 	var witnesses := _mystery.characters.filter(func(c): return c.role == "witness")
-	for w in witnesses:
-		_add_cast_row("WITNESS", w.name, w.occupation, Palette.STEEL_BRIGHT)
+	for i in range(witnesses.size()):
+		_add_cast_row("Witness %d:" % (i + 1), witnesses[i].name, witnesses[i].occupation, Palette.STEEL_BRIGHT)
 
 	# --- Coherence badge ---
 	if _mystery.coherence_passed:
@@ -102,8 +135,8 @@ func _populate() -> void:
 	# --- Evidence ---
 	for child in evidence_container.get_children():
 		child.queue_free()
-	for ev in _mystery.evidence:
-		_add_evidence_row(ev)
+	for i in range(_mystery.evidence.size()):
+		_add_evidence_row(i, _mystery.evidence[i])
 
 	# --- Gameplay notes ---
 	var twists_text := " · ".join(_mystery.key_twists) if _mystery.key_twists else "none"
@@ -130,20 +163,68 @@ func _populate() -> void:
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-func _add_cast_row(role_tag: String, name: String, occupation: String, color: Color) -> void:
-	var lbl := Label.new()
-	lbl.text = "[%s] %s — %s" % [role_tag, name, occupation]
-	lbl.add_theme_color_override("font_color", color)
-	cast_container.add_child(lbl)
+## `role_label` is the finished heading -- "The Victim:", "Suspect 2:" -- not a
+## bare tag. Numbering a suspect or witness needs the loop index, which lives
+## with the caller, not here.
+## `icon_path` is optional (default "" -- no icon drawn), matching the way
+## Icons.texture() itself degrades: a role with no icon set yet (victim,
+## witness -- SUSPECT is the only set wired to a row so far, playtest
+## StartPageSept7) renders exactly as it did before this parameter existed.
+func _add_cast_row(role_label: String, name: String, occupation: String, color: Color,
+		icon_path: String = "") -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", Palette.SPACE_SMALL)
 
-func _add_evidence_row(ev: MysteryData.EvidenceData) -> void:
+	var icon_tex: Texture2D = Icons.texture(icon_path)
+	if icon_tex:
+		var icon_rect := TextureRect.new()
+		icon_rect.texture = icon_tex
+		icon_rect.custom_minimum_size = Vector2(20, 20)
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.modulate = Icons.tint()
+		row.add_child(icon_rect)
+
+	var lbl := Label.new()
+	lbl.text = "%s %s — %s" % [role_label, name, occupation]
+	lbl.add_theme_color_override("font_color", color)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+
+	cast_container.add_child(row)
+
+## `index` is this clue's position among ALL evidence (0-based); the row reads
+## "Clue 1:", "Clue 2:", ... in that order -- the id (`ev.id`, "E1") stays the
+## STORAGE key, matching cast rows' "Suspect 1:"/"Witness 1:" numbering
+## (owner, playtest StartPageSept7).
+func _add_evidence_row(index: int, ev: MysteryData.EvidenceData) -> void:
 	# Dictionary.get() returns Variant, so `:=` infers Variant here and Godot
 	# treats that inference as an error. The type has to be stated.
 	var relevance_icon: String = {"critical": "★", "red_herring": "✗", "supporting": "·"}.get(ev.relevance, "·")
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", Palette.SPACE_SMALL)
+
+	## Decorative only -- Icons.gd's own rule: which of the four magnifiers
+	## lands here carries no information about the clue. Seeded on the clue's
+	## own id plus the game id, so it stays stable for as long as anyone is
+	## looking at it and reshuffles between games (owner, playtest
+	## StartPageSept7 -- the first screen this ever gets wired to).
+	var icon_tex: Texture2D = Icons.texture(Icons.clue(ev.id, GameState.game_id))
+	if icon_tex:
+		var icon_rect := TextureRect.new()
+		icon_rect.texture = icon_tex
+		icon_rect.custom_minimum_size = Vector2(20, 20)
+		icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_rect.modulate = Icons.tint()
+		row.add_child(icon_rect)
+
 	var lbl := Label.new()
-	lbl.text = "%s [%s] %s (%s)" % [relevance_icon, ev.id, ev.name, ev.type]
+	lbl.text = "%s Clue %d: %s (%s)" % [relevance_icon, index + 1, ev.name, ev.type]
 	lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	evidence_container.add_child(lbl)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+
+	evidence_container.add_child(row)
 
 func _build_viability_buttons() -> void:
 	# Free only the buttons this function added. The previous version freed
@@ -178,6 +259,31 @@ func _on_rate(rating: int) -> void:
 func _go_interrogate() -> void:
 	GameState.game_phase = GameState.Phase.INTERROGATION
 	get_tree().change_scene_to_file("res://scenes/ui/Interrogation.tscn")
+
+## Build the casefiles and set the rounds going, and let the game ANNOUNCE its length before
+## play begins. Owner, Session 41: "the game TELLS the users. This mystery has a
+## maximum of X rounds. It creates tension and sets expectations."
+##
+## The assignment is free and deterministic, so a refusal here is a statement about
+## the mystery rather than bad luck -- it is shown as such instead of as a retry.
+func _on_begin_rounds() -> void:
+	begin_rounds_button.disabled = true
+	begin_rounds_button.text = "Opening the case…"
+	ApiClient.apf_open(GameState.game_id, GameState.player_id, _on_assigned)
+
+func _on_assigned(error: String, data: Dictionary) -> void:
+	if error:
+		begin_rounds_button.disabled = false
+		begin_rounds_button.text = "Begin the investigation"
+		coherence_label.text = "This mystery cannot be assigned: " + error
+		coherence_label.add_theme_color_override("font_color", Palette.NEGATIVE)
+		return
+	GameState.record_apf_open(data)
+	_go_rounds()
+
+func _go_rounds() -> void:
+	GameState.game_phase = GameState.Phase.INTERROGATION
+	get_tree().change_scene_to_file("res://scenes/ui/ApfRound.tscn")
 
 func _go_accuse() -> void:
 	GameState.game_phase = GameState.Phase.ACCUSATION

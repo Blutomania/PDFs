@@ -3,7 +3,7 @@
 
 WHAT THESE ARE REALLY GUARDING. This tool's only dangerous failure is a FALSE
 POSITIVE: wiring a witness to evidence their statement is not about. That
-manufactures exactly the drift deal.py's docstring warns of ("a model can emit
+manufactures exactly the drift casefiles.py's docstring warns of ("a model can emit
 reveals: ["E3"] on a statement that says nothing about E3, and nothing
 structural can tell") -- and every checker would then go green over a lie.
 
@@ -31,7 +31,7 @@ sys.path.insert(0, str(_ROOT / "scripts"))
 
 import arrangement as A                                # noqa: E402
 import gate                                            # noqa: E402
-from test_deal import mystery                          # noqa: E402
+from test_casefiles import mystery                          # noqa: E402
 from test_gate_and_ledger import coherent              # noqa: E402
 
 _failures = []
@@ -46,7 +46,7 @@ def check(name, condition, detail=""):
 
 
 # Four leads carrying no elimination data. They exist so the pool reaches
-# 4 players x 3 findings: without them DEAL.POOL_TOO_SMALL fires on every fixture
+# 4 players x 3 findings: without them CASE.POOL_TOO_SMALL fires on every fixture
 # here, which is "unplayable" and therefore masks any severity change the wiring
 # itself causes. The first version of the severity test passed for exactly that
 # reason -- the baseline was already as bad as the outcome.
@@ -141,7 +141,7 @@ def test_wires_a_genuine_carrier():
 def test_never_makes_the_verdict_worse():
     print("\nthe gate has the last word")
     # One witness who already reveals both other exonerations. Handing them the
-    # third makes that single finding clear every innocent -- deal.py's
+    # third makes that single finding clear every innocent -- casefiles.py's
     # constraint 2, and a strictly worse mystery than the one we started with.
     m = base(witnesses=[("Ada", "Ortiz boarded the last ferry and Brand signed the boiler "
                                 "room log; Chen kept the lighthouse roster, I read the "

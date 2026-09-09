@@ -39,44 +39,44 @@ Exploration was cut for three reasons, in the owner's order:
 2. Generation runs once. Coherence checks it.
 3. The **opening sequence** plays (below) — the crime, told.
 4. The game announces **how many rounds this mystery has**, and play begins.
-5. Each round, every player is **dealt one finding.** They do not go and get them.
+5. Each round, every player is **assigned one finding.** They do not go and get them.
 6. From round 2 onward, each round ends in a **share checkpoint**: each player chooses which of
    their findings to make public and which to keep. That is the whole decision.
 7. Deduce. Accuse. Reveal.
 8. **Full disclosure.** When the last round closes, everything every player still holds becomes
    public, with the holder's name on it.
 
-### The rhythm — dealt over rounds, not all at once (owner, Session 41)
+### The rhythm — assigned over rounds, not all at once (owner, Session 41)
 
-**This supersedes the single-deal reading of steps 4–5 above.** APF's argument for dealing is
-untouched; what changed is the *cadence*, and it changed because the arithmetic of a single deal
+**This supersedes the single-assignment reading of steps 4–5 above.** APF's argument for assignment is
+untouched; what changed is the *cadence*, and it changed because the arithmetic of a single assignment
 does not support the decision the game is built on.
 
 Owner: *"rhythms and rituals are great for this."*
 
-**Why not one deal of three.** With a hand dealt once, every player makes exactly one share
+**Why not one assignment of all three at once.** With a casefile assigned once, every player makes exactly one share
 decision all game. One decision yields one read of a person. **A rhythm yields a pattern** — and
 a pattern is what lets somebody say *"she's held back twice now"*, which is an accusation forming.
 A single round cannot produce that sentence.
 
 **Round 1 never has a checkpoint, and the reason is arithmetic.** `_min_share_required()` in
 `server/main.py` is `max(1, round(n × share_min))`, so a player holding one finding must share it
-whatever the difficulty. There is no decision at a hand of one, only a tax. The first checkpoint
+whatever the difficulty. There is no decision at a single held finding, only a tax. The first checkpoint
 therefore falls at round 2, where holding two means choosing *which*.
 
-**A shared finding STAYS in the holder's hand.** Owner: *"in the metaphor of the player being an
+**A shared finding STAYS in the holder's casefile.** Owner: *"in the metaphor of the player being an
 investigator it fails if the investigator is forced to 'forget' something."* Correct, and it
 clarifies what the game's currency actually is: **you spend exclusivity, not possession.** A
 detective's advantage was never holding the file, it was being the only one who had read it. The
 server already works this way — `share_findings` copies into the shared pool and removes nothing.
 
 **So the share requirement is CUMULATIVE**: *shared ≥ required(total held)*, not
-*shared-this-round ≥ required(dealt-this-round)*. Without that, round 4 would demand three new
-findings when only one was dealt.
+*shared-this-round ≥ required(assigned-this-round)*. Without that, round 4 would demand three new
+findings when only one was assigned.
 
-**And that revives the difficulty ladder, which a fixed three-finding hand had killed.** Session 38
-measured EASY/MEDIUM/HARD all resolving to "share 2, keep 1" at a hand of three, and Session 39
-worked around it by moving difficulty onto deal redundancy. Under a rhythm the ladder separates on
+**And that revives the difficulty ladder, which a fixed three-finding casefile had killed.** Session 38
+measured EASY/MEDIUM/HARD all resolving to "share 2, keep 1" at three held findings, and Session 39
+worked around it by moving difficulty onto assignment redundancy. Under a rhythm the ladder separates on
 its own, with no second dial: what differs is **how much a player is permitted to sit on**.
 
 | After round | EASY | MEDIUM | HARD |
@@ -87,12 +87,12 @@ its own, with no second dial: what differs is **how much a player is permitted t
 
 *(Private stash — the maximum withheld. It is a floor on sharing, not a cap, so this is the size of
 the decision space rather than a prediction. HARD permits the largest stash, so least reaches the
-table, so the case is hardest to crack collectively — consistent with `deal.py` putting each
-exoneration in exactly one hand at HARD.)*
+table, so the case is hardest to crack collectively — consistent with `casefiles.py` putting each
+exoneration in exactly one casefile at HARD.)*
 
 ### How many rounds, and why the game says so up front
 
-**Rounds = findings ÷ players.** No finding is dealt twice, so the pool sets the ceiling directly.
+**Rounds = findings ÷ players.** No finding is assigned twice, so the pool sets the ceiling directly.
 `build_pool()` counts witnesses, clues and leads; the first accepted mystery has 18.
 
 | Players | Rounds on an 18-finding mystery |
@@ -116,7 +116,7 @@ Four bounds were computed, not argued:
 | Bound | Value | Basis |
 |---|---|---|
 | Solvability | 2 | measured — `proof_survives_hoarding()` returns 16/16 at two rounds |
-| A decision exists | 2 | a hand of one forces a share |
+| A decision exists | 2 | a single held finding forces a share |
 | Rhythm (two checkpoints, so a pattern) | 3 | design |
 | Difficulty separates at all | 4 | EASY parts from MEDIUM/HARD |
 | **Pool ceiling today** | **4** | 18 findings ÷ 4 players |
@@ -125,10 +125,39 @@ Going beyond four rounds means growing the pool — roughly 24 findings for six 
 output tokens, and output is 95% of a generation call. **Not worth buying until a playtest says the
 rhythm earns it.**
 
-**Implementation note.** `deal.py` already expresses hand size as `DEFAULT_HAND_SPEC`, whose length
+**Implementation note.** `casefiles.py` already expresses casefile size as `DEFAULT_CASEFILE_SPEC`, whose length
 is the number of findings per player. Under the rhythm that length *is* the round count, so the
-existing deal machinery covers this without new constraint code — `best_deal()`, feasibility and
+existing assignment machinery covers this without new constraint code — `best_assignment()`, feasibility and
 the hoarding analysis all work unchanged at four.
+
+### [Session 42] Built — where each sentence above now lives
+
+| The rule | Where it is |
+|---|---|
+| Rounds = findings ÷ players | `apf.round_count()` |
+| The casefile spec's length is the round count | `apf.casefile_spec_for()` |
+| Round 1 has no checkpoint | `apf.FIRST_CHECKPOINT_ROUND`, and `required_now()` returns 0 below it |
+| A shared finding stays in the casefile | `apf.share()` appends and removes nothing |
+| The requirement is cumulative | `apf.share_ladder()`, precomputed at session open |
+| The ladder is announced up front | returned by the `/apf/open` route |
+| The board greys on `exonerates`, never on `narrows` | `apf.board()` |
+| Full disclosure | `apf.disclose()` |
+
+**One thing the arithmetic gave back that this document did not ask for.** The private stash is not
+only a difficulty setting — it *is* the assignment's `hoard_allowance`, because it defines exactly how
+much a player is permitted to withhold. `apf.stash_allowance()` derives it from the ladder, and
+doing so exposed a defect in `best_assignment()`: it constrained proof-survival at the allowance it was
+given and then chose its seed by a monopoly measured at `casefiles.py`'s constant of 1. Two hoarding
+models, one of which the rules do not permit.
+
+**The share rule is injected, never reimplemented.** `_min_share_required()` in `server/main.py`
+stays its only definition; `apf.py` takes it as a callable. `scripts/test_share_rule.py` now guards
+`apf_round.gd` as well, because the rule moved with the mechanic — a rule defended on the screen it
+left is a rule nobody is defending.
+
+**Not verified: nobody has played it, and it has never run in Godot.** Every number in the ladder is
+arithmetic. Whether a two-finding stash at HARD *feels* like a decision is a question only a table
+answers.
 
 > **On the "75% mechanic".** The line that used to sit at step 5 called this *the 75% mechanic*.
 > There has never been one — see `CLAUDE.md`, item 11. What exists is a player-chosen share level
@@ -164,20 +193,20 @@ deliberately left open.
   fixed text at generation time rather than calling per action as the correct lever, measured at
   10.8× on a four-player game. APF is that lever pushed all the way.
 
-### The deal is a separate step from generation, and it is free
+### The assignment is a separate step from generation, and it is free
 
-Generate findings carrying elimination data (one call), **then deal them under constraints** —
-pure computation, deterministic, and a failed deal is simply re-dealt at zero cost.
+Generate findings carrying elimination data (one call), **then assign them under constraints** —
+pure computation, deterministic, and a failed assignment is simply re-run at zero cost.
 
 | Constraint | Why |
 |---|---|
-| the union of all dealt findings eliminates all but one suspect | otherwise nobody can win |
-| no single player's hand does that alone | otherwise it is a lottery |
-| ~~it becomes solvable once the minimum share threshold is met~~ | **not well-formed — replaced.** `share_min` is a fraction of a player's *own* findings and the player picks which, so meeting it does not determine what reaches the pool. Session 39 uses **redundancy** instead: each exoneration must reach at least N distinct hands. See `docs/INVESTIGATION_DESIGN.md` §4 |
+| the union of all assigned findings eliminates all but one suspect | otherwise nobody can win |
+| no single player's casefile does that alone | otherwise it is a lottery |
+| ~~it becomes solvable once the minimum share threshold is met~~ | **not well-formed — replaced.** `share_min` is a fraction of a player's *own* findings and the player picks which, so meeting it does not determine what reaches the pool. Session 39 uses **redundancy** instead: each exoneration must reach at least N distinct casefiles. See `docs/INVESTIGATION_DESIGN.md` §4 |
 
-**Built in Session 39 as `deal.py`**, with `scripts/test_deal.py`. Findings reach the evidence the
+**Built in Session 39 as `casefiles.py`**, with `scripts/test_casefiles.py`. Findings reach the evidence the
 arithmetic is defined over through a `reveals` pointer on witnesses, leads and areas — without it
-two of the three kinds in every hand carry no elimination data and cannot be reasoned from.
+two of the three kinds in every casefile carry no elimination data and cannot be reasoned from.
 
 This is a stronger guarantee than anything the engine does today, and it costs nothing. See
 `docs/INVESTIGATION_DESIGN.md` §4 for the `exonerates` / `implicates` fields it needs.
@@ -188,11 +217,11 @@ Owner: *"even if a pick list, it adds some user empowerment. That's important to
 essential."*
 
 If the pick-list is over pre-generated questions, the answers already exist in the mystery. So
-Path 2 is not a different loop — it is *"one of your findings arrives chosen instead of dealt."*
-Same generation, same deal, same share decision, same reveal. **Ship APF with the pick-list behind
+Path 2 is not a different loop — it is *"one of your findings arrives chosen instead of assigned."*
+Same generation, same assignment, same share decision, same reveal. **Ship APF with the pick-list behind
 a toggle and both get tested by one group in one evening**, everything else held constant.
 
-One consequence: variable hands mean solvability must hold across *every* combination of picks.
+One consequence: variable casefiles mean solvability must hold across *every* combination of picks.
 4 players × 3 options is 81 combinations — checked exhaustively as set operations, zero API cost.
 Do **not** take the shortcut of making all options eliminate the same thing; that is cosmetic
 choice and players feel it.
@@ -255,11 +284,11 @@ underneath can make the promise explicit without breaking the scene.
 
 ### What the UI has to carry now
 
-With exploration gone, the **hand** and the **share** are not part of the game — they are the
+With exploration gone, the **casefile** and the **share** are not part of the game — they are the
 game, and they must feel like objects rather than paragraphs.
 
 - **A finding is already an object, not a paragraph**: it has a name, a description, a type and a
-  relevance. It is dealt, held, and shared. MYF has UI components for handling things of that
+  relevance. It is assigned, held, and shared. MYF has UI components for handling things of that
   shape — not portable to Godot, but straight into `mobile.html`, and the layout thinking carries
   either way. *(Vocabulary, owner's instruction, Session 40: describe these as findings. This is a
   social deduction game, and borrowed game-shop language makes the mechanic read as a deck when it
@@ -272,13 +301,19 @@ game, and they must feel like objects rather than paragraphs.
 **One schema field does double duty** — `exonerates` is what proves the mystery solvable *and*
 what drives the central UI moment. Usually correctness and fun are separate budgets.
 
-**Build the hand, the board and the share to be satisfying with the placeholder still in the
+**Build the casefile, the board and the share to be satisfying with the placeholder still in the
 slot.** If the playtest only works once the video lands, it has taught you nothing about the game
 and cost stage-3 money to say so.
 
 ---
 
 ## The flow
+
+> **[Session 42] This table describes the GATHER loop, which APF replaces.** It is kept because
+> its decisions still hold (four suspects, lies off, the one-call shape) and because the screens it
+> names still exist. The APF path is: **Lobby → CaseDisplay** (the crime, told; the host assigns from
+> here) **→ ApfRound** (casefile, board, shared pool, the share decision, four rounds) **→ Accusation →
+> ResultScreen** (verdict, solution, full disclosure). Steps 2, 3, 4 and 5 below are not on it.
 
 | # | Screen | What happens | State |
 |---|---|---|---|

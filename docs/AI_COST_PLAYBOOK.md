@@ -207,7 +207,7 @@ The same gap shows up qualitatively where all three succeed. On *Pseudo Identity
 > secretary place unanswered calls home"
 
 Neither is wrong. Haiku records that an alibi existed; Opus records **how the gap in it was
-manufactured**. The corpus exists to hand generation reusable devices, and the mechanism is the
+manufactured**. The corpus exists to casefile generation reusable devices, and the mechanism is the
 reusable part.
 
 ### This is already costing coverage in the corpus on disk

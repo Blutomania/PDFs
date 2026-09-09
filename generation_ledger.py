@@ -186,6 +186,35 @@ def collapse(rows: Sequence[dict]) -> List[dict]:
     return out + list(by_slug.values())
 
 
+# Rule ids that have been renamed, old -> new. Rows already on disk carry the
+# OLD id and are never rewritten -- the ledger is an append-only record of what
+# actually happened, and editing history to match today's vocabulary is exactly
+# what SESSIONS.md forbids for the same reason. So the ids are folded at READ
+# time instead, which keeps a rule's whole history under one heading.
+#
+# Session 42 renamed DEAL.* to CASE.* when the card-game vocabulary came out of
+# the codebase (the owner's third time asking). 45 rows across five rules were
+# already written; without this they would have split into two columns naming
+# the same defect.
+LEGACY_RULE_IDS = {
+    "DEAL.NO_SUSPECTS":            "CASE.NO_SUSPECTS",
+    "DEAL.SUSPECT_COUNT":          "CASE.SUSPECT_COUNT",
+    "DEAL.NO_CULPRIT":             "CASE.NO_CULPRIT",
+    "DEAL.CULPRIT_NOT_SUSPECT":    "CASE.CULPRIT_NOT_SUSPECT",
+    "DEAL.EXONERATES_STRANGER":    "CASE.EXONERATES_STRANGER",
+    "DEAL.POOL_UNSOLVABLE":        "CASE.POOL_UNSOLVABLE",
+    "DEAL.REDUNDANCY_CEILING":     "CASE.REDUNDANCY_CEILING",
+    "DEAL.REDUNDANCY_UNREACHABLE": "CASE.REDUNDANCY_UNREACHABLE",
+    "DEAL.SOLO_SOLVE":             "CASE.SOLO_SOLVE",
+    "DEAL.POOL_TOO_SMALL":         "CASE.POOL_TOO_SMALL",
+}
+
+
+def _current_rule_id(rule_id: str) -> str:
+    """Fold a historical rule id onto the id that rule has today."""
+    return LEGACY_RULE_IDS.get(rule_id, rule_id)
+
+
 def summarise(rows: Sequence[dict]) -> dict:
     """CPAM and the numbers around it.
 
@@ -216,7 +245,7 @@ def summarise(rows: Sequence[dict]) -> dict:
         cls = r.get("failure_class") or "unclassified"
         by_class[cls] = by_class.get(cls, 0) + 1
         for v in r.get("violations") or []:
-            rid = v.get("rule_id", "?")
+            rid = _current_rule_id(v.get("rule_id", "?"))
             by_rule[rid] = by_rule.get(rid, 0) + 1
 
     return {

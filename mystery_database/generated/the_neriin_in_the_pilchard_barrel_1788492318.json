@@ -4,12 +4,12 @@
     "location": "Trevaskis & Partners Counting House, Wheal Morrow tin-mine, Cornwall",
     "time_period": "August 1907, during the annual pilchard festival",
     "environment": "A low stone building perched above the cliffs, its single lamp guttering in the storm-wet air, packed ledgers and tin-dust on every surface",
-    "description": "A violent summer squall has washed out the cliff road to Penzance and sent a rockfall across the mine path, leaving the four surviving partners marooned inside the counting house with the bodies of their colleagues. The nearest farmhouse is four miles across flooded moorland and the tide has swallowed the coastal path. No one may leave until morning light and the storm's end reveal a safe passage — and by then, the poisoner among them has had all night."
+    "description": "A violent summer squall has washed out the cliff road to Penzance and sent a rockfall across the mine path, leaving the four surviving partners marooned inside the counting house with the bodies of their colleagues. The nearest farmhouse is four miles across flooded moorland and the tide has swallowed the coastal path. No one may leave until morning light and the storm's end reveal a safe passage \u2014 and by then, the poisoner among them has had all night."
   },
   "solution": {
     "culprit": "Rosalind Trevaskis",
     "motive": "Rosalind discovered that her husband Edmund had secretly re-mortgaged her inherited share of the mine to cover his gambling debts, and had forged her signature on a partnership dissolution instrument that would have stripped her of all title upon the festival's close. Killing Edmund before he could lodge the document, and silencing his co-conspirator Jory Nancarrow who witnessed the forgery, was the only way to preserve her inheritance and her independence.",
-    "method": "Rosalind ground dried neriin — oleander seed — into the saffron powder used to season the traditional pilchard pasties prepared that evening in the counting house kitchen. Edmund Trevaskis and Jory Nancarrow each ate a full pasty; both died of cardiac arrest within two hours. The other partners ate less or none, surviving. Rosalind herself declined the pasties, claiming a stomach complaint.",
+    "method": "Rosalind ground dried neriin \u2014 oleander seed \u2014 into the saffron powder used to season the traditional pilchard pasties prepared that evening in the counting house kitchen. Edmund Trevaskis and Jory Nancarrow each ate a full pasty; both died of cardiac arrest within two hours. The other partners ate less or none, surviving. Rosalind herself declined the pasties, claiming a stomach complaint.",
     "chain": [
       {
         "id": "S1",
@@ -17,7 +17,7 @@
       },
       {
         "id": "S2",
-        "claim": "The poison was introduced into the saffron tin used to season the pasties, which was kept in the counting house kitchen — meaning the poisoner had access to that kitchen during the preparation window."
+        "claim": "The poison was introduced into the saffron tin used to season the pasties, which was kept in the counting house kitchen \u2014 meaning the poisoner had access to that kitchen during the preparation window."
       },
       {
         "id": "S3",
@@ -25,7 +25,7 @@
       },
       {
         "id": "S4",
-        "claim": "Rosalind did not eat the pasties she prepared, claiming a stomach ailment she had not mentioned before supper — behaviour inconsistent with innocence and consistent with prior knowledge of the poison."
+        "claim": "Rosalind did not eat the pasties she prepared, claiming a stomach ailment she had not mentioned before supper \u2014 behaviour inconsistent with innocence and consistent with prior knowledge of the poison."
       },
       {
         "id": "S5",
@@ -37,7 +37,7 @@
       "E8",
       "E10"
     ],
-    "how_to_deduce": "The post-mortem evidence and the bitter-almond odour on the victims confirm neriin poisoning rather than natural death, establishing that a murder was committed. The contaminated saffron tin in the kitchen shows how the poison reached the food. Witness testimony establishes that Rosalind Trevaskis was the only person left alone in that kitchen during the supper preparation window, giving her unique opportunity. Her conspicuous refusal to eat the very pasties she made, excused by a complaint nobody had heard her mention before, points directly at foreknowledge. Finally, the forged dissolution document found in Edmund's coat — bearing Rosalind's signature but written in Edmund's hand — reveals the financial stake: Edmund had arranged to strip her of the mine, and Jory Nancarrow had witnessed the forgery. With both men dead before the document could be lodged, Rosalind's title was safe. Opportunity, physical evidence, and motive all converge on her alone."
+    "how_to_deduce": "The post-mortem evidence and the bitter-almond odour on the victims confirm neriin poisoning rather than natural death, establishing that a murder was committed. The contaminated saffron tin in the kitchen shows how the poison reached the food. Witness testimony establishes that Rosalind Trevaskis was the only person left alone in that kitchen during the supper preparation window, giving her unique opportunity. Her conspicuous refusal to eat the very pasties she made, excused by a complaint nobody had heard her mention before, points directly at foreknowledge. Finally, the forged dissolution document found in Edmund's coat \u2014 bearing Rosalind's signature but written in Edmund's hand \u2014 reveals the financial stake: Edmund had arranged to strip her of the mine, and Jory Nancarrow had witnessed the forgery. With both men dead before the document could be lodged, Rosalind's title was safe. Opportunity, physical evidence, and motive all converge on her alone."
   },
   "crime": {
     "type": "Double murder by poison",
@@ -51,7 +51,7 @@
       "role": "victim",
       "occupation": "Purser and Senior Adventurer, Wheal Morrow",
       "motive": "N/A",
-      "alibi": "N/A — deceased",
+      "alibi": "N/A \u2014 deceased",
       "secret": "Edmund had forged Rosalind's signature on a partnership dissolution instrument and secretly re-mortgaged her inherited share to cover ruinous gambling debts in Truro. Jory Nancarrow was the only witness to this forgery.",
       "bio": "Edmund Trevaskis is a broad-shouldered, fast-talking man in his mid-fifties who ran Wheal Morrow with the confidence of someone who has never been questioned. He inherited a share from his father-in-law and expanded it through a combination of genuine commercial instinct and ruthless corner-cutting. Those who work for him find him generous in good years and dangerous in lean ones."
     },
@@ -60,7 +60,7 @@
       "role": "victim",
       "occupation": "Assayer and Junior Adventurer, Wheal Morrow",
       "motive": "N/A",
-      "alibi": "N/A — deceased",
+      "alibi": "N/A \u2014 deceased",
       "secret": "Jory witnessed Edmund's forged signature and had been paid a small sum to keep silent. He had recently begun to waver, considering whether to approach Rosalind with what he knew.",
       "bio": "Jory Nancarrow is a wiry, precise man of forty who spent twenty years underground before Edmund elevated him to the counting house on the strength of his skill with assay numbers. He is quiet in company, speaks only when certain, and is trusted by the mine's working men in a way that the partners above him never quite are. He keeps a meticulous personal ledger and smells permanently of tin-dust and carbolic."
     },
@@ -79,7 +79,7 @@
       "occupation": "Cap'n and Working Adventurer, Wheal Morrow",
       "motive": "Cadan is owed eighteen months of deferred wages Edmund promised but never paid; a ledger entry shows Edmund was about to dissolve the partnership and leave Cadan with nothing. He had argued loudly with Edmund the morning of the festival.",
       "alibi": "Cadan was at the mine's engine house with surface-worker Tomas Blewett from 5 p.m. to 7:30 p.m. inspecting the pump gear before the storm hit; Blewett can confirm this. He entered the counting house at 7:40 p.m. and went directly to the main hall.",
-      "secret": "Cadan has been secretly corresponding with a rival mine consortium in Redruth, considering selling his share of Wheal Morrow's ore data — a betrayal that would constitute breach of partnership and expose him to ruin if discovered.",
+      "secret": "Cadan has been secretly corresponding with a rival mine consortium in Redruth, considering selling his share of Wheal Morrow's ore data \u2014 a betrayal that would constitute breach of partnership and expose him to ruin if discovered.",
       "bio": "Cadan Polglase is a stocky, red-faced man of fifty-two who came up through the mine working as a tinner before buying into a small share twenty years ago. He knows the tunnels of Wheal Morrow better than anyone alive and carries the physical marks of that knowledge in his scarred hands and the slight stoop of a man who has spent years in low-ceilinged spaces. He is blunt, occasionally explosive, and almost constitutionally incapable of hiding what he feels."
     },
     {
@@ -103,12 +103,12 @@
     {
       "name": "Lowena Chegwidden",
       "role": "witness",
-      "occupation": "Counting House Chare-Woman and Larder-Maid, Wheal Morrow; locally called 'Lowena Close-Hearth' for her habit of keeping near the fire — and near every conversation held beside it",
+      "occupation": "Counting House Chare-Woman and Larder-Maid, Wheal Morrow; locally called 'Lowena Close-Hearth' for her habit of keeping near the fire \u2014 and near every conversation held beside it",
       "motive": "N/A",
       "alibi": "Present throughout the evening in the main hall and corridor",
       "secret": "N/A",
       "bio": "Lowena Chegwidden is a stout, unhurried woman of sixty who has kept the counting house since Edmund's father's time. She knows every sound the building makes and most of the things that happen inside it. She dislikes drama and has a gift for stating plain facts without embroidery.",
-      "statement": "I was in the main hall corridor from half-past six onward, carrying the salt-cellar and the bread. Miss Pascoe was at the hall table with the tin tallies the whole time I was passing — never went near the kitchen once. I can swear to that. Mrs Trevaskis was the only one in that kitchen during preparation; I heard her in there alone for over an hour, and when I looked in at a quarter to eight to fetch the bread-cloth she was closing the spice shelf.",
+      "statement": "I was in the main hall corridor from half-past six onward, carrying the salt-cellar and the bread. Miss Pascoe was at the hall table with the tin tallies the whole time I was passing \u2014 never went near the kitchen once. I can swear to that. Mrs Trevaskis was the only one in that kitchen during preparation; I heard her in there alone for over an hour, and when I looked in at a quarter to eight to fetch the bread-cloth she was closing the spice shelf.",
       "reveals": [
         "E7",
         "E3"
@@ -117,12 +117,12 @@
     {
       "name": "Tomas Blewett",
       "role": "witness",
-      "occupation": "Bal-Worker and Festival Hand, Wheal Morrow; nicknamed 'Tomas Grass' by the tributers underground, for a bal-worker who stays at surface is said to work 'on grass' — though Tomas sees more than most men who go below",
+      "occupation": "Bal-Worker and Festival Hand, Wheal Morrow; nicknamed 'Tomas Grass' by the tributers underground, for a bal-worker who stays at surface is said to work 'on grass' \u2014 though Tomas sees more than most men who go below",
       "motive": "N/A",
       "alibi": "Working outside with Cadan and Dreckly until the storm",
       "secret": "N/A",
       "bio": "Tomas Blewett is a young man of twenty-six, broad-shouldered, quietly spoken, hired each festival season for heavy work. He has an accurate memory for times and faces because his father was a Penzance constable who trained him to notice things. He is loyal to whoever pays him fairly and has no stake in the partnership disputes.",
-      "statement": "Captain Polglase and I were at the engine house from five o'clock — he never left my sight until half-seven when we walked back together and he went straight in the front door. Bolitho was out on the cliff path organising the barrels the whole time too; I passed him three times before the storm came on. Neither of those men went near the house kitchen side at all.",
+      "statement": "Captain Polglase and I were at the engine house from five o'clock \u2014 he never left my sight until half-seven when we walked back together and he went straight in the front door. Bolitho was out on the cliff path organising the barrels the whole time too; I passed him three times before the storm came on. Neither of those men went near the house kitchen side at all.",
       "reveals": [
         "E1",
         "E5",
@@ -137,7 +137,7 @@
       "alibi": "In the mine office with his bag throughout the evening",
       "secret": "N/A",
       "bio": "Henryk Voss is a compact, careful German physician of fifty who was touring the Cornish coast on a working holiday when the storm stranded him at Wheal Morrow. He speaks English with meticulous correctness and carries a worn black bag he is never without. He has no connection to the partnership and no interest in its disputes beyond professional concern for its casualties.",
-      "statement": "I examined both bodies as soon as I was summoned. The smell on the lips — bitter, almost almond-like — and the cardiac presentation are consistent with oleander glycoside, what we call neriin. It acts within one to three hours of ingestion. Both men ate the saffron pasties at supper; neither the bread nor the cider showed that smell. The pasties are the vehicle — I am as certain as a field examination permits.",
+      "statement": "I examined both bodies as soon as I was summoned. The smell on the lips \u2014 bitter, almost almond-like \u2014 and the cardiac presentation are consistent with oleander glycoside, what we call neriin. It acts within one to three hours of ingestion. Both men ate the saffron pasties at supper; neither the bread nor the cider showed that smell. The pasties are the vehicle \u2014 I am as certain as a field examination permits.",
       "reveals": [
         "E2",
         "E9"
@@ -174,7 +174,7 @@
     {
       "id": "E3",
       "name": "Merryn Pascoe's Tally-Sheet Alibi",
-      "description": "The festival tin-receipt tally sheets bear Merryn Pascoe's running hand across forty pages of entries, time-stamped by Jory Nancarrow's counter-initials up until 7:55 p.m. — minutes before Nancarrow fell ill. The continuous nature of the entries, consistent in ink shade and pressure, establishes Merryn at the hall table without interruption throughout the preparation window. Lowena Chegwidden's statement corroborates she never left the hall.",
+      "description": "The festival tin-receipt tally sheets bear Merryn Pascoe's running hand across forty pages of entries, time-stamped by Jory Nancarrow's counter-initials up until 7:55 p.m. \u2014 minutes before Nancarrow fell ill. The continuous nature of the entries, consistent in ink shade and pressure, establishes Merryn at the hall table without interruption throughout the preparation window. Lowena Chegwidden's statement corroborates she never left the hall.",
       "type": "documentary",
       "relevance": "supporting",
       "supports": [
@@ -202,7 +202,7 @@
     {
       "id": "E5",
       "name": "Blewett's Verbal Account of Bolitho's Movements",
-      "description": "Tomas Blewett's statement places Dreckly Bolitho in continuous view on the cliff path during the supper preparation window; Blewett noted passing him three separate times and exchanging words about the barrel weight each time. Bolitho's entrance through the seaward door — not the kitchen passage — was observed by Blewett himself.",
+      "description": "Tomas Blewett's statement places Dreckly Bolitho in continuous view on the cliff path during the supper preparation window; Blewett noted passing him three separate times and exchanging words about the barrel weight each time. Bolitho's entrance through the seaward door \u2014 not the kitchen passage \u2014 was observed by Blewett himself.",
       "type": "testimonial",
       "relevance": "supporting",
       "supports": [
@@ -242,7 +242,7 @@
     {
       "id": "E8",
       "name": "Contaminated Saffron Tin",
-      "description": "A small copper tin labelled 'saffron' recovered from the kitchen spice shelf. When Dr. Voss opens it, a faint bitter-almond odour is immediately apparent beneath the spice smell, and a fine dark-brown powder is visible mixed through the saffron — inconsistent with the bright-yellow of pure saffron. The tin was used exclusively for the pasties and was not accessible from outside the kitchen.",
+      "description": "A small copper tin labelled 'saffron' recovered from the kitchen spice shelf. When Dr. Voss opens it, a faint bitter-almond odour is immediately apparent beneath the spice smell, and a fine dark-brown powder is visible mixed through the saffron \u2014 inconsistent with the bright-yellow of pure saffron. The tin was used exclusively for the pasties and was not accessible from outside the kitchen.",
       "type": "physical",
       "relevance": "critical",
       "supports": [
@@ -260,7 +260,7 @@
     {
       "id": "E9",
       "name": "Rosalind's Refusal to Eat",
-      "description": "Three witnesses — Lowena Chegwidden, Tomas Blewett (who entered at supper-time), and Merryn Pascoe — all independently note that Rosalind Trevaskis did not eat any of the pilchard pasties she herself prepared, claiming a stomach complaint. None of them had heard her mention any ailment earlier in the day. The complaint was raised for the first time at the moment the pasties were served.",
+      "description": "Three witnesses \u2014 Lowena Chegwidden, Tomas Blewett (who entered at supper-time), and Merryn Pascoe \u2014 all independently note that Rosalind Trevaskis did not eat any of the pilchard pasties she herself prepared, claiming a stomach complaint. None of them had heard her mention any ailment earlier in the day. The complaint was raised for the first time at the moment the pasties were served.",
       "type": "circumstantial",
       "relevance": "critical",
       "supports": [
@@ -274,7 +274,7 @@
     {
       "id": "E10",
       "name": "Forged Partnership Dissolution Instrument",
-      "description": "A formal legal document, partially completed, found folded inside Edmund Trevaskis's inner coat pocket. It purports to dissolve Rosalind Trevaskis's inherited partnership share and bears what appears to be Rosalind's signature — but the signature is written in the same ink and a closely matching hand to Edmund's own marginalia on the document. A comparison of the signature with Rosalind's genuine signature on a festival receipt reveals clear differences in letter formation.",
+      "description": "A formal legal document, partially completed, found folded inside Edmund Trevaskis's inner coat pocket. It purports to dissolve Rosalind Trevaskis's inherited partnership share and bears what appears to be Rosalind's signature \u2014 but the signature is written in the same ink and a closely matching hand to Edmund's own marginalia on the document. A comparison of the signature with Rosalind's genuine signature on a festival receipt reveals clear differences in letter formation.",
       "type": "documentary",
       "relevance": "critical",
       "supports": [
@@ -288,7 +288,7 @@
     {
       "id": "E11",
       "name": "Merryn's Forged Receipt",
-      "description": "A creased receipt found in Merryn Pascoe's sewing-bag, written in her own hand but dated two years prior, purporting to record a loan to Edmund Trevaskis. The paper and ink are inconsistent with a two-year-old document — the ink is too fresh and the paper lacks yellowing. It is a forgery, but one Merryn created to substantiate a genuine debt Edmund denied.",
+      "description": "A creased receipt found in Merryn Pascoe's sewing-bag, written in her own hand but dated two years prior, purporting to record a loan to Edmund Trevaskis. The paper and ink are inconsistent with a two-year-old document \u2014 the ink is too fresh and the paper lacks yellowing. It is a forgery, but one Merryn created to substantiate a genuine debt Edmund denied.",
       "type": "physical",
       "relevance": "red_herring",
       "supports": [],
@@ -302,10 +302,10 @@
     {
       "id": "A1",
       "name": "Counting House Kitchen",
-      "description": "A low-ceilinged stone room behind the main hall, still warm from the range, smelling of saffron, fish-oil and something underneath both — sharper, faintly sweet.",
+      "description": "A low-ceilinged stone room behind the main hall, still warm from the range, smelling of saffron, fish-oil and something underneath both \u2014 sharper, faintly sweet.",
       "investigation_prompt": "The contaminated saffron tin is on the spice shelf. The kitchen has only one entrance from the main hall. There are no signs of forced entry. A mortar and pestle on the counter carries a faint dark residue distinct from the saffron.",
       "discovery": "On the spice shelf you find a copper saffron tin; inside it a fine dark-brown powder is visibly mixed through the bright saffron, and the tin carries a sharp, bitter-sweet smell quite unlike any spice. On the counter a mortar and pestle bear the same dark residue.",
-      "analysis": "Dr. Voss identifies the dark powder as ground oleander seed — neriin. The mortar residue is consistent with the seed being ground here, in this kitchen, within the last several hours.",
+      "analysis": "Dr. Voss identifies the dark powder as ground oleander seed \u2014 neriin. The mortar residue is consistent with the seed being ground here, in this kitchen, within the last several hours.",
       "reveals": [
         "E8"
       ]
@@ -314,9 +314,9 @@
       "id": "A2",
       "name": "Main Hall and Partners' Table",
       "description": "The long stone room where the partners dine; the table still holds half-eaten pasties, two toppled cider cups, and the dead men's chairs pushed back at the angles of men who fell.",
-      "investigation_prompt": "The tally sheets are on the table and show Merryn's continuous work. Two pasties are untouched on a side plate — the ones intended for Rosalind. A full cup of cider is at Rosalind's place.",
+      "investigation_prompt": "The tally sheets are on the table and show Merryn's continuous work. Two pasties are untouched on a side plate \u2014 the ones intended for Rosalind. A full cup of cider is at Rosalind's place.",
       "discovery": "The festival tin-receipt tally sheets on the table show forty pages of continuous entries in Merryn Pascoe's hand, counter-initialled in a second hand up until the final entry at 7:55 p.m. Rosalind's place setting is notable: her pasty plate is clean but her pasty is untouched on the serving board.",
-      "analysis": "Comparison of the counter-initials with Jory Nancarrow's signature on other documents confirms it was Nancarrow countersigning — placing both Merryn and Jory at the main hall table until minutes before Jory collapsed. Rosalind's full, untouched pasty is the only serving returned.",
+      "analysis": "Comparison of the counter-initials with Jory Nancarrow's signature on other documents confirms it was Nancarrow countersigning \u2014 placing both Merryn and Jory at the main hall table until minutes before Jory collapsed. Rosalind's full, untouched pasty is the only serving returned.",
       "reveals": [
         "E3",
         "E9"
@@ -327,8 +327,8 @@
       "name": "Edmund's Coat and Desk",
       "description": "Edmund Trevaskis's heavy wool coat hangs on the peg behind his desk; the desk itself is spread with ledgers and a brass inkstand, a man's working life interrupted mid-sentence.",
       "investigation_prompt": "The forged dissolution document is in the inner coat pocket. The desk ledger contains entries about the mortgage on Rosalind's share. A locked drawer holds Edmund's personal correspondence.",
-      "discovery": "In Edmund Trevaskis's inner coat pocket you find a folded legal document — a partially completed partnership dissolution instrument bearing Rosalind Trevaskis's name as the party whose share is to be reverted, and a signature purporting to be hers.",
-      "analysis": "Placing the document beside a genuine receipt signed by Rosalind at the festival office reveals consistent differences in letter formation — the signature on the document is not hers. The ink and hand match Edmund's own marginalia elsewhere on the page.",
+      "discovery": "In Edmund Trevaskis's inner coat pocket you find a folded legal document \u2014 a partially completed partnership dissolution instrument bearing Rosalind Trevaskis's name as the party whose share is to be reverted, and a signature purporting to be hers.",
+      "analysis": "Placing the document beside a genuine receipt signed by Rosalind at the festival office reveals consistent differences in letter formation \u2014 the signature on the document is not hers. The ink and hand match Edmund's own marginalia elsewhere on the page.",
       "reveals": [
         "E10"
       ]
@@ -337,9 +337,9 @@
       "id": "A4",
       "name": "Engine House and Pump Log",
       "description": "A detached stone building twenty yards from the counting house, smelling of steam-grease and wet granite; the pump log-book sits open on its shelf beside a dripping lamp.",
-      "investigation_prompt": "The pump inspection log is here with Cadan Polglase's entries and Tomas Blewett's countersignature, showing continuous presence 5–7:28 p.m. The entries are detailed and technical — clearly not fabricated in advance.",
+      "investigation_prompt": "The pump inspection log is here with Cadan Polglase's entries and Tomas Blewett's countersignature, showing continuous presence 5\u20137:28 p.m. The entries are detailed and technical \u2014 clearly not fabricated in advance.",
       "discovery": "The open pump log shows a page of dense technical entries in Cadan Polglase's hand from 5:00 p.m. to 7:28 p.m., each entry countersigned by a second name in different ink.",
-      "analysis": "The countersigning hand matches the signature on Tomas Blewett's festival employment paper. The entries describe specific mechanical observations that could only have been made on-site — not written up after the fact.",
+      "analysis": "The countersigning hand matches the signature on Tomas Blewett's festival employment paper. The entries describe specific mechanical observations that could only have been made on-site \u2014 not written up after the fact.",
       "reveals": [
         "E1"
       ]
@@ -348,9 +348,9 @@
       "id": "A5",
       "name": "Cadan Polglase's Coat Pocket",
       "description": "Cadan's working coat hangs on a hook near the mine entrance; it is stained with tin-dust and has the permanent smell of a man who works underground.",
-      "investigation_prompt": "The deferred-wages memorandum is here — a genuine grievance document but one that implicates Cadan superficially while being entirely innocent of the actual crime. It will look suspicious but leads nowhere relevant to the poisoning.",
+      "investigation_prompt": "The deferred-wages memorandum is here \u2014 a genuine grievance document but one that implicates Cadan superficially while being entirely innocent of the actual crime. It will look suspicious but leads nowhere relevant to the poisoning.",
       "discovery": "In Cadan Polglase's coat pocket you find a folded personal memorandum listing eighteen months of unpaid wages owed by Edmund Trevaskis, with a note in the margin reading 'Edmund to settle by festival close or I take it to the registrar,' dated three days prior.",
-      "analysis": "Cross-referencing the wages figure with the partnership accounts confirms the debt is genuine and long-standing — but the memorandum names only Edmund, not Jory Nancarrow, whose death brought Cadan no financial benefit whatsoever.",
+      "analysis": "Cross-referencing the wages figure with the partnership accounts confirms the debt is genuine and long-standing \u2014 but the memorandum names only Edmund, not Jory Nancarrow, whose death brought Cadan no financial benefit whatsoever.",
       "reveals": [
         "E6"
       ]
@@ -360,8 +360,8 @@
     {
       "id": "L1",
       "title": "The Spice Order Ledger",
-      "brief": "The counting house housekeeper mentions that the spice supplies were inventoried just before the festival — the record is in the kitchen log.",
-      "investigation_prompt": "The kitchen purchase log shows saffron and common spices ordered in the normal quantities. There is no entry for any unusual botanical purchase. However, the log shows Rosalind Trevaskis personally collected the spice order from Penzance four days ago — alone, before the storm.",
+      "brief": "The counting house housekeeper mentions that the spice supplies were inventoried just before the festival \u2014 the record is in the kitchen log.",
+      "investigation_prompt": "The kitchen purchase log shows saffron and common spices ordered in the normal quantities. There is no entry for any unusual botanical purchase. However, the log shows Rosalind Trevaskis personally collected the spice order from Penzance four days ago \u2014 alone, before the storm.",
       "reveals": [
         "E8"
       ]
@@ -370,7 +370,7 @@
       "id": "L2",
       "title": "The County Registrar's Festival Bundle",
       "brief": "A sealed document bundle addressed to the Penzance county registrar was found in Edmund's desk drawer, marked for delivery at the festival's close.",
-      "investigation_prompt": "The bundle contains a cover letter from Edmund enclosing the dissolution instrument. The letter is dated two days ago. It confirms Edmund intended to lodge the forged document officially — Rosalind's share would have been legally stripped from her within days.",
+      "investigation_prompt": "The bundle contains a cover letter from Edmund enclosing the dissolution instrument. The letter is dated two days ago. It confirms Edmund intended to lodge the forged document officially \u2014 Rosalind's share would have been legally stripped from her within days.",
       "reveals": [
         "E10"
       ]
@@ -378,8 +378,8 @@
     {
       "id": "L3",
       "title": "Merryn Pascoe's Sewing Bag",
-      "brief": "Merryn Pascoe was seen tucking something into a sewing bag and looking unsettled when the bodies were found — another partner suggests it is worth examining.",
-      "investigation_prompt": "The sewing bag contains the forged receipt Merryn created to substantiate her loan claim. It is a red herring — Merryn forged a document but did not poison anyone, and her alibi at the hall table is solid. The receipt is a dead end for the poisoning inquiry.",
+      "brief": "Merryn Pascoe was seen tucking something into a sewing bag and looking unsettled when the bodies were found \u2014 another partner suggests it is worth examining.",
+      "investigation_prompt": "The sewing bag contains the forged receipt Merryn created to substantiate her loan claim. It is a red herring \u2014 Merryn forged a document but did not poison anyone, and her alibi at the hall table is solid. The receipt is a dead end for the poisoning inquiry.",
       "reveals": [
         "E11"
       ]
@@ -387,8 +387,8 @@
     {
       "id": "L4",
       "title": "Rosalind's Medical Claim",
-      "brief": "Rosalind told the group she had a stomach ailment before supper — Dr. Voss is asked whether he was consulted about it earlier in the day.",
-      "investigation_prompt": "Dr. Voss confirms he spoke briefly with all four surviving partners during the afternoon but Rosalind made no mention of any stomach complaint to him — quite the contrary, she ate heartily from the bread and cheese at midday in his presence. The complaint arose only at the moment the pasties were served.",
+      "brief": "Rosalind told the group she had a stomach ailment before supper \u2014 Dr. Voss is asked whether he was consulted about it earlier in the day.",
+      "investigation_prompt": "Dr. Voss confirms he spoke briefly with all four surviving partners during the afternoon but Rosalind made no mention of any stomach complaint to him \u2014 quite the contrary, she ate heartily from the bread and cheese at midday in his presence. The complaint arose only at the moment the pasties were served.",
       "reveals": [
         "E9"
       ]
@@ -396,11 +396,11 @@
   ],
   "gameplay_notes": {
     "difficulty": "HARD",
-    "estimated_playtime": "60–75 minutes",
+    "estimated_playtime": "60\u201375 minutes",
     "key_twists": [
-      "The poison was introduced into a common ingredient rather than a single victim's food, explaining why two men died — players may initially assume a single targeted killing.",
+      "The poison was introduced into a common ingredient rather than a single victim's food, explaining why two men died \u2014 players may initially assume a single targeted killing.",
       "Rosalind's forged document motive only becomes visible when Edmund's coat is searched; until then she appears to be a grieving widow with no stake in Jory Nancarrow's death.",
-      "Cadan Polglase's wages memorandum makes him look culpable but leads to a firm alibi — the red herring is designed to absorb suspicion from the real culprit early.",
+      "Cadan Polglase's wages memorandum makes him look culpable but leads to a firm alibi \u2014 the red herring is designed to absorb suspicion from the real culprit early.",
       "Merryn Pascoe's own forgery makes her look guilty of something; players must disentangle her document crime from the poisoning to clear her correctly.",
       "Rosalind's refusal to eat her own food is the most visible single clue, but players must connect it to the saffron tin and the kitchen access testimony before it becomes proof rather than mere suspicion."
     ]
@@ -455,35 +455,35 @@
       {
         "concept": "The Closed World",
         "doc": "RESEARCH_FINDINGS.md",
-        "section": "COARSE PARTS (C1–C6) — Structural Skeleton",
+        "section": "COARSE PARTS (C1\u2013C6) \u2014 Structural Skeleton",
         "confidence": "canonical",
         "source": "James: \"closed circle of suspects\"; Rankin: Edinburgh as character; French: location as first decision"
       },
       {
         "concept": "The Crime",
         "doc": "RESEARCH_FINDINGS.md",
-        "section": "COARSE PARTS (C1–C6) — Structural Skeleton",
+        "section": "COARSE PARTS (C1\u2013C6) \u2014 Structural Skeleton",
         "confidence": "canonical",
         "source": "Christie (start with method), P.D. James (central mysterious crime), Knox (rule 4: method must be plausible)"
       },
       {
         "concept": "The Culprit + Motive",
         "doc": "RESEARCH_FINDINGS.md",
-        "section": "COARSE PARTS (C1–C6) — Structural Skeleton",
+        "section": "COARSE PARTS (C1\u2013C6) \u2014 Structural Skeleton",
         "confidence": "canonical",
         "source": "Christie: start with murderer and motive, then build outward; worked backward from the solution"
       },
       {
         "concept": "Suspect Architecture",
         "doc": "RESEARCH_FINDINGS.md",
-        "section": "MEDIUM-FINE PARTS (M1–M8) — Tactical Construction Elements",
+        "section": "MEDIUM-FINE PARTS (M1\u2013M8) \u2014 Tactical Construction Elements",
         "confidence": "canonical",
         "source": "James: \"each with motive, means and opportunity\"; Knox: criminal must appear early"
       },
       {
         "concept": "The Alibi",
         "doc": "RESEARCH_FINDINGS.md",
-        "section": "MEDIUM-FINE PARTS (M1–M8) — Tactical Construction Elements",
+        "section": "MEDIUM-FINE PARTS (M1\u2013M8) \u2014 Tactical Construction Elements",
         "confidence": "canonical",
         "source": "Christie notebooks: alibi construction is explicit planning step"
       }
@@ -494,7 +494,7 @@
     "blocking": 0,
     "warnings": 0
   },
-  "opening_narration": "The August gale came in off the Atlantic without warning, and by nine o'clock it had swallowed the cliff road, the mine path, and any hope of reaching Penzance before dawn. Inside the counting house at Wheal Morrow, two men who had sat down to pilchard pasties an hour ago now lay where they had fallen — Edmund Trevaskis face-down across the open ledger, Jory Nancarrow crumpled near the fire grate, a faint bitter-sweetness still hanging in the warm air above them. Cap'n Cadan Polglase was the first to find them, and the first to understand that the storm outside was the least of the evening's troubles. Four people remain in this room: four partners in the mine, four people who shared that supper, four people who cannot leave until the tide retreats and the moorland drains enough to walk. Morning is a long way off, and the night has only just begun.",
+  "opening_narration": "The August gale came in off the Atlantic without warning, and by nine o'clock it had swallowed the cliff road, the mine path, and any hope of reaching Penzance before dawn. Inside the counting house at Wheal Morrow, two men who had sat down to pilchard pasties an hour ago now lay where they had fallen \u2014 Edmund Trevaskis face-down across the open ledger, Jory Nancarrow crumpled near the fire grate, a faint bitter-sweetness still hanging in the warm air above them. Cap'n Cadan Polglase was the first to find them, and the first to understand that the storm outside was the least of the evening's troubles. Four people remain in this room: four partners in the mine, four people who shared that supper, four people who cannot leave until the tide retreats and the moorland drains enough to walk. Morning is a long way off, and the night has only just begun.",
   "_verdict": {
     "verdict": "rejected",
     "failure_class": "below_standard",
@@ -509,5 +509,8 @@
       }
     ],
     "advisory": []
+  },
+  "_meta": {
+    "viability_rating": 9
   }
 }

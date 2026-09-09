@@ -1,0 +1,144 @@
+[gd_scene load_steps=2 format=3 uid="uid://b1apfr000001"]
+
+[ext_resource type="Script" path="res://scripts/ui/apf_round.gd" id="1_apfround"]
+
+[node name="ApfRound" type="Control"]
+script = ExtResource("1_apfround")
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 24
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 24
+
+[node name="MainVBox" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+
+[node name="Header" type="HBoxContainer" parent="Margin/MainVBox"]
+layout_mode = 2
+
+[node name="RoundLabel" type="Label" parent="Margin/MainVBox/Header"]
+theme_type_variation = &"TitleLabel"
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Opening the case…"
+
+[node name="RequirementLabel" type="Label" parent="Margin/MainVBox/Header"]
+theme_type_variation = &"MutedLabel"
+layout_mode = 2
+text = ""
+horizontal_alignment = 2
+
+[node name="Columns" type="HBoxContainer" parent="Margin/MainVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 24
+
+[node name="BoardColumn" type="VBoxContainer" parent="Margin/MainVBox/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.8
+
+[node name="BoardHeading" type="Label" parent="Margin/MainVBox/Columns/BoardColumn"]
+theme_type_variation = &"HeadingLabel"
+layout_mode = 2
+text = "The suspects"
+
+[node name="BoardScroll" type="ScrollContainer" parent="Margin/MainVBox/Columns/BoardColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BoardContainer" type="VBoxContainer" parent="Margin/MainVBox/Columns/BoardColumn/BoardScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CasefileColumn" type="VBoxContainer" parent="Margin/MainVBox/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.2
+
+[node name="CasefileHeading" type="Label" parent="Margin/MainVBox/Columns/CasefileColumn"]
+theme_type_variation = &"HeadingLabel"
+layout_mode = 2
+text = "Your findings"
+
+[node name="CasefileScroll" type="ScrollContainer" parent="Margin/MainVBox/Columns/CasefileColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CasefileContainer" type="VBoxContainer" parent="Margin/MainVBox/Columns/CasefileColumn/CasefileScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PoolColumn" type="VBoxContainer" parent="Margin/MainVBox/Columns"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="PoolHeading" type="Label" parent="Margin/MainVBox/Columns/PoolColumn"]
+theme_type_variation = &"HeadingLabel"
+layout_mode = 2
+text = "Shared information:"
+
+[node name="PoolScroll" type="ScrollContainer" parent="Margin/MainVBox/Columns/PoolColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PoolContainer" type="VBoxContainer" parent="Margin/MainVBox/Columns/PoolColumn/PoolScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TableLabel" type="Label" parent="Margin/MainVBox"]
+theme_type_variation = &"FaintLabel"
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="StatusLabel" type="Label" parent="Margin/MainVBox"]
+theme_type_variation = &"FaintLabel"
+layout_mode = 2
+autowrap_mode = 3
+text = ""
+
+[node name="Actions" type="HBoxContainer" parent="Margin/MainVBox"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ShareButton" type="Button" parent="Margin/MainVBox/Actions"]
+theme_type_variation = &"PrimaryButton"
+layout_mode = 2
+text = "Share selected"
+custom_minimum_size = Vector2(170, 0)
+
+[node name="NextRoundButton" type="Button" parent="Margin/MainVBox/Actions"]
+theme_type_variation = &"QuietButton"
+layout_mode = 2
+text = "Open the next round"
+custom_minimum_size = Vector2(170, 0)
+
+[node name="CloseCaseButton" type="Button" parent="Margin/MainVBox/Actions"]
+theme_type_variation = &"QuietButton"
+layout_mode = 2
+text = "Close the case"
+custom_minimum_size = Vector2(150, 0)
+
+[node name="Spacer" type="Control" parent="Margin/MainVBox/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="AccuseButton" type="Button" parent="Margin/MainVBox/Actions"]
+theme_type_variation = &"DangerButton"
+layout_mode = 2
+text = "I've solved it"
+custom_minimum_size = Vector2(150, 0)

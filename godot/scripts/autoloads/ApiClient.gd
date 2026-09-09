@@ -121,6 +121,58 @@ func share_phase(game_id: String, player_id: String, phase: String, selected_ids
 	var body := JSON.stringify({"player_id": player_id, "phase": phase, "selected_ids": selected_ids})
 	_post("/games/" + game_id + "/share-phase", body, callback)
 
+## --- APF: the rhythm (docs/PLAYTEST_FLOW.md, "The rhythm") ---
+##
+## These six replace the gather loop above for the playtest path; they do not
+## extend it. Findings are ASSIGNED, so there is nothing here that spends a budget
+## or goes and gets anything, and no call below costs the server an API call.
+
+## Host only. Assigns the mystery into rounds and returns the announcement the
+## game opens with: how many rounds, and the whole share ladder.
+func apf_open(game_id: String, player_id: String, callback: Callable) -> void:
+	var body := JSON.stringify({"player_id": player_id})
+	_post("/games/" + game_id + "/apf/open", body, callback)
+
+## Host only. Turns one more finding face up for every player. The server
+## refuses while a share checkpoint is still open — that is the mechanic.
+func apf_next_round(game_id: String, player_id: String, callback: Callable) -> void:
+	var body := JSON.stringify({"player_id": player_id})
+	_post("/games/" + game_id + "/apf/round/next", body, callback)
+
+## One player's whole view: their own casefile, the public pool, the suspect board,
+## and how many findings they still owe the table.
+func apf_state(game_id: String, player_id: String, callback: Callable) -> void:
+	_do_request("/games/" + game_id + "/apf/state?player_id=" + player_id,
+			HTTPClient.METHOD_GET, "", callback)
+
+## Put findings on the table. Cumulative and monotone — a shared finding stays
+## in the casefile, and there is no un-share.
+func apf_share(game_id: String, player_id: String, finding_ids: Array, callback: Callable) -> void:
+	var body := JSON.stringify({"player_id": player_id, "finding_ids": finding_ids})
+	_post("/games/" + game_id + "/apf/share", body, callback)
+
+## Host only. Full disclosure: everything still held becomes public with the
+## holder's name against it.
+func apf_disclose(game_id: String, player_id: String, callback: Callable) -> void:
+	var body := JSON.stringify({"player_id": player_id})
+	_post("/games/" + game_id + "/apf/disclose", body, callback)
+
+## Server-authoritative accusation. The solution is never sent to clients, so
+## in a room this is the ONLY thing that can decide a winner -- and first
+## correct accusation wins, which a local comparison cannot adjudicate.
+func accuse(game_id: String, player_id: String, culprit_name: String, callback: Callable) -> void:
+	var body := JSON.stringify({"player_id": player_id, "culprit_name": culprit_name})
+	_post("/games/" + game_id + "/accuse", body, callback)
+
+## The result snapshot, including the reveal, for a client that missed the
+## game_won broadcast.
+func get_result(game_id: String, callback: Callable) -> void:
+	_do_request("/games/" + game_id + "/result", HTTPClient.METHOD_GET, "", callback)
+
+## The end-of-game record, for the reveal screen.
+func apf_disclosure(game_id: String, callback: Callable) -> void:
+	_do_request("/games/" + game_id + "/apf/disclosure", HTTPClient.METHOD_GET, "", callback)
+
 ## --- Single-player legacy API (Phase 2) ---
 
 func interrogate(mystery: Dictionary, character_name: String, question: String, callback: Callable) -> void:

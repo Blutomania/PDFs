@@ -5,6 +5,35 @@ Use this file to onboard any new session without losing context.
 
 ---
 
+## Session — September 08, 2026 at 19:29
+**Branch:** `claude/playtest-flow-docs-qmqlti`
+**Latest commit:** `b292a7d`
+
+### Files changed this session
+- `odot/scenes/ui/CaseDisplay.tscn` — Modified
+- `godot/scripts/ui/case_display.gd` — Modified
+
+### Commits this session
+```
+b292a7d Fix a literal NUL byte in Icons.gd, and give check_godot_wiring a way to catch it
+bf26167 python3 -m uvicorn, everywhere -- bare `uvicorn` depends on PATH and often is not there
+e5da33c Fill the other seats, and finish the rename the word boundaries missed
+07d3059 The card-game vocabulary comes out, and we find where it came from
+163a39c Host a saved mystery: the round screen stops costing a generation to look at
+832d9a6 Nine screens, not eight -- ApfRound joined the tree and three live claims did not notice
+7108a2e The rhythm on screen: one play screen, a board that greys with a name on it
+4e38435 The rhythm, server-side: dealt over rounds, shared at a cumulative checkpoint
+```
+
+### Session notes
+_No additional notes recorded_
+
+### Resume from here
+See **Consolidated To-Do List** above for next steps.
+Check `CLAUDE.md` for project conventions and current priorities.
+
+---
+
 ## Session — September 04, 2026 at 03:22
 **Branch:** `claude/mystery-generation-narrowing-ad2xh8`
 **Latest commit:** `05fb3ad`
@@ -3100,6 +3129,408 @@ it. Porting the Aug 12 flow and then immediately rewriting it would build the sa
    mixed into the port.
 4. Owner action, one click: delete `dev/cryptic-challenge` (and optionally `dev/mind-your-friends`)
    via the GitHub UI — both are stale pointers with zero unique commits.
+
+---
+
+## Session 43 — September 8, 2026 (CYM: the first playtest, screen by screen, and a bug the owner's own eyes caught that no checker could)
+
+**Branch:** `claude/playtest-flow-docs-qmqlti`. Session 42 built APF and said, twice, that nobody
+had played it. This session is that: the owner walked their own playtest screenshots one at a
+time — `CaseDisplay`, `ApfRound`, `ResultScreen` — and gave detailed feedback on each, which was
+implemented, verified without a Godot binary (checkers, and PIL/cairosvg renders where visual
+confirmation mattered), committed, and reported back before moving to the next screen.
+
+### CaseDisplay (owner's screenshot: StartPageSept7)
+
+Centered the mystery title in the header bar; added a "The Scene:" heading above the case summary;
+replaced `[VICTIM]` / `[SUSPECT]` / `[WITNESS]` placeholder tokens with "The Victim:", "Suspect N:",
+"Witness N:"; added the brand mark to every screen via a new `Chrome.gd` autoload rather than
+touching nine `.tscn` files; added a randomly-assigned clue icon and suspect icon to each list row;
+renamed `[E1]` etc. to "Clue 1:". Confirmed the icon sources were unusable as delivered — several
+were raster images wrapped in an SVG shell, the same defect `build_icons.py --check` already knew
+to refuse — and used the accompanying PNGs directly rather than treating the wrapper as vector art.
+The suspect-icon folder was named `icons/suspects/` (plural) against code expecting `icons/suspect/`
+(singular); renamed rather than changing the convention, since every other set is singular.
+
+### ApfRound (owner's screenshot: FindingsSept7)
+
+"On The Table" → "Shared Information:". Every finding is now a bullet excerpt (`_first_sentence()`)
+with a "Full Finding" expand link, so a table can move faster without every finding being read in
+full aloud — a real defect surfaced here: naive ". "-splitting broke "Dr. Voss" into a false
+sentence end, fixed with a title-abbreviation guard and checked against all 18 real findings in the
+accepted mystery, not invented examples. "Still Standing" was renamed to "not yet cleared" — the
+owner does not want the game telling players who to accuse or clear, which "still standing" implied.
+Suspect rows got an FPO placeholder square in place of nothing, honestly labelled as a stand-in for
+an image the game doesn't have yet rather than pretending a portrait exists.
+
+### Fonts (owner-initiated, between screens)
+
+The owner uploaded Cinzel Decorative (Black/Bold/Regular) mid-session, previously only Nunito Sans
+existed. Wired Black into `DisplayLabel` (the brand name), Bold into `MysteryTitleLabel` and a new
+`VerdictLabel` variation for ResultScreen's banner — a distinct variation from the mystery title
+because a verdict and a mystery title are different things even though they share a weight.
+`TitleLabel` (functional headers) deliberately stays Nunito Sans; mixing the two was the owner's own
+instruction, given once as a general rule and once as a specific exception for the verdict banner.
+Found and flagged proactively, not asked about: Cinzel Decorative has no true lowercase glyphs — it
+silently renders lowercase input as small-caps, confirmed by PIL rendering rather than assumed. The
+owner's font upload also silently overwrote `OFL.txt`, dropping Nunito Sans's license entirely;
+split into `OFL-NunitoSans.txt` and `OFL-CinzelDecorative.txt` since the boilerplate bodies matched
+but the copyright lines didn't.
+
+### ResultScreen (owner's screenshot: SolvedSept7)
+
+Four label renames — "Culprit:" → "The Culprit:", "Method:" → "The Crime:", "Motive:" → "His/Her
+Motive:" (the owner's own offered fallback, given no gender field exists anywhere in the character
+schema — checked rather than guessed), "Key evidence:" → "Key Clues:" — plus one real bug the
+relabeling exposed: **the screen was showing bare evidence ids ("E2", "E8", "E10") instead of clue
+names**, and the fix wasn't a text change. `_format_plot_reveal()` had resolved ids to names
+server-side since before this session, but nothing on the client ever asked for it — `/accuse`
+returned only `{"correct", "won"}` and `accusation.gd` never made the follow-up call that would have
+gotten the resolved data. Fixed by having `/accuse` build and return the same reveal payload it
+already broadcasts to the room on a win. Full accounting: `docs/DECISIONS.md` item 23.
+
+Also per instruction: removed the "How to deduce" section outright — the owner does not want the
+game narrating the player's own reasoning back to them — and replaced it with a gameplay-stats
+block (rounds played of rounds total, elapsed time since the assignment opened). The elapsed clock
+starts at `apf.py`'s new `opened_ts`, timestamped when the deal happens, not when the room is
+created, so time spent chatting in the lobby isn't counted as play.
+
+### Verification
+
+- `scripts/check_godot_wiring.py`, `scripts/check_doc_claims.py`, `scripts/check_decisions.py`,
+  `scripts/test_apf.py`, `scripts/test_share_rule.py` — all pass.
+- A live `uvicorn` process, walked by hand over real HTTP through `/apf/open` → four rounds →
+  `/apf/disclose` → `/accuse`: `plot_reveal.key_evidence` came back as "Dr. Voss's Field
+  Examination Notes", "Contaminated Saffron Tin" and "Forged Partnership Dissolution Instrument" —
+  not "E2", "E8", "E10" — and `gameplay_stats` reported real rounds and elapsed seconds.
+- PIL-rendered previews of the icon contrast fix and the new ResultScreen layout, sent to the
+  owner directly, since no Godot binary is reachable from this session (see CLAUDE.md's Godot
+  notes) and every visual claim in this session was checked against a render rather than assumed.
+
+### Lobby (owner's screenshot: WaitingSept7)
+
+The organic brand mark (`brand/NEWorganic_cym.svg`) wired in, top-centre, scene-local to
+`Lobby.tscn` rather than through `Chrome.gd` — this is a narrower placement than item 17's still-open
+phone-chrome question and does not resolve it. "Waiting for Players" moved from the centered column
+to a new top-right `StatusBox`, three lines of one word each, and that box is now where every status
+this screen shows lives — `_on_start()`'s "Starting…" and a start error now write into the same
+label instead of a second one at the bottom of the column. Player names now render at the same size
+as the room code (`PlayerNameLabel`, a new theme variation at `Palette.TYPE_DISPLAY`) rather than the
+game's own default body size — the owner's reasoning: in a social game, who you're playing with
+outranks almost everything else on the screen. Kept to NunitoSans Bold rather than Cinzel Decorative
+on purpose, since these render free-typed player names and Cinzel Decorative's missing lowercase
+would turn an ordinary name into small caps nobody asked for.
+
+**Immediate follow-up, from the render itself:** the room code was still on `DisplayLabel` (Cinzel
+Decorative Black) and the owner called it out as hard to read the moment they saw it rendered — an
+alphanumeric code is exactly the string that font's small-caps rendering hurts most, and unlike the
+main-menu wordmark it is not a brand moment, it is a string a second person has to type correctly
+from across the room. Split into a new `CodeLabel` variation: same size and brass colour, NunitoSans
+Bold instead. `DisplayLabel` now means only the main-menu wordmark, which is the single-use role its
+own comment already claimed.
+
+### The organic mark's contrast, audited for real, fixed, then reverted
+
+The "spot-checked, not audited" line above was corrected the same session, at the owner's request.
+`scripts/check_brand_contrast.py`, actually run: **73% of the organic mark's ink sits at or below
+2.5:1** against the ground — ten times the negative mark's remaining 7%, and structurally different,
+a 125-fill gradient with no single offending path to recolor. Owner chose a light plate over
+re-pitching the source art, once the numbers were in: white clears the most of the mark's own fills
+of every background measured (5/125 still under 2.5:1, worst 2.35:1, vs. 25/125 on `Palette.INK`).
+Built as `Palette.PLATE` and a `PlatePanel`-styled card behind the mark in `Lobby.tscn`.
+
+**Shown to the owner and rejected on sight: "I hate that mockup. I will come up with something to
+use instead."** All of it reverted the same session — `Palette.PLATE`, `PlatePanel`,
+`Lobby.tscn`'s plate node — before it reached a second playtest. `OrganicMark` sits exactly where
+it did before the plate; the contrast problem is real and unchanged (still 73%), and the owner is
+supplying replacement artwork rather than having this session pick a fix for art they had not
+approved the look of. The measurement being correct and the fix being wanted turned out to be two
+different bars. Full account: `docs/DECISIONS.md` item 17.
+
+### The organic mark's actual replacement
+
+Within the same turn, the owner uploaded `icons/new logo/CYM_temp-removebg-preview.svg` to `main`
+directly and asked for it in place of the organic mark, with the caveat set up front: "I don't love
+it here either. Need to get an artist on it." Copied to `godot/assets/brand/logo_temp.svg`, wired
+into `Lobby.tscn`'s renamed `LogoMark` node, resized for its own aspect (747×334, wider than the
+organic mark) rather than reusing the old box. Deliberately NOT added to the `build_brand.py`
+mirror pipeline — it is a stand-in, not the asset that pipeline exists to protect. Measured anyway
+rather than left as a guess for later: 66% of its ink is at or below 2.5:1 against the ground, worse
+in the fully-invisible band than the organic mark ever was. No fix applied — this is the owner's own
+placeholder, and the lesson two paragraphs up was not going to be re-learned in the same session.
+
+### NOT done
+
+**Still nobody has run any of this in Godot** — the owner is doing that walkthrough next, separately
+from this session. Every fix this session addressed something the
+owner's own eyes caught in a screenshot, which is real signal a checker can't produce — but it is
+also evidence that `check_godot_wiring.py` reading scene files rather than loading them is a real
+gap: the E2/E8/E10 bug, the icon-wrapper defect and the font lowercase issue were all invisible to
+every automated check that ran clean throughout. `VerifyScenes.gd` and `ApplyTheme.gd` still need
+the owner's machine — see `docs/F5_CHECKLIST.md` for the exact steps. Session continues screen by
+screen; no further screenshot had arrived as of this entry.
+
+### It happened — the walkthrough ran, and item 23's oldest open caveat is closed
+
+Later the same session, Ezra Greene ran the F5 checklist for real and played **two mysteries
+through to the result screen and rated them** — 9 (`the_neriin_in_the_pilchard_barrel`) and 10
+(`whiteout_at_shackleton_base`). **"Nobody has played it" has been standing in item 23 since
+Session 42; it is no longer true.** The ratings are committed (`52590af`), not just observed —
+`_meta.viability_rating` on both mystery files, which is the actual creator-signal feedback loop
+CLAUDE.md's design principles describe, not a proxy for it.
+
+**The checklist itself had two real bugs, both found only by someone actually walking it — the
+exact failure mode `docs/F5_CHECKLIST.md`'s own opening paragraph exists to catch.** (1) The free
+checker loop still named `test_deal`, which stopped existing when `deal.py` became `casefiles.py`;
+it had been reporting a false FAIL on every real walk since, silently, because nobody had run the
+loop for real since the rename. Fixed to `test_casefiles`, and the loop gained four checkers it had
+never picked up. (2) Worse: the Globals-panel autoload table still said **four** entries ending in
+"`Style` must be last," never updated when `Chrome` landed as the fifth in Session 42/43. Followed
+exactly as written, this led to `Style` being moved to last and `Chrome` bumped off the bottom —
+backwards, since `Chrome` draws the brand mark on top of whatever theme `Style` already built.
+Caught only because the owner reported "Style wasn't last, so I moved it last" and "Chrome was
+last" in the same breath, which read as a contradiction until the doc was checked against
+`CLAUDE.md`'s own autoload list. Both fixed (`ee75aa6`, `48246ef`); the corrected order is
+`GameState, ApiClient, NetworkManager, Style, Chrome`, Chrome last.
+
+**Not yet known:** whether `VerifyScenes.gd` and `ApplyTheme.gd` were actually run, and which
+mystery took which path (APF vs. the pre-APF gather loop — `whiteout_at_shackleton_base` was not
+`apf_ready` last this session checked, so a rating on it likely means the gather-loop path, not
+APF). Worth confirming next session rather than assumed.
+
+---
+
+## Session 42 — September 7, 2026 (CYM: the rhythm gets built, and running it finds what reading it did not)
+
+**Branch:** `claude/playtest-flow-docs-qmqlti`, level with `main` at `ca67def`. Picking up exactly
+where Session 41 left the board: item 23 step 3, built against the rhythm rather than against the
+single-deal model the screens would otherwise have been written for.
+
+Session 41 was right to build nothing. Three screens against a one-deal model would have been three
+screens to rewrite.
+
+### What was actually missing
+
+The rhythm was fully specified in `docs/PLAYTEST_FLOW.md` and implemented nowhere. `deal.py` decided
+which findings land in whose hand and proved the result winnable; there was no cadence, no share
+checkpoint, no suspect board and no reveal. The share endpoint that existed (`/share-phase`) belongs
+to the gather loop APF replaces — phases, budgets, a block pool — and none of it fits a game where
+findings are dealt.
+
+### The split, which is the design
+
+**`apf.py` owns the CADENCE. `deal.py` still owns the DEAL.** Which findings go to whom is a
+solvability question with a proof attached; when each is turned face up is a pacing question with
+none. Keeping them apart is why the round count needed no new constraint code at all — `deal.py`
+already expresses a hand as one slot per kind, and under the rhythm that hand is dealt one slot per
+round, so a spec of the right length is the whole change.
+
+Three rules that read like details and are the mechanic:
+
+- **Round 1 has no checkpoint.** The minimum's floor of 1 makes a hand of one a tax, not a decision.
+- **A shared finding stays in its holder's hand.** What is spent is exclusivity, not possession.
+  `share()` appends and removes nothing, and there is no un-share, because the room cannot unlearn.
+- **The requirement is cumulative.** Otherwise round 4 demands three new findings when one was
+  dealt.
+
+**The share rule is INJECTED, never reimplemented.** `_min_share_required()` in `server/main.py`
+stays its only definition; `apf.py` takes it as a callable and precomputes the whole ladder at
+session open — which is also what lets the game announce it before play, as the owner asked.
+
+**And the difficulty ladder separates, measured on the accepted mystery:** the private stash is 1 at
+EASY and 2 at MEDIUM/HARD by round 4, widening after. Sessions 38 and 39 both concluded that could
+not happen without a second dial. It happens because the hand grows.
+
+### The board's one hard rule
+
+**It greys on `exonerates` and NEVER on `narrows`**, even though `deal.solves()` counts both. Item 27
+is explicit that a narrowing must never surface as *"the culprit is one of these two"* — the clue
+says *man's size large* and the player looks at the cast and draws the line. A board that greys a
+face on a narrowing does that reasoning for them and deletes the mechanic it exists to serve.
+Asserted with a glove fixture rather than left to a comment.
+
+### Two defects found by running it, not by reading it
+
+Both were invisible to every in-process test, and both came out of
+`scripts/walk_apf_game.py` — a whole game driven over real HTTP with **no API key at all**.
+
+1. **`best_deal()` was selecting against a hoarding model the rules do not permit.** It forwarded
+   `hoard_allowance` into `deal()` but not into the `prover_counts()` call it *chooses the seed
+   with*. So a session whose rules allow a two-finding stash constrained proof-survival at two and
+   then picked its dealing by a monopoly measured at one. Only reachable once something derived the
+   allowance instead of taking `deal.py`'s constant — which is exactly what `apf.stash_allowance()`
+   does, because the stash IS the allowance. At allowance 2 on the accepted mystery it now examines
+   **1296 patterns instead of 256** and picks a different seed.
+
+2. **Winning the game fired a live Claude call, and a 401 took the whole win down with a 500.**
+   `_generate_resolution_narrative` is the last play-time call site on the critical path. The
+   stage-1 test is *reach the result screen without a Godot error*, and this failed it on a network
+   hiccup. The reveal now degrades to the mystery's own already-generated resolution prose — written
+   and paid for at generation time, so a plainer reveal rather than a missing one. Build-order step
+   5 still has to remove the call; this stops it being fatal. `_winner_findings_summary` was also
+   reading the gather loop's phase lists, which under APF are empty, so the reveal would have said
+   the winner found nothing.
+
+### The client
+
+**`ApfRound.tscn` puts the hand, the board, the shared pool and the share decision on one screen**,
+and that was a decision rather than a shortcut. `ShareSelection.tscn` already existed as a separate
+screen and is untouched — but under the rhythm the share belongs beside the board, because the board
+is what makes withholding legible without a word of explanation: a face stays lit that you could
+have darkened, and everyone can see you didn't. A separate screen hides the one thing that gives the
+decision its weight.
+
+Also: `CaseDisplay` is APF's opening and gained the button that deals from it; the accusation is now
+**server-authoritative in a room** (first *correct* accusation wins, and only the server can
+adjudicate that — two players can both be right within a second, and a client comparing locally
+would tell them both they won); `ResultScreen` shows full disclosure with a name against every
+finding somebody sat on.
+
+`scripts/test_share_rule.py` now guards `apf_round.gd` too. The rule moved with the mechanic, and a
+rule defended on the screen it left is a rule nobody is defending.
+
+### Verification
+
+- `scripts/test_apf.py` — **58 assertions**, zero API cost. Fixtures for the rules, plus one pass
+  over the accepted mystery at all three difficulties.
+- `scripts/walk_apf_game.py` — **47 assertions** over real HTTP against a live uvicorn, no API key.
+- The full free suite: 18 checkers plus palette, icons and rule coverage, all PASS.
+
+### NOT done — read this before assuming APF is finished
+
+**Nothing here has been loaded by Godot.** `check_godot_wiring.py` reads scene files rather than
+loading them; all three defects Session 36 found were the kind it cannot see. `VerifyScenes.gd` and
+`ApplyTheme.gd` need the owner's machine. `docs/F5_CHECKLIST.md` step 4b and its "not covered" list
+say exactly what to walk.
+
+**Nobody has played it.** Every number in the difficulty ladder is arithmetic. Whether a
+two-finding stash at HARD *feels* like a decision is a question only a table answers.
+
+**APF needs at least two players.** Constraint 2 — no single hand solves alone — is unsatisfiable at
+one, because the only hand is the whole deal. The server says so plainly rather than failing the
+deal opaquely, but a solo walk-through still has to add a seat.
+
+### The card-game vocabulary came out, and we found where it came from
+
+Owner, mid-session, for the THIRD time: *"This is NOT a card game. This is a social deduction
+game."* Correct, and the third telling was needed because the first two only fixed the **noun**.
+
+**The genesis, found in git rather than guessed at.** Commit `0db3d9b`, 25 August 2026 — the commit
+that first specified APF — under a heading about what the UI now has to carry:
+
+> **The data is already card-shaped**: a finding has a name, a description, a type, a relevance.
+> Assigned, held, played. MYF has `GameCard.jsx` (155 lines), `CardHand.jsx` (67), `CardPicker.jsx`
+> (104) — not portable to Godot, but straight into `mobile.html`, and the visual language carries
+> either way.
+
+**It entered as a UI-REUSE argument, never as a design one.** Mind Your Friends genuinely is a card
+game and genuinely has those components. Somebody noticed they had the right *shape* for "a discrete
+object given to a player and held", and wrote *"the data is already card-shaped"* as shorthand for
+*"MYF's components would fit"*. Nobody ever argued CYM should feel like a card game — so nobody ever
+defended the claim, and it spread precisely because it was never a claim.
+
+Then the shorthand became the vocabulary, in four sessions: *card-shaped* → *dealt, held, played* →
+*the deal* → *the hand* → the module name → the constant names → a *.card* CSS class on the phone
+client every player looks at.
+
+**Why the first two corrections failed, which is the transferable lesson.** The old module's
+docstring recorded *"THE WORD IS 'FINDING', EVERYWHERE. Owner's instruction, twice."* — and it was
+obeyed. No clue was called a card anywhere. Every verb and container around it survived untouched.
+**A metaphor rebuilds itself from whatever parts you leave standing.**
+
+So this pass moved all of it at once: `deal.py` → `casefiles.py`, `deal()` → `assign()`,
+`best_deal()` → `best_assignment()`, `DEFAULT_HAND_SPEC` → `DEFAULT_CASEFILE_SPEC`, `DEAL.*` rule
+ids → `CASE.*`, *.card* → `.panel`, and the prose in nine documents.
+
+**What was deliberately NOT rewritten**, because rewriting it would be a different error:
+
+- **`SESSIONS.md`** — append-only. Editing history so it agrees with today is the exact thing this
+  file exists to prevent, and Session 38 already had to rebuild `CLAUDE.md` because that rule was
+  ignored. The Session 35 block still says "dealt", because that is what it said.
+- **The ledger's stored rule ids.** 45 rows carry `DEAL.*`. They fold onto the new names at READ
+  time via `generation_ledger.LEGACY_RULE_IDS`, so a rule's cost history stays under one heading
+  without a single stored row being altered.
+- **Mystery JSON, `part_registry.json`, the corpus findings documents.** Prose from published
+  fiction and from party-game research that legitimately discusses card games. Content, not
+  vocabulary we chose.
+- **"handedness"** in the generation prompt — a forensic property of a person — and ordinary
+  English like *hand-written*.
+
+**Three mangles the mechanical pass made and review caught**, all of the same shape — a protected
+English phrase in a case the filter missed: *"DO NOT EDIT BY HAND"* became *"BY CASEFILE"* in the
+generated palette banner (caught by `scripts/build_palette.py --check`, which is what that checker
+is for), *"hands the model a parameter"* became *"casefiles the model a parameter"*, and every
+`def deal(` became `def assignment(` — a noun where a verb belongs.
+
+`docs/DECISIONS.md` item 34 carries the genesis and the standing rule: **if a word would be at home
+on a box reading "2–6 players, ages 10+", it is the wrong word.**
+
+### Also this session: hosting a saved mystery
+
+Until now the only way to open a room was to generate a new mystery first, so every look at the
+round screen cost ~$0.20 with a one-in-eight acceptance rate. The server has accepted a saved
+mystery on room creation since Session 26 and nothing asked it to. Now `MysteryGeneration`'s
+multiplayer section can, and `GET /mysteries` reports `apf_ready` per mystery so the picker disables
+what cannot be assigned — **1 of 17 qualifies**, and the other 16 say why (12 have three suspects,
+3 are too small for two rounds, 1 has narrowing as load-bearing).
+
+### The owner's F5 ran, found a parse error at boot — and the walkthrough finished anyway
+
+Right on schedule: **"Not verified, and the list is short"** named "nothing here has been run in
+Godot" as the risk, and the very first load surfaced a parse error nothing in this session's
+environment could have caught. Not in the APF path itself — in `godot/scripts/theme/Icons.gd`,
+last touched Session 37 and untouched by this session's work, which is exactly why it had gone
+this long unnoticed: nothing had pressed F5 since.
+
+**It printed and did not block.** `grep`ing every script and scene for `Icons.` turns up nothing
+outside `Icons.gd` itself — the icon sets are wired to no client (`CLAUDE.md` already says so; they
+ship empty until artwork lands in `icons/`). Godot parses every `.gd` it discovers at boot and logs
+a failure for each one that cannot load, but a script nothing calls into cannot block anything that
+does not call it. So the error sat in the Output panel as noise, and the owner completed the entire
+playtest — the full APF path, round screen included — with it still there. Worth recording because
+it is a distinction the earlier draft of this entry got wrong before being corrected: a parse
+failure is fatal to the *file*, not automatically to the *session*, and which one you get depends
+entirely on the dependency graph.
+
+```
+ERROR: res://scripts/theme/Icons.gd:34 - Parse Error: Unterminated string.
+```
+
+**The cause was stranger than the message.** `const _SEP: String = "<byte>"` — the separator
+`Icons._pick()` uses to glue `salt + _SEP + key` before hashing a seed — held a **literal NUL byte
+between the quotes**, not the printable character the surrounding comment described. A real NUL
+sitting in a GDScript string literal doesn't produce a one-character string containing NUL; it
+breaks the lexer's ability to find the closing quote at all, so the parser reports an unterminated
+string on a line where the quotes visibly balance. The *intent* — "a character that cannot appear
+in a real key or salt" — was sound. The literal byte was not. Fixed with a `` escape, which
+parses to the same one-character separator without confusing the lexer.
+
+**Why no checker caught it, and why that was a real gap, not a coincidence.** `check_godot_wiring.py`
+already claimed "no script carries a parse-level defect" in its own pass/fail summary — and it was
+wrong to claim that, because its parse-level checking was two regexes for two previously-seen
+failure shapes (Python-style docstrings; implicit adjacent-string concatenation), not anything that
+runs a real GDScript grammar. A raw control byte inside a string literal was a third shape nobody
+had written a rule for. Closed with a fourth check, `check_control_bytes()`: any C0 control byte
+(0x00–0x1F, excluding tab/newline/CR) sitting literally in a `.gd` file's source text is now a
+FAIL, with the line number and a `\uXXXX` escape suggested in the message. Proved against the exact
+defect before trusting it — a synthetic NUL-in-a-string-literal fails, the fixed file and ordinary
+tab/newline/CR usage do not.
+
+**The standing lesson, already written down and worth re-reading rather than re-learning:**
+`CLAUDE.md`'s Godot section says nothing in a session environment can load a scene or script through
+the real engine, so checks here read files rather than running them — "necessary, not sufficient."
+This is the concrete shape that sentence has taken twice now (Session 36's three defects, this
+one): the free checkers narrow the search space and nothing more. A human's F5 is still the only
+thing that has ever found a defect of this kind, and will be again.
+
+### Next session
+
+1. **The owner's aesthetic feedback from the completed playtest** — the actual next item; see
+   whatever session picks this up immediately after, since it lands in the same working session.
+2. Then build-order **step 5** — remove the six play-time call sites. The resolution narrative is
+   the one that matters, and it is now non-fatal rather than gone.
+3. The paced opening screen (step 4's client half). `_generate_opening_narration()` already writes
+   the text; pacing the five beats is client-side and free.
 
 ---
 

@@ -23,3 +23,9 @@ const WITNESS: Array[String] = [
 	"res://assets/icons/witness/witness_03.svg",
 	"res://assets/icons/witness/witness_04.svg",
 ]
+
+const SUSPECT: Array[String] = [
+	"res://assets/icons/suspect/Suspect2.png",
+	"res://assets/icons/suspect/suspect1.png",
+	"res://assets/icons/suspect/suspect3.png",
+]

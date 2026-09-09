@@ -162,7 +162,12 @@ CAUTION = "#CB8F44"   # a budget running out, an unmoderated-input notice
 # one game or two — and type size is the thing that must not.
 
 TYPE_SCALE: Dict[str, int] = {
-    "display": 44,  # the main menu wordmark, and nothing else
+    # The main menu wordmark, and whatever else earns the same weight: the
+    # room code, and a player's own name in the lobby (Session 43, owner --
+    # "who you are playing with is high up in a hierarchy of import"). Not a
+    # size for casual reuse; each addition has been a deliberate call that
+    # something belongs at the top of the screen's hierarchy, not a default.
+    "display": 44,
     "title": 30,    # one per screen, at the top
     "heading": 21,  # section headers within a screen
     "body": 16,     # the default; everything unlabelled is this

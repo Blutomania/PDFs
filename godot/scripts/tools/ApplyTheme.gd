@@ -112,6 +112,21 @@ func _report_fonts(theme: Theme) -> void:
 	else:
 		_say("  fonts   Nunito Sans loaded (default_font_size %d)." % theme.default_font_size)
 
+	## The same canary for the title-tier decorative face -- a font wired into
+	## exactly two variations (DisplayLabel, MysteryTitleLabel) has no
+	## default_font to check, so it needs its own line or a missing .ttf here
+	## fails exactly the silent way this whole file exists to catch: nothing
+	## errors, the label just quietly wears NunitoSans-Regular instead.
+	var has_display: bool = theme.has_font("font", "DisplayLabel")
+	var has_mystery_title: bool = theme.has_font("font", "MysteryTitleLabel")
+	if has_display and has_mystery_title:
+		_say("  fonts   Cinzel Decorative loaded (DisplayLabel: Black, MysteryTitleLabel: Bold).")
+	elif has_display or has_mystery_title:
+		_say("  fonts   Cinzel Decorative PARTIALLY loaded -- one of the two .ttf files is missing.")
+	else:
+		_say("  fonts   Cinzel Decorative NOT loaded -- DisplayLabel and MysteryTitleLabel")
+		_say("          are wearing NunitoSans-Regular instead, with no error anywhere.")
+
 
 ## Every item Style.gd sets, looked up in the engine's own default theme.
 ## A type variation is checked against its BASE type, because that is what the

@@ -21,6 +21,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SERVER = ROOT / "server" / "main.py"
 SHARE_SCREEN = ROOT / "godot" / "scripts" / "ui" / "share_selection.gd"
+# The rule moved with the mechanic. Under APF's rhythm the share happens on the
+# round screen, so the guard has to follow it -- a rule defended on the screen
+# it left is a rule nobody is defending.
+ROUND_SCREEN = ROOT / "godot" / "scripts" / "ui" / "apf_round.gd"
 GAME_STATE = ROOT / "godot" / "scripts" / "autoloads" / "GameState.gd"
 
 # Arithmetic on share_min is the shape of a second implementation.
@@ -71,11 +75,27 @@ def main() -> int:
           "share_selection.gd has no fallback to the server's floor of 1; a client that "
           "guesses stricter silently deletes a legal move")
 
+    # 3b. And neither does the APF round screen, which is where the share
+    #     decision now actually happens.
+    rounds = load(ROUND_SCREEN)
+    round_hits = CLIENT_ARITHMETIC.findall(rounds)
+    check(not round_hits,
+          f"apf_round.gd does arithmetic on share_min ({round_hits}) -- the rhythm makes "
+          f"the requirement CUMULATIVE, which is exactly the kind of rule a client "
+          f"reimplements slightly differently")
+    check("share_outstanding" in rounds,
+          "apf_round.gd does not read the server's share_outstanding; it must display "
+          "what it is given rather than work out what is owed")
+    check("apf_outstanding()" in rounds,
+          "apf_round.gd does not go through GameState.apf_outstanding()")
+
     state = load(GAME_STATE)
     check("func current_share_required()" in state,
           "GameState.gd does not expose current_share_required()")
     check(state.count('"share_required"') >= 3,
           "GameState.gd does not record share_required from all three finding types")
+    check("func apf_outstanding()" in state and '"share_outstanding"' in state,
+          "GameState.gd does not expose the APF requirement the server sent")
 
     # 5. The server's own rule behaves as documented.
     sys.path.insert(0, str(ROOT / "server"))
@@ -87,12 +107,19 @@ def main() -> int:
         (3, 0.60, 2),
         (3, 0.50, 2),   # all three difficulties agree at APF's hand size
         (5, 0.50, 2),
+        # THE RHYTHM, where the ladder finally separates. Held is CUMULATIVE --
+        # the number of findings dealt so far -- so these are the requirements
+        # at the end of rounds 4, 6 and 8 in docs/PLAYTEST_FLOW.md's table.
+        (4, 0.70, 3), (4, 0.60, 2), (4, 0.50, 2),
+        (6, 0.70, 4), (6, 0.60, 4), (6, 0.50, 3),
+        (8, 0.70, 6), (8, 0.60, 5), (8, 0.50, 4),
     ]:
         got = max(1, round(count * share_min))
         check(got == expected,
               f"rule changed: {count} findings at {share_min} -> {got}, expected {expected}")
 
-    print(f"Checked {SERVER.name}, {SHARE_SCREEN.name} and {GAME_STATE.name}.\n")
+    print(f"Checked {SERVER.name}, {SHARE_SCREEN.name}, {ROUND_SCREEN.name} "
+          f"and {GAME_STATE.name}.\n")
     if failures:
         print(f"FAILURES ({len(failures)}):")
         for f in failures:

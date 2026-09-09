@@ -70,7 +70,7 @@ nothing extra.
 > **[RESOLVED, Session 38 — August 28, 2026.] Not decided; closed by APF.** Two of the three
 > readings lost the mechanic they described. *Narrative access* is traversal, and APF deletes
 > traversal. *Provenance* is generated entirely by §3's growing pool — a hotel key opening a hotel
-> room — and APF deals findings rather than letting players gather them, so nothing reveals
+> room — and APF assigns findings rather than letting players gather them, so nothing reveals
 > anything and there is no provenance to draw. Only *relationship* survives, and *relationship* is
 > defined here as "the map is a picture, not a mechanic" — the same conclusion the correction
 > below reaches independently.
@@ -146,7 +146,7 @@ Worse, of the four content types only one is genuinely located:
 | Witnesses | 3–4 | **fabricated by the renderer** | no |
 | Leads | 4 | no | no |
 
-**The witness placement is fiction.** `crime_scene_map.py` deals witnesses into areas
+**The witness placement is fiction.** `crime_scene_map.py` assigns witnesses into areas
 round-robin: `area = placed[i % len(placed)]`. Nothing in the mystery says where anyone is. So a
 witness whose statement is "I was in the kitchen all evening" can be drawn standing in the
 ravine — and there is no action attached either way, because interrogation is a separate phase
@@ -172,7 +172,7 @@ tokens on more rooms until this is settled.
 
 ---
 
-## 3. The narrative hands out the options, and the pool grows
+## 3. The narrative casefiles out the options, and the pool grows
 
 **Owner's design.** Round 1's options are not discovered — they are *stated*, in prose, by the
 opening narration:
@@ -297,14 +297,14 @@ direction proposed above is already clean and is a regression guard rather than 
 `key_evidence` does not contain — **55 items in total, up to 6 in a single mystery.** Only
 *Whiteout at Shackleton Base*, the newest, has none.
 
-That matters more than the direction originally proposed, because **APF's constrained deal is
+That matters more than the direction originally proposed, because **APF's constrained assignment is
 specified over "the evidence that proves the case"** (`docs/PLAYTEST_FLOW.md`). Read that set from
-`key_evidence` and the deal can hand a player every key item while omitting three the solution's own
-reasoning depends on. The deal would satisfy all three of its stated constraints and the player
-still could not get there. So before the deal is built, one of these has to happen:
+`key_evidence` and the assignment can casefile a player every key item while omitting three the solution's own
+reasoning depends on. The assignment would satisfy all three of its stated constraints and the player
+still could not get there. So before the assignment is built, one of these has to happen:
 
 - redefine `key_evidence` as *exactly* the evidence the reasoning uses, and check it; or
-- run the deal over the cited set rather than the key set.
+- run the assignment over the cited set rather than the key set.
 
 **Two more measurements that bound what `exonerates` can do:**
 
@@ -323,9 +323,9 @@ still could not get there. So before the deal is built, one of these has to happ
   are load-bearing, so in a 4-player game at most half the room holds anything the proof needs; at
   4 suspects it is 3, which is why the spec says four.**
 
-### [Session 38] The third deal constraint is not achievable as written
+### [Session 38] The third assignment constraint is not achievable as written
 
-`docs/PLAYTEST_FLOW.md` requires that a deal *"becomes solvable once the minimum share threshold is
+`docs/PLAYTEST_FLOW.md` requires that an assignment *"becomes solvable once the minimum share threshold is
 met."* Measured against the code, that constraint is not well-formed. `share_min` is a **minimum
 fraction of a player's own findings** (`_min_share_required()` in `server/main.py`), and **the
 player chooses which ones**. Meeting the threshold therefore does not determine what reaches the
@@ -338,7 +338,7 @@ no evidence ID either. So a player cannot look up which of their three matters. 
 generated *from* the evidence, so a decisive finding usually reads as decisive: *"I found whose
 blood was on the knife"* needs no label. **That is uncertainty, not ignorance** — which makes the
 adversarial worst case unlikely rather than impossible, and means a probabilistic guarantee (the
-deal is solvable under *most* share patterns, enumerated) is a legitimate fourth option beside the
+assignment is solvable under *most* share patterns, enumerated) is a legitimate fourth option beside the
 three below.
 
 > **Note the inconsistency.** `case_display.gd` renders a **★ for critical** and an **✗ for red
@@ -356,24 +356,24 @@ reach the pool is a finding nobody may keep.
 | Option | Consequence |
 |---|---|
 | **Accept it** — universal hoarding can end a game with no winner | Honest, and arguably the tension the game is *for*. Needs to be a designed outcome with a screen, not a silent dead end. |
-| **Deal for redundancy** — no exoneration exists in only one hand | Pure set arithmetic, free, enforceable by re-dealing. Weakens hoarding without deleting it: withholding costs the room less because someone else may share it. |
-| **Pigeonhole it** — deal one player more critical findings than they can withhold | Guarantees at least one exoneration reaches the pool, since a player must share `h − withhold_allowance` items and will shed the least critical first. Also free. |
+| **Assignment for redundancy** — no exoneration exists in only one casefile | Pure set arithmetic, free, enforceable by re-running the assignment. Weakens hoarding without deleting it: withholding costs the room less because someone else may share it. |
+| **Pigeonhole it** — give one player more critical findings than they can withhold | Guarantees at least one exoneration reaches the pool, since a player must share `h − withhold_allowance` items and will shed the least critical first. Also free. |
 
-None of these needs an API call; all three are constraints on the deal, which is already specified
-as pure computation and re-dealable at zero cost.
+None of these needs an API call; all three are constraints on the assignment, which is already specified
+as pure computation and re-runnable at zero cost.
 
 #### [Session 39] Two of the three are implemented; redundancy is the default
 
-`deal.py` takes `redundancy` — the number of **distinct hands** each required exoneration must
+`casefiles.py` takes `redundancy` — the number of **distinct casefiles** each required exoneration must
 reach. That single parameter covers two of the three rows above: **redundancy 1 is "accept it"**
 (constraints 1 and 2 only, universal hoarding can end a game with no winner) and **redundancy 2 is
-"deal for redundancy"**. **"Pigeonhole it" is a genuinely different constraint and is NOT
+"assignment for redundancy"**. **"Pigeonhole it" is a genuinely different constraint and is NOT
 implemented** — it is not reachable by setting the parameter, and the module says so rather than
 letting a reader assume otherwise.
 
 **[Session 39, second pass] Redundancy buys two rungs, not three, and the ceiling is provable.**
-It fights constraint 2 directly: each of the R required exonerations sits in at least k hands, so
-some hand holds at least ceil(R·k/P) of them, and when that reaches R that hand holds every
+It fights constraint 2 directly: each of the R required exonerations sits in at least k casefiles, so
+some casefile holds at least ceil(R·k/P) of them, and when that reaches R that casefile holds every
 exoneration and solves alone. At APF's specified shape — 4 players, exactly 4 suspects, R = 3 —
 **the ceiling is 2**, so EASY takes it and MEDIUM and HARD are both 1. `feasibility()` reports this
 up front rather than failing 400 attempts. **Moving difficulty here fixed EASY-vs-the-rest and did
@@ -381,8 +381,8 @@ not fix MEDIUM-vs-HARD**; a third rung needs a second dial, and Session 38 alrea
 candidates — suspect count and red-herring density.
 
 Redundancy is the default because it does double duty. The difficulty ladder is inert at a
-three-finding hand, and this is the home with real resolution at that size:
-`REDUNDANCY_BY_DIFFICULTY` puts each exoneration in two hands on EASY so somebody will share it,
+three-finding casefile, and this is the home with real resolution at that size:
+`REDUNDANCY_BY_DIFFICULTY` puts each exoneration in two casefiles on EASY so somebody will share it,
 and one on HARD so withholding really bites. **Still the owner's call** — the parameter is where
 it is decided, not a value baked into the algorithm.
 
@@ -391,23 +391,23 @@ it is decided, not a value baked into the algorithm.
 The three finding constructors in `server/main.py` produce `{id, where it came from, prose}` and
 nothing else. **There is no reference to the `evidence[]` array**, so the solvability arithmetic —
 `exonerates` / `implicates` on evidence items — and what a player actually holds are two data
-models with no join key. **The constrained deal cannot be built until a finding carries the
-evidence ID it came from**, because otherwise the deal is distributing opaque prose and cannot
-reason about which exoneration landed in which hand. This is not on §7's build order and should be.
+models with no join key. **The constrained assignment cannot be built until a finding carries the
+evidence ID it came from**, because otherwise the assignment is distributing opaque prose and cannot
+reason about which exoneration landed in which casefile. This is not on §7's build order and should be.
 
 ##### [Session 39] Closed — and the blocker as written pointed at the wrong code
 
 The three constructors it names are the **gather** routes (`/investigate-area`, `/follow-lead`,
-`/interrogate-witness`). APF's premise is that findings are dealt, not gathered, so a join key
-bolted onto them would have fixed the path being replaced. Under APF a dealt clue **is** an
+`/interrogate-witness`). APF's premise is that findings are assigned, not gathered, so a join key
+bolted onto them would have fixed the path being replaced. Under APF a assigned clue **is** an
 evidence item and carries its own id — there is nothing to join.
 
-**The gap that actually blocks the deal is larger.** APF's hand is one witness statement, one
+**The gap that actually blocks the assignment is larger.** APF's casefile is one witness statement, one
 crime-scene clue, one lead result, and `exonerates` / `implicates` live **only** on `evidence[]`.
 Witness statements sit on `characters[].statement`, lead results on `leads[]`, area findings on
 `investigation_areas[].discovery`. None carried elimination data, so **two of the three kinds in
-every hand were structurally inert** — they could not participate in the set arithmetic all three
-deal constraints are defined over.
+every casefile were structurally inert** — they could not participate in the set arithmetic all three
+assignment constraints are defined over.
 
 **Fixed with a pointer, not by duplicating the fields.** Witnesses, leads and areas carry
 `reveals` — the evidence ids they surface. Elimination data therefore lives in exactly one place,
@@ -415,35 +415,35 @@ and a witness's exoneration cannot drift out of agreement with the evidence item
 defect no structural check could have caught. Copying `supports` / `exonerates` / `implicates`
 onto every kind was the considered alternative and was rejected for exactly that reason.
 
-`deal.py` reads a hand's eliminating power through the pointer; `scripts/check_narrative.py` gained
+`casefiles.py` reads a casefile's eliminating power through the pointer; `scripts/check_narrative.py` gained
 a REVEALS branch for dangling pointers, findings that reveal nothing, and exonerations reachable
 only as a clue. Both are fixture-tested, because no mystery on disk carries the field.
 
-#### [Session 38] And at APF's hand size the difficulty ladder does not exist
+#### [Session 38] And at APF's casefile size the difficulty ladder does not exist
 
-APF deals **three** findings — one witness statement, one crime-scene clue, one lead result. Put
-that hand through the rule at each difficulty:
+APF assigns **three** findings — one witness statement, one crime-scene clue, one lead result. Put
+that casefile through the rule at each difficulty:
 
-| Hand | EASY 0.70 | MEDIUM 0.60 | HARD 0.50 |
+| Casefile | EASY 0.70 | MEDIUM 0.60 | HARD 0.50 |
 |---|---|---|---|
 | 3 findings | share 2, **keep 1** | share 2, **keep 1** | share 2, **keep 1** |
 
-**All three difficulties are identical.** The ladder is inert at a hand of three, because a
+**All three difficulties are identical.** The ladder is inert at three held findings, because a
 percentage has no resolution over three items. Only three outcomes are reachable — keep 0 deletes
 the mechanic, keep 2 means sharing a single finding — so **keep 1 is effectively forced, and
 difficulty cannot live in the share rule at all.**
 
-- **State it as a count, not a percentage.** At these hand sizes `share_min` cannot express what it
+- **State it as a count, not a percentage.** At these casefile sizes `share_min` cannot express what it
   is for, which is why two reasonable roundings of it disagreed and neither produced a ladder.
-- **Difficulty needs another home**, and the redundancy option above is the natural one: EASY deals
-  each exoneration into two hands so someone will share it; HARD deals each into exactly one so
-  withholding really bites. That has real resolution at a three-card hand. Suspect count and
+- **Difficulty needs another home**, and the redundancy option above is the natural one: EASY assigns
+  each exoneration into two casefiles so someone will share it; HARD assigns each into exactly one so
+  withholding really bites. That has real resolution at a three-card casefile. Suspect count and
   red-herring density are the other candidates.
 
 **A duplicate of the rule was found and removed while measuring this.** The client computed the
 minimum with `ceili()` where the server used `round()`; they disagreed in 6 of 18 realistic
 combinations, always with the client stricter, so it refused shares the server would have accepted
-— and at a two-finding hand demanded both, deleting the choice entirely. The server now computes it
+— and at a two-finding casefile demanded both, deleting the choice entirely. The server now computes it
 once and sends it with every finding response; `scripts/test_share_rule.py` asserts the client has
 no rule of its own.
 
@@ -495,7 +495,7 @@ work sitting right there.
 
 ### Fixes, in order of preference
 
-0. **[Session 35, owner] APF deletes the mechanic that has the bug.** With findings dealt rather
+0. **[Session 35, owner] APF deletes the mechanic that has the bug.** With findings assigned rather
    than gathered there is nothing to block, every player holds findings by construction, and there
    is no phase to be trapped in. See `docs/PLAYTEST_FLOW.md` → "APF". This is the current plan for
    the playtest, and it is the cheapest correct outcome: the bug stops existing.
@@ -572,7 +572,7 @@ below it, with what happened to each row.
 | # | Step | Why here |
 |---|---|---|
 | 1 | `exonerates` / `implicates` on evidence + the set-arithmetic solvability check (§4) | The solvability proof, and the funding pillar's strongest form. Everything else assumes it. |
-| 2 | The constrained deal | Pure computation, deterministic, re-dealable at zero cost. Needs step 1's fields to check its own constraints. |
+| 2 | The constrained assignment | Pure computation, deterministic, re-runnable at zero cost. Needs step 1's fields to check its own constraints. |
 | 3 | The share decision, the suspect board, the reveal | The 75% mechanic with nothing in front of it — the thing the playtest exists to test. |
 | 4 | `cinematic_brief: bool = True` for the paced text opening | Presentation. Last because a bare opening still plays. |
 
@@ -584,8 +584,8 @@ Steps 1–4 are the whole of stage 1. There is no stage-1 map.
 |---|---|
 | 1 — Deadlock fix | **Gone.** APF deletes the mechanic that has the bug (§5, fix 0). |
 | 2 — `how_to_deduce` ID-coverage check | **Still free and still worth running**, but off the critical path: it catches sloppy generations, it does not build the loop. Do it whenever. |
-| 3 — `area_id` on witnesses + evidence | **Deferred with the map.** Under APF the constrained deal guarantees reachability directly — a finding is in somebody's hand or it is not dealt — so §4's reachability rule no longer needs area data. It returns when a map does, and the round-robin witness placement is still wrong until then (§6). |
-| 5 — Growing option pool | **Gone.** APF deals findings instead of unlocking them. |
+| 3 — `area_id` on witnesses + evidence | **Deferred with the map.** Under APF the constrained assignment guarantees reachability directly — a finding is in somebody's casefile or it is not assigned — so §4's reachability rule no longer needs area data. It returns when a map does, and the round-robin witness placement is still wrong until then (§6). |
+| 5 — Growing option pool | **Gone.** APF assigns findings instead of unlocking them. |
 | 6 — Connection map | **Deferred.** §6 decision (a): no picture for the playtest. |
 
 **Token cost of the schema additions is not a constraint.** A full generation measures ~7,200

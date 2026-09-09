@@ -63,7 +63,7 @@
   h2 { font-size: 1.1em; font-weight: 600; color: var(--ink-muted); margin: 12px 0 6px; }
   p  { line-height: 1.5; margin-bottom: 8px; color: var(--ink-muted); font-size: 0.9em; }
 
-  .card {
+  .panel {
     background: var(--surface);
     border: 1px solid var(--line-soft);
     border-radius: 10px;
@@ -182,7 +182,7 @@
 
 <!-- ===================== JOIN SCREEN ===================== -->
 <div id="sec-join" class="section active">
-  <div class="card">
+  <div class="panel">
     <h1>Choose Your Mystery</h1>
     <p>Enter the room code shown on the host screen and your detective name.</p>
     <input id="inp-room" type="text" placeholder="Room code (e.g. A7FX2)"
@@ -197,12 +197,12 @@
 
 <!-- ===================== LOBBY SCREEN ===================== -->
 <div id="sec-lobby" class="section">
-  <div class="card" style="text-align:center;">
+  <div class="panel" style="text-align:center;">
     <h1>Waiting for Host</h1>
     <p id="lobby-title" style="color:var(--brass); font-size:1.1em; margin:8px 0;"></p>
     <p style="color:var(--ink-faint); font-size:0.88em;">The host will start the game when everyone is ready.</p>
   </div>
-  <div class="card">
+  <div class="panel">
     <h2>Players in Lobby</h2>
     <div id="lobby-player-list"></div>
   </div>
@@ -212,7 +212,7 @@
 <div id="sec-game" class="section">
 
   <!-- Header bar -->
-  <div class="card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px;">
+  <div class="panel" style="display:flex; align-items:center; justify-content:space-between; padding:10px 14px;">
     <div>
       <span id="ws-indicator"></span>
       <span id="lbl-name" style="font-weight:600; color:var(--brass);"></span>
@@ -224,14 +224,14 @@
   </div>
 
   <!-- Mystery brief (collapsible) -->
-  <details class="card">
+  <details class="panel">
     <summary style="cursor:pointer; color:var(--ink-muted); font-weight:600;">Mystery Brief</summary>
     <div id="mystery-brief" style="margin-top:10px;"></div>
   </details>
 
   <!-- ---- WITNESS PHASE ---- -->
   <div id="phase-witness" class="section active">
-    <div class="card">
+    <div class="panel">
       <h2>Interrogate Witnesses</h2>
       <p>Choose a character and ask a question. Each question costs 1 from your budget.</p>
       <select id="suspect-select"><option value="">— choose character —</option></select>
@@ -239,7 +239,7 @@
       <button class="btn-primary" id="btn-ask">Ask</button>
       <div class="status" id="witness-status"></div>
     </div>
-    <div class="card" id="witness-history-card" style="display:none;">
+    <div class="panel" id="witness-history-panel" style="display:none;">
       <h2>Your Witness Findings</h2>
       <div id="witness-history"></div>
     </div>
@@ -247,13 +247,13 @@
 
   <!-- ---- INVESTIGATION PHASE ---- -->
   <div id="phase-investigation" class="section">
-    <div class="card">
+    <div class="panel">
       <h2>Investigate Crime Scene</h2>
       <p>Choose a location to search. Blocked areas were already shared by another player.</p>
       <div id="areas-container"></div>
       <div class="status" id="investigation-status"></div>
     </div>
-    <div class="card" id="investigation-history-card" style="display:none;">
+    <div class="panel" id="investigation-history-panel" style="display:none;">
       <h2>Your Investigation Findings</h2>
       <div id="investigation-history"></div>
     </div>
@@ -261,13 +261,13 @@
 
   <!-- ---- LEAD PHASE ---- -->
   <div id="phase-lead" class="section">
-    <div class="card">
+    <div class="panel">
       <h2>Follow Leads</h2>
       <p>Choose up to 2 leads to follow. Blocked leads were already shared.</p>
       <div id="leads-container"></div>
       <div class="status" id="lead-status"></div>
     </div>
-    <div class="card" id="lead-history-card" style="display:none;">
+    <div class="panel" id="lead-history-panel" style="display:none;">
       <h2>Your Lead Findings</h2>
       <div id="lead-history"></div>
     </div>
@@ -275,7 +275,7 @@
 
   <!-- ---- SHARE SELECTION ---- -->
   <div id="phase-share" class="section">
-    <div class="card">
+    <div class="panel">
       <h2>Share Your Findings</h2>
       <p id="share-instructions"></p>
       <div id="share-findings"></div>
@@ -287,14 +287,14 @@
 
   <!-- ---- DONE ---- -->
   <div id="phase-done" class="section">
-    <div class="card">
+    <div class="panel">
       <h2>Investigation Complete</h2>
       <p>You have completed all three investigation phases. Make your accusation on the host screen, or continue reviewing shared intel below.</p>
     </div>
   </div>
 
   <!-- Shared Intel (always visible once any clues arrive) -->
-  <div class="card" id="shared-intel-card" style="display:none;">
+  <div class="panel" id="shared-intel-panel" style="display:none;">
     <h2 style="color:var(--positive);">Shared Intel</h2>
     <div id="shared-intel"></div>
   </div>
@@ -572,7 +572,7 @@ async function askQuestion() {
     $("witness-status").textContent = "";
     addFeedItem($("witness-history"), "<strong>" + character + ":</strong> " + question +
       "<br><span style='color:var(--ink-muted)'>" + data.response + "</span>", "mine");
-    $("witness-history-card").style.display = "";
+    $("witness-history-panel").style.display = "";
     updateHeader();
     if (data.budget_remaining <= 0) enterSharePhase("witness");
   } catch(e) {
@@ -620,7 +620,7 @@ async function investigateArea(area) {
     $("investigation-status").textContent = "";
     addFeedItem($("investigation-history"),
       "<strong>" + data.area_name + "</strong><br>" + data.findings, "mine");
-    $("investigation-history-card").style.display = "";
+    $("investigation-history-panel").style.display = "";
     updateHeader();
     refreshAreaButtons();
     if (data.budget_remaining <= 0) enterSharePhase("investigation");
@@ -667,7 +667,7 @@ async function followLead(lead) {
     $("lead-status").textContent = "";
     addFeedItem($("lead-history"),
       "<strong>" + data.lead_title + "</strong><br>" + data.findings, "mine");
-    $("lead-history-card").style.display = "";
+    $("lead-history-panel").style.display = "";
     updateHeader();
     refreshLeadButtons();
     if (data.leads_remaining <= 0) enterSharePhase("lead");
@@ -783,7 +783,7 @@ function mergeSharedClues(phase, clues) {
         ? "<div class='feed-sender'>" + clue.sender_name + " @ " + clue.area_name + "</div>" + clue.findings
         : "<div class='feed-sender'>" + clue.sender_name + " — lead: " + (clue.lead_title||"") + "</div>" + clue.findings;
     addFeedItem($("shared-intel"), html, "shared");
-    $("shared-intel-card").style.display = "";
+    $("shared-intel-panel").style.display = "";
   });
 }
 </script>

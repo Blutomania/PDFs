@@ -8,7 +8,7 @@ like a gate over a run of good mysteries, and a ledger that drops rows looks
 exactly like a quiet week. So the tests below assert the REFUSALS and the
 ARITHMETIC, not the happy path alone.
 
-Fixtures are reused from test_deal.py rather than rewritten -- they already
+Fixtures are reused from test_casefiles.py rather than rewritten -- they already
 encode APF's shape (4 players, 4 suspects, 3 required exonerations) and a second
 set drifting from the first is how two checkers come to disagree.
 """
@@ -24,16 +24,16 @@ sys.path.insert(0, str(_ROOT / "scripts"))
 
 import gate                                            # noqa: E402
 import generation_ledger as GL                         # noqa: E402
-from test_deal import mystery, solvable_fixture        # noqa: E402
+from test_casefiles import mystery, solvable_fixture        # noqa: E402
 
 _failures = []
 
 
 def coherent(m):
-    """Add the fields the COHERENCE engine needs, which the deal fixtures omit.
+    """Add the fields the COHERENCE engine needs, which the assignment fixtures omit.
 
-    test_deal.py's fixtures deliberately carry only what deal.py reads -- no
-    crime, no victim, no motive -- because the deal never looks at those. The
+    test_casefiles.py's fixtures deliberately carry only what casefiles.py reads -- no
+    crime, no victim, no motive -- because the assignment never looks at those. The
     gate runs all three checkers, so an un-enriched fixture fails on eight
     blocking coherence rules and every gate assertion then passes or fails for
     a reason that has nothing to do with what it is testing. (It did: the first
@@ -61,7 +61,7 @@ def coherent(m):
     # current-schema mystery, and check_narrative.py skips its entire LINKS
     # branch -- has_links is false, so the narrowing and multi-clear rules never
     # run. Two tests here passed their "is it refused" assertion only because
-    # deal.py happened to catch the same defect from the other side, which is
+    # casefiles.py happened to catch the same defect from the other side, which is
     # precisely the blind spot a fixture is supposed to expose rather than share.
     m["solution"].setdefault("chain", [{"id": "S1", "step": "The keeper was killed indoors."}])
     if m.get("evidence"):
@@ -134,7 +134,7 @@ def test_collapse():
         {"slug": "m1", "verdict": "rejected", "cost_usd": 0.20,
          "failure_class": "below_standard", "violations": [{"rule_id": "NARR.SINGLE_ROUTE"}]},
         {"slug": "m1", "verdict": "rejected", "cost_usd": None,
-         "failure_class": "unplayable", "violations": [{"rule_id": "DEAL.SOLO_SOLVE"}],
+         "failure_class": "unplayable", "violations": [{"rule_id": "CASE.SOLO_SOLVE"}],
          "supersedes": "m1-original"},
     ]
     c = GL.collapse(rows)
@@ -159,7 +159,7 @@ def test_summarise():
     rows = [
         {"verdict": "accepted", "cost_usd": 0.10, "violations": []},
         {"verdict": "rejected", "cost_usd": 0.30, "failure_class": "unplayable",
-         "violations": [{"rule_id": "DEAL.SOLO_SOLVE"}]},
+         "violations": [{"rule_id": "CASE.SOLO_SOLVE"}]},
         {"verdict": "unjudged", "cost_usd": None, "violations": []},
     ]
     s = GL.summarise(rows)
@@ -171,7 +171,7 @@ def test_summarise():
           s["unpriced_rows"] == 1 and abs(s["total_cost_usd"] - 0.4) < 1e-9)
     check("rejections are tallied by class and by rule",
           s["by_failure_class"] == {"unplayable": 1}
-          and s["by_rule"] == {"DEAL.SOLO_SOLVE": 1})
+          and s["by_rule"] == {"CASE.SOLO_SOLVE": 1})
     check("no accepted mysteries leaves CPAM undefined, never zero",
           GL.summarise([rows[1]])["cpam_usd"] is None)
 
@@ -216,14 +216,14 @@ def test_suspect_count():
     # snow_on_the_engawa came back with THREE suspects against a prompt that says
     # exactly four, and nothing caught it. Three is not a smaller version of the
     # same game: two required exonerations means one finding carrying both solves
-    # outright, which is why that mystery could not be dealt.
+    # outright, which is why that mystery could not be assigned.
     m = coherent(mystery([("E1", ["Ortiz"], []), ("E2", ["Brand"], []), ("E3", [], ["Vale"])],
                          suspects=("Vale", "Ortiz", "Brand")))
     v = gate.evaluate(m, "three.json")
     check("a three-suspect mystery is refused",
-          "DEAL.SUSPECT_COUNT" in {x["rule_id"] for x in v.violations}, v.summary())
+          "CASE.SUSPECT_COUNT" in {x["rule_id"] for x in v.violations}, v.summary())
     check("and four suspects do not trip it",
-          "DEAL.SUSPECT_COUNT" not in
+          "CASE.SUSPECT_COUNT" not in
           {x["rule_id"] for x in gate.evaluate(coherent(solvable_fixture()), "four.json").violations})
 
 
@@ -279,7 +279,7 @@ def test_legacy_is_unjudged():
 
 
 def test_dedupe():
-    # deal.py and check_narrative.py both implement the narrowing rules. Both
+    # casefiles.py and check_narrative.py both implement the narrowing rules. Both
     # are right; counting one defect twice would inflate every by_rule figure.
     m = coherent(solvable_fixture())
     m["evidence"][0]["narrows"] = ["Vale", "Ortiz", "Brand", "Chen"]

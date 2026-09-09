@@ -29,15 +29,27 @@ for the full architecture and `SESSIONS.md` for session-by-session history.
 ## Run locally
 
 ```bash
-cd server
-pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
-uvicorn main:app --port 8000
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r server/requirements.txt
+python3 -m uvicorn server.main:app --port 8000
 ```
 
-Then open `godot/project.godot` in Godot 4 and press F5. Requires an
-[Anthropic API key](https://console.anthropic.com) and a local install of
-[Godot 4](https://godotengine.org).
+Then open `godot/project.godot` in Godot 4 — **Edit, not Run**, on a fresh clone — and press F5.
+
+**An API key is only needed to GENERATE a mystery.** Playing one that is already in
+`mystery_database/generated/` costs nothing and needs no key at all, because APF makes no play-time
+API calls. Set `ANTHROPIC_API_KEY` when you want to generate:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Use `python3 -m uvicorn`, not bare `uvicorn`.** The launcher script is missing from `PATH` on
+Homebrew Python, on `pip install --user`, and in any terminal where the venv is not active; the
+`-m` form works whenever the package is importable.
+
+Requires [Godot 4](https://godotengine.org).
 
 ---
 
