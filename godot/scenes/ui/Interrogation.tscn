@@ -39,14 +39,23 @@ horizontal_alignment = 1
 [node name="WitnessPanel" type="VBoxContainer" parent="VBox"]
 layout_mode = 2
 
-[node name="SuspectDropdown" type="OptionButton" parent="VBox/WitnessPanel"]
+[node name="SuspectGrid" type="GridContainer" parent="VBox/WitnessPanel"]
 layout_mode = 2
+columns = 4
+theme_override_constants/h_separation = 12
+theme_override_constants/v_separation = 12
 
-[node name="QuestionInput" type="LineEdit" parent="VBox/WitnessPanel"]
+[node name="QuestionRow" type="HBoxContainer" parent="VBox/WitnessPanel"]
 layout_mode = 2
+visible = false
+theme_override_constants/separation = 8
+
+[node name="QuestionInput" type="LineEdit" parent="VBox/WitnessPanel/QuestionRow"]
+layout_mode = 2
+size_flags_horizontal = 3
 placeholder_text = "Ask a question…"
 
-[node name="AskButton" type="Button" parent="VBox/WitnessPanel"]
+[node name="AskButton" type="Button" parent="VBox/WitnessPanel/QuestionRow"]
 theme_type_variation = &"PrimaryButton"
 layout_mode = 2
 text = "Ask"

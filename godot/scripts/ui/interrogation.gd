@@ -24,10 +24,17 @@ extends Control
 
 ## Witness sub-panel
 @onready var witness_panel: VBoxContainer = $VBox/WitnessPanel
-@onready var suspect_dropdown: OptionButton = $VBox/WitnessPanel/SuspectDropdown
-@onready var question_input: LineEdit = $VBox/WitnessPanel/QuestionInput
-@onready var ask_button: Button = $VBox/WitnessPanel/AskButton
+@onready var suspect_grid: GridContainer = $VBox/WitnessPanel/SuspectGrid
+@onready var question_row: HBoxContainer = $VBox/WitnessPanel/QuestionRow
+@onready var question_input: LineEdit = $VBox/WitnessPanel/QuestionRow/QuestionInput
+@onready var ask_button: Button = $VBox/WitnessPanel/QuestionRow/AskButton
 @onready var witness_history: VBoxContainer = $VBox/WitnessPanel/ScrollContainer/HistoryContainer
+
+## Godot's own mutual-exclusion for the grid -- toggling one cell on
+## automatically toggles the previously-selected one off, so there is no
+## manual "clear the old selection" bookkeeping to get wrong.
+var _suspect_button_group: ButtonGroup = ButtonGroup.new()
+var _selected_character: String = ""
 
 ## Investigation sub-panel
 @onready var investigation_panel: VBoxContainer = $VBox/InvestigationPanel
@@ -57,9 +64,8 @@ func _ready() -> void:
 	_mystery = MysteryData.from_dict(GameState.current_mystery)
 	_is_multiplayer = not GameState.game_id.is_empty()
 
-	# Populate suspect dropdown
-	for ch in _mystery.get_interrogatable():
-		suspect_dropdown.add_item(ch.name)
+	# Populate suspect grid
+	_build_suspect_grid()
 
 	# Populate investigation areas
 	_build_area_buttons()
@@ -141,14 +147,72 @@ func _check_phase_complete() -> void:
 # ---------------------------------------------------------------------------
 # Witness phase
 # ---------------------------------------------------------------------------
+## One card per interrogatable character: portrait over name, either half
+## clickable, radio-button selection via a shared ButtonGroup (playtest
+## InterrogationSept8 -- replaces the old suspect dropdown). Icon set follows
+## CaseDisplay's own convention: Icons.suspect() for the suspect role,
+## Icons.witness() otherwise -- both degrade to no image at all when their
+## set is still empty, same as everywhere else Icons.gd is used.
+func _build_suspect_grid() -> void:
+	for child in suspect_grid.get_children():
+		child.queue_free()
+	for ch in _mystery.get_interrogatable():
+		var card := Button.new()
+		card.theme_type_variation = &"SuspectCardButton"
+		card.toggle_mode = true
+		card.button_group = _suspect_button_group
+		card.text = ""
+		card.custom_minimum_size = Vector2(100, 120)
+
+		var box := VBoxContainer.new()
+		box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.alignment = BoxContainer.ALIGNMENT_CENTER
+		card.add_child(box)
+
+		var icon_path: String = (
+			Icons.suspect(ch.name, GameState.game_id) if ch.role == "suspect"
+			else Icons.witness(ch.name, GameState.game_id)
+		)
+		var icon_tex: Texture2D = Icons.texture(icon_path)
+		if icon_tex:
+			var icon_rect := TextureRect.new()
+			icon_rect.texture = icon_tex
+			icon_rect.custom_minimum_size = Vector2(64, 64)
+			icon_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_rect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			icon_rect.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			icon_rect.modulate = Icons.tint()
+			icon_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			box.add_child(icon_rect)
+
+		var name_label := Label.new()
+		name_label.text = ch.name
+		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(name_label)
+
+		card.toggled.connect(_on_suspect_selected.bind(ch.name))
+		suspect_grid.add_child(card)
+
+func _on_suspect_selected(pressed: bool, character_name: String) -> void:
+	## ButtonGroup fires toggled(false) on the card that just lost the
+	## selection too -- only react to the one that gained it.
+	if not pressed:
+		return
+	_selected_character = character_name
+	question_row.visible = true
+	question_input.grab_focus()
+
 func _on_ask() -> void:
 	var question := question_input.text.strip_edges()
 	if question.is_empty():
 		status_label.text = "Type a question first."
 		return
-	if suspect_dropdown.item_count == 0:
+	if _selected_character.is_empty():
+		status_label.text = "Select a suspect first."
 		return
-	var character_name: String = suspect_dropdown.get_item_text(suspect_dropdown.selected)
+	var character_name: String = _selected_character
 
 	if _is_multiplayer and GameState.is_witness_blocked(character_name, question):
 		status_label.text = "This question has already been shared with the group. Ask something different."
@@ -359,5 +423,7 @@ func _go_accuse() -> void:
 func _set_loading(loading: bool) -> void:
 	ask_button.disabled = loading
 	question_input.editable = not loading
-	suspect_dropdown.disabled = loading
+	for card: Node in suspect_grid.get_children():
+		if card is Button:
+			card.disabled = loading
 	spinner.visible = loading

@@ -543,6 +543,25 @@ func _declare_variations(t: Theme) -> void:
 	t.set_color("font_pressed_color", "BrowseRowButton", Palette.INK)
 	t.set_font_size("font_size", "BrowseRowButton", Palette.TYPE_BODY)
 
+	## A suspect grid cell -- portrait over name, click either to select who
+	## you're interrogating (playtest InterrogationSept8, replacing the old
+	## suspect dropdown). Uses toggle_mode + a shared ButtonGroup rather than
+	## manual selection-tracking, so "pressed" IS "selected" and stays lit
+	## until another cell is chosen. Same hover/selected language as
+	## BrowseRowButton -- one card list, one row list, one visual vocabulary.
+	t.set_type_variation("SuspectCardButton", "Button")
+	var card_normal: StyleBoxFlat = _control_box(Palette.SURFACE_DEEP, Palette.SURFACE_DEEP)
+	card_normal.draw_center = false
+	card_normal.set_border_width_all(0)
+	t.set_stylebox("normal", "SuspectCardButton", card_normal)
+	t.set_stylebox("hover", "SuspectCardButton", _panel(Palette.SURFACE, Palette.RADIUS_SMALL, Palette.SURFACE))
+	t.set_stylebox("pressed", "SuspectCardButton", _panel(Palette.SURFACE_RAISED, Palette.RADIUS_SMALL, Palette.BRASS))
+	t.set_stylebox("focus", "SuspectCardButton", _focus_ring())
+	t.set_color("font_color", "SuspectCardButton", Palette.INK)
+	t.set_color("font_hover_color", "SuspectCardButton", Palette.INK)
+	t.set_color("font_pressed_color", "SuspectCardButton", Palette.BRASS)
+	t.set_font_size("font_size", "SuspectCardButton", Palette.TYPE_BODY)
+
 	## Irreversible and consequential: the accusation. CYM has exactly one
 	## action a player cannot take back, and it should not look like Back.
 	t.set_type_variation("DangerButton", "Button")
