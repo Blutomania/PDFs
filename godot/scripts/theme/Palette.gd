@@ -42,7 +42,7 @@ const CAUTION: Color = Color(0.796078, 0.560784, 0.266667, 1.0)  ## #CB8F44
 const TYPE_DISPLAY: int = 44
 const TYPE_TITLE: int = 30
 const TYPE_HEADING: int = 21
-const TYPE_BODY: int = 16
+const TYPE_BODY: int = 18
 const TYPE_LABEL: int = 13
 
 

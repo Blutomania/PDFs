@@ -520,6 +520,18 @@ whole assignment. A solo walk-through has to add seats.
 stopped it being fatal — a failed call now falls back to the mystery's own resolution prose — but
 build-order step 5 still has to remove it.
 
+**[Session 44] The Sept8 playtest continued screen by screen — MainMenu, Browse Saved Mysteries,
+CaseDisplay, ResultScreen, Interrogation — all owner-driven UI fixes, no mechanic changes.** Notable
+ones: CaseDisplay and ResultScreen both had a stale fixed-width container offset plus no
+`horizontal_scroll_mode` on their `ScrollContainer`, which is why body text was clipping at the
+right edge rather than wrapping — same root cause, same fix, on both screens. Interrogation's
+suspect dropdown became a clickable portrait grid (Godot `ButtonGroup` + `toggle_mode`, no manual
+selection bookkeeping). **`IconSet.SUSPECT` is no longer effectively empty of real art** — 15 flat,
+CC0-claimed silhouettes landed alongside the existing 3 PNGs (18 total); provenance, exclusions and
+a licensing re-check caveat are in `icons/suspect/README.md`, not repeated here. PR #49 (Session
+42+43's whole branch) was still unmerged into `main` at this session's start — merged now; the
+branch-tip-vs-`main` mismatch is worth checking early in future sessions rather than assumed clean.
+
 ### 27. Incrimination as well as exculpation — the glove mechanic — **BUILT, Session 40**
 
 Deduction today is pure subtraction: every clue clears one suspect, you win when one name is left.

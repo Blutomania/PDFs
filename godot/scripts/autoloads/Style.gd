@@ -178,15 +178,13 @@ func _style_fonts(t: Theme) -> void:
 	## a scope call flagged to the owner rather than assumed (font upload,
 	## playtest SolvedSept7).
 	##
-	## THE TIER IS BY WEIGHT, NOT BY SCREEN. Black is reserved for the game's
-	## own identity (DisplayLabel only); MysteryTitleLabel and VerdictLabel
-	## share Bold -- both are in-fiction dramatic beats one notch below the
-	## brand name itself, not two different things arbitrarily styled alike.
-	var display_black: Font = _font("CinzelDecorative-Black.ttf")
+	## All three share Bold. DisplayLabel wore Black through playtest
+	## SolvedSept7/WaitingSept7; owner called it too heavy on startSept8 and
+	## dropped it a tier, so there is no longer a weight distinction between
+	## the brand name and the other two dramatic-moment labels.
 	var display_bold: Font = _font("CinzelDecorative-Bold.ttf")
-	if display_black:
-		t.set_font("font", "DisplayLabel", display_black)
 	if display_bold:
+		t.set_font("font", "DisplayLabel", display_bold)
 		t.set_font("font", "MysteryTitleLabel", display_bold)
 		t.set_font("font", "VerdictLabel", display_bold)
 
@@ -445,7 +443,17 @@ func _declare_variations(t: Theme) -> void:
 	## kept here anyway so the variation is never colourless before that runs.
 	t.set_type_variation("VerdictLabel", "Label")
 	t.set_color("font_color", "VerdictLabel", Palette.INK)
-	t.set_font_size("font_size", "VerdictLabel", Palette.TYPE_TITLE)
+	## 35, not Palette.TYPE_TITLE (30) -- owner, playtest ResultSept8: just the
+	## single word ("Correct"/"Wrong") should read 25% bigger than the 28px it
+	## was actually rendering at (a stale per-node .tscn override had drifted
+	## from this variation's own declared 30; that override is gone now).
+	## ResultScreen splits the banner into two Labels sharing this variation --
+	## VerdictWordLabel (the word, inherits this 35) and VerdictRestLabel (the
+	## rest of the sentence, overridden to 28 on its own node, "high twenties"
+	## per the same note) -- because one Label cannot mix two sizes in its own
+	## text. A one-off literal, not TYPE_TITLE, because nothing else uses this
+	## variation's size and it should not silently follow that scale's changes.
+	t.set_font_size("font_size", "VerdictLabel", 35)
 
 	## A player's name, wherever roster matters more than anywhere else it
 	## appears in the product: the lobby (owner, playtest WaitingSept7 -- "who
@@ -515,6 +523,44 @@ func _declare_variations(t: Theme) -> void:
 	t.set_stylebox("focus", "QuietButton", _focus_ring())
 	t.set_color("font_color", "QuietButton", Palette.INK_MUTED)
 	t.set_color("font_hover_color", "QuietButton", Palette.INK)
+
+	## A row inside a scrollable, multi-column list -- the saved-mystery
+	## browser needs a title column and a right-aligned star-rating column
+	## that line up across rows, which ItemList's one-string-per-item model
+	## cannot do (playtest BrowseSept8). Mirrors ItemList's own hover/selected
+	## states (_style_lists) so swapping the control doesn't read as a
+	## different list.
+	t.set_type_variation("BrowseRowButton", "Button")
+	var row_normal: StyleBoxFlat = _control_box(Palette.SURFACE_DEEP, Palette.SURFACE_DEEP)
+	row_normal.draw_center = false
+	row_normal.set_border_width_all(0)
+	t.set_stylebox("normal", "BrowseRowButton", row_normal)
+	t.set_stylebox("hover", "BrowseRowButton", _panel(Palette.SURFACE, Palette.RADIUS_SMALL, Palette.SURFACE))
+	t.set_stylebox("pressed", "BrowseRowButton", _panel(Palette.SURFACE_RAISED, Palette.RADIUS_SMALL, Palette.BRASS))
+	t.set_stylebox("focus", "BrowseRowButton", _focus_ring())
+	t.set_color("font_color", "BrowseRowButton", Palette.INK)
+	t.set_color("font_hover_color", "BrowseRowButton", Palette.INK)
+	t.set_color("font_pressed_color", "BrowseRowButton", Palette.INK)
+	t.set_font_size("font_size", "BrowseRowButton", Palette.TYPE_BODY)
+
+	## A suspect grid cell -- portrait over name, click either to select who
+	## you're interrogating (playtest InterrogationSept8, replacing the old
+	## suspect dropdown). Uses toggle_mode + a shared ButtonGroup rather than
+	## manual selection-tracking, so "pressed" IS "selected" and stays lit
+	## until another cell is chosen. Same hover/selected language as
+	## BrowseRowButton -- one card list, one row list, one visual vocabulary.
+	t.set_type_variation("SuspectCardButton", "Button")
+	var card_normal: StyleBoxFlat = _control_box(Palette.SURFACE_DEEP, Palette.SURFACE_DEEP)
+	card_normal.draw_center = false
+	card_normal.set_border_width_all(0)
+	t.set_stylebox("normal", "SuspectCardButton", card_normal)
+	t.set_stylebox("hover", "SuspectCardButton", _panel(Palette.SURFACE, Palette.RADIUS_SMALL, Palette.SURFACE))
+	t.set_stylebox("pressed", "SuspectCardButton", _panel(Palette.SURFACE_RAISED, Palette.RADIUS_SMALL, Palette.BRASS))
+	t.set_stylebox("focus", "SuspectCardButton", _focus_ring())
+	t.set_color("font_color", "SuspectCardButton", Palette.INK)
+	t.set_color("font_hover_color", "SuspectCardButton", Palette.INK)
+	t.set_color("font_pressed_color", "SuspectCardButton", Palette.BRASS)
+	t.set_font_size("font_size", "SuspectCardButton", Palette.TYPE_BODY)
 
 	## Irreversible and consequential: the accusation. CYM has exactly one
 	## action a player cannot take back, and it should not look like Back.

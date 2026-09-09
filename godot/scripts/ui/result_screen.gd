@@ -14,8 +14,10 @@ extends Control
 # ---------------------------------------------------------------------------
 # Node references
 # ---------------------------------------------------------------------------
-@onready var verdict_label: Label = $ScrollContainer/MainVBox/VerdictLabel
-@onready var solution_label: RichTextLabel = $ScrollContainer/MainVBox/SolutionLabel
+@onready var verdict_word_label: Label = $ScrollContainer/MainVBox/VerdictRow/VerdictWordLabel
+@onready var verdict_rest_label: Label = $ScrollContainer/MainVBox/VerdictRow/VerdictRestLabel
+@onready var portrait_rect: TextureRect = $ScrollContainer/MainVBox/SolutionRow/PortraitRect
+@onready var solution_label: RichTextLabel = $ScrollContainer/MainVBox/SolutionRow/SolutionLabel
 @onready var stats_label: RichTextLabel = $ScrollContainer/MainVBox/StatsLabel
 @onready var rating_row: HBoxContainer = $ScrollContainer/MainVBox/RatingRow
 @onready var play_again_button: Button = $ScrollContainer/MainVBox/Buttons/PlayAgainButton
@@ -46,12 +48,21 @@ func _populate() -> void:
 	var culprit: String = result.get("culprit", "?")
 	var plot: Dictionary = result.get("plot_reveal", {})
 
+	## Split across two labels, not one -- owner, playtest ResultSept8: only
+	## the single word ("Correct"/"Wrong") should be the big 35px message,
+	## the rest of the sentence a size down. A Label can't mix two sizes in
+	## its own text, so VerdictWordLabel and VerdictRestLabel share the
+	## VerdictLabel variation's colour logic but carry different font sizes
+	## (Style.gd).
+	var verdict_color: Color = Palette.POSITIVE if correct else Palette.NEGATIVE
 	if correct:
-		verdict_label.text = "Correct! %s is the culprit." % culprit
-		verdict_label.add_theme_color_override("font_color", Palette.POSITIVE)
+		verdict_word_label.text = "Correct!"
+		verdict_rest_label.text = "%s is the culprit." % culprit
 	else:
-		verdict_label.text = "Wrong. You accused %s — the real culprit was %s." % [suspect, culprit]
-		verdict_label.add_theme_color_override("font_color", Palette.NEGATIVE)
+		verdict_word_label.text = "Wrong."
+		verdict_rest_label.text = "You accused %s — the real culprit was %s." % [suspect, culprit]
+	verdict_word_label.add_theme_color_override("font_color", verdict_color)
+	verdict_rest_label.add_theme_color_override("font_color", verdict_color)
 
 	# Full solution breakdown. plot_reveal.key_evidence entries are already
 	# {id, name, description} -- resolved server-side (_format_plot_reveal(),
@@ -78,6 +89,16 @@ func _populate() -> void:
 		", ".join(clue_names) if not clue_names.is_empty() else "?",
 	]
 	solution_label.text = sol_text
+
+	## A portrait beside the solution text (owner, playtest ResultSept8: "too
+	## much just text"). Same seeded-icon mechanism CaseDisplay's cast rows
+	## already use (Icons.suspect/Icons.texture) -- not a real likeness, a
+	## stable decorative silhouette for this culprit in this game. Icons.gd
+	## returns null on an empty set on purpose, so this correctly draws
+	## nothing rather than a placeholder box when no suspect icon exists yet.
+	var culprit_icon: String = Icons.suspect(str(plot.get("culprit", culprit)), GameState.game_id)
+	portrait_rect.texture = Icons.texture(culprit_icon)
+	portrait_rect.modulate = Icons.tint()
 
 	_populate_stats(result.get("gameplay_stats", {}))
 

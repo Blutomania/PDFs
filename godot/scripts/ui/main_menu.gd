@@ -17,7 +17,7 @@ extends Control
 @onready var quit_button: Button = $VBox/QuitButton
 @onready var status_label: Label = $StatusLabel
 @onready var browse_popup: Window = $BrowsePopup          ## Created in scene
-@onready var browse_list: ItemList = $BrowsePopup/VBox/ItemList
+@onready var browse_rows: VBoxContainer = $BrowsePopup/VBox/ListPanel/ScrollContainer/RowsContainer
 @onready var browse_close_button: Button = $BrowsePopup/VBox/CloseButton
 
 var _saved_mysteries: Array = []
@@ -36,7 +36,6 @@ func _ready() -> void:
 	# popup opened, listed the saved mysteries, and then did nothing at all:
 	# clicking a row was inert and the window could not be dismissed (a Godot
 	# Window does not hide itself on close_requested — the handler has to).
-	browse_list.item_selected.connect(_on_browse_item_selected)
 	browse_close_button.pressed.connect(browse_popup.hide)
 	browse_popup.close_requested.connect(browse_popup.hide)
 
@@ -73,16 +72,46 @@ func _on_mysteries_listed(error: String, data) -> void:
 	if error:
 		status_label.text = "Error: " + error
 		return
+	status_label.text = "Backend connected."
 	_saved_mysteries = data if data is Array else []
-	browse_list.clear()
-	for m in _saved_mysteries:
-		var label := "%s [%s] %s" % [
-			m.get("title", "?"),
-			m.get("difficulty", "?"),
-			"★%d" % m.get("viability_rating", 0) if m.get("viability_rating") else "",
-		]
-		browse_list.add_item(label)
+	for row in browse_rows.get_children():
+		row.queue_free()
+	for i in _saved_mysteries.size():
+		browse_rows.add_child(_build_browse_row(_saved_mysteries[i], i))
 	browse_popup.popup_centered(Vector2i(600, 400))
+
+## One row: title+difficulty on the left, a fixed-width right-aligned star
+## column on the right, so ratings line up across rows the way BrowseSept8's
+## feedback asked for -- ItemList's single string per item can't do that.
+func _build_browse_row(m: Dictionary, index: int) -> Button:
+	var row := Button.new()
+	row.theme_type_variation = &"BrowseRowButton"
+	row.flat = true
+	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.pressed.connect(_on_browse_item_selected.bind(index))
+
+	var hbox := HBoxContainer.new()
+	hbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(hbox)
+
+	var title_label := Label.new()
+	title_label.text = "%s [%s]" % [m.get("title", "?"), m.get("difficulty", "?")]
+	title_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_label.clip_text = true
+	title_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.add_child(title_label)
+
+	var stars_label := Label.new()
+	var rating: int = m.get("viability_rating", 0)
+	stars_label.text = "★%d" % rating if rating else ""
+	stars_label.custom_minimum_size = Vector2(56, 0)
+	stars_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	stars_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hbox.add_child(stars_label)
+
+	return row
 
 func _on_browse_item_selected(index: int) -> void:
 	if index < 0 or index >= _saved_mysteries.size():

@@ -8,7 +8,7 @@ same mark.
 
 ## Where to put them
 
-Drop the SVGs straight into these two folders. **Filenames do not matter** —
+Drop the SVGs straight into these folders. **Filenames do not matter** —
 the folder is what assigns the set, so there is no naming convention to get
 wrong.
 
@@ -16,13 +16,17 @@ wrong.
 icons/
   clue/        <- the magnifier icons (footprints, fingerprint, puzzle, leaf, …)
   witness/     <- the speech-bubble icons (raised hand, two figures, …)
+  suspect/     <- portrait/silhouette icons for the interrogation grid and
+                   ResultScreen's culprit portrait; a .png is accepted here
+                   too (see "What happens to them" below). suspect/README.md
+                   carries this set's own provenance and licensing notes
 ```
 
 Add as many as you like to either folder. The build picks up whatever is there.
 
 ## What happens to them
 
-`python3 scripts/build_icons.py` reads both folders and writes the client
+`python3 scripts/build_icons.py` reads all three folders and writes the client
 copies. It does two things to each file:
 
 1. **Flattens the colour.** These arrive as multi-hue gradients; the game is
