@@ -514,6 +514,25 @@ func _declare_variations(t: Theme) -> void:
 	t.set_color("font_color", "QuietButton", Palette.INK_MUTED)
 	t.set_color("font_hover_color", "QuietButton", Palette.INK)
 
+	## A row inside a scrollable, multi-column list -- the saved-mystery
+	## browser needs a title column and a right-aligned star-rating column
+	## that line up across rows, which ItemList's one-string-per-item model
+	## cannot do (playtest BrowseSept8). Mirrors ItemList's own hover/selected
+	## states (_style_lists) so swapping the control doesn't read as a
+	## different list.
+	t.set_type_variation("BrowseRowButton", "Button")
+	var row_normal: StyleBoxFlat = _control_box(Palette.SURFACE_DEEP, Palette.SURFACE_DEEP)
+	row_normal.draw_center = false
+	row_normal.set_border_width_all(0)
+	t.set_stylebox("normal", "BrowseRowButton", row_normal)
+	t.set_stylebox("hover", "BrowseRowButton", _panel(Palette.SURFACE, Palette.RADIUS_SMALL, Palette.SURFACE))
+	t.set_stylebox("pressed", "BrowseRowButton", _panel(Palette.SURFACE_RAISED, Palette.RADIUS_SMALL, Palette.BRASS))
+	t.set_stylebox("focus", "BrowseRowButton", _focus_ring())
+	t.set_color("font_color", "BrowseRowButton", Palette.INK)
+	t.set_color("font_hover_color", "BrowseRowButton", Palette.INK)
+	t.set_color("font_pressed_color", "BrowseRowButton", Palette.INK)
+	t.set_font_size("font_size", "BrowseRowButton", Palette.TYPE_BODY)
+
 	## Irreversible and consequential: the accusation. CYM has exactly one
 	## action a player cannot take back, and it should not look like Back.
 	t.set_type_variation("DangerButton", "Button")
