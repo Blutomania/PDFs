@@ -443,14 +443,16 @@ func _declare_variations(t: Theme) -> void:
 	## kept here anyway so the variation is never colourless before that runs.
 	t.set_type_variation("VerdictLabel", "Label")
 	t.set_color("font_color", "VerdictLabel", Palette.INK)
-	## 35, not Palette.TYPE_TITLE (30) -- owner, playtest ResultSept8: "the big
-	## message" should read 25% larger than it did. It was actually rendering
-	## at 28, not 30, because ResultScreen.tscn carried its own per-node
-	## font_size override that had drifted from this variation; that override
-	## is gone now, so this is the one place the size is decided (28 * 1.25 =
-	## 35). A one-off literal, not TYPE_TITLE, because nothing else uses this
-	## variation's size and it should not silently follow that scale's own
-	## changes.
+	## 35, not Palette.TYPE_TITLE (30) -- owner, playtest ResultSept8: just the
+	## single word ("Correct"/"Wrong") should read 25% bigger than the 28px it
+	## was actually rendering at (a stale per-node .tscn override had drifted
+	## from this variation's own declared 30; that override is gone now).
+	## ResultScreen splits the banner into two Labels sharing this variation --
+	## VerdictWordLabel (the word, inherits this 35) and VerdictRestLabel (the
+	## rest of the sentence, overridden to 28 on its own node, "high twenties"
+	## per the same note) -- because one Label cannot mix two sizes in its own
+	## text. A one-off literal, not TYPE_TITLE, because nothing else uses this
+	## variation's size and it should not silently follow that scale's changes.
 	t.set_font_size("font_size", "VerdictLabel", 35)
 
 	## A player's name, wherever roster matters more than anywhere else it

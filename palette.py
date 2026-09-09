@@ -170,7 +170,7 @@ TYPE_SCALE: Dict[str, int] = {
     "display": 44,
     "title": 30,    # one per screen, at the top
     "heading": 21,  # section headers within a screen
-    "body": 16,     # the default; everything unlabelled is this
+    "body": 18,     # the default; everything unlabelled is this
     "label": 13,    # field labels, attribution, timestamps
 }
 
