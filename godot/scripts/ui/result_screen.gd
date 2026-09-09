@@ -15,7 +15,8 @@ extends Control
 # Node references
 # ---------------------------------------------------------------------------
 @onready var verdict_label: Label = $ScrollContainer/MainVBox/VerdictLabel
-@onready var solution_label: RichTextLabel = $ScrollContainer/MainVBox/SolutionLabel
+@onready var portrait_rect: TextureRect = $ScrollContainer/MainVBox/SolutionRow/PortraitRect
+@onready var solution_label: RichTextLabel = $ScrollContainer/MainVBox/SolutionRow/SolutionLabel
 @onready var stats_label: RichTextLabel = $ScrollContainer/MainVBox/StatsLabel
 @onready var rating_row: HBoxContainer = $ScrollContainer/MainVBox/RatingRow
 @onready var play_again_button: Button = $ScrollContainer/MainVBox/Buttons/PlayAgainButton
@@ -78,6 +79,16 @@ func _populate() -> void:
 		", ".join(clue_names) if not clue_names.is_empty() else "?",
 	]
 	solution_label.text = sol_text
+
+	## A portrait beside the solution text (owner, playtest ResultSept8: "too
+	## much just text"). Same seeded-icon mechanism CaseDisplay's cast rows
+	## already use (Icons.suspect/Icons.texture) -- not a real likeness, a
+	## stable decorative silhouette for this culprit in this game. Icons.gd
+	## returns null on an empty set on purpose, so this correctly draws
+	## nothing rather than a placeholder box when no suspect icon exists yet.
+	var culprit_icon: String = Icons.suspect(str(plot.get("culprit", culprit)), GameState.game_id)
+	portrait_rect.texture = Icons.texture(culprit_icon)
+	portrait_rect.modulate = Icons.tint()
 
 	_populate_stats(result.get("gameplay_stats", {}))
 
