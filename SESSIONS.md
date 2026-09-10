@@ -89,6 +89,36 @@ but nothing was engine-verified either — same standing gap as every session be
    dev-tools one) — three scripts (`build_icons.py`, `check_brand_contrast.py`,
    `split_icon_sheet.py`) import `PIL` and nothing in the repo says so.
 
+### Branch pruning, and a near-miss
+
+The owner bulk-deleted merged branches from the GitHub UI (the 26 identified above, plus the
+`dev/cryptic-challenge` / `dev/choose-your-mystery` duplicate pair — confirmed safe the same way
+Session 29 already had: `git log origin/main..origin/<branch>`, not the name). **Two branches that
+were explicitly flagged as not-safe got swept up in the same pass anyway: `dev/mind-your-friends`
+(45 real MYF commits) and `owner/godot-sidecars` (the owner's own 2-commit branch).** Both fully
+recovered — the commit objects were still cached in this session's local git store from having been
+inspected minutes earlier, so `git branch <name> origin/<name>` + `git push origin <name>` restored
+both at byte-identical SHAs, confirmed against the GitHub API afterward. **Nothing was lost, but it
+was luck that this session happened to have just fetched them** — a session that hadn't would have
+needed to hope GitHub's own dangling-commit retention window (unreachable commits aren't GC'd
+immediately) still covered it. Worth remembering: a bulk branch-delete UI does not ask "are you
+sure" per branch, so anything flagged as "leave alone" in a pruning pass is safer confirmed deleted-or-not
+immediately after, not assumed correct.
+
+### CLAUDE.md trim
+
+This file had crept back to 643 lines (~11.9K tokens) — the exact bloat Session 38 already cut once,
+paid by every session regardless of task. Items 23 and 17 in Open Work carried session-by-session
+play-by-play that either duplicated `docs/DECISIONS.md` or existed only here. Compared line-by-line
+before cutting anything: migrated what was unique to `CLAUDE.md` (the accepted-mystery/CPAM story,
+the seed-search monopoly fix, the two-routes-problem resolution and its item-27 interaction) into
+`docs/DECISIONS.md`'s existing item 23 as a dated append; confirmed item 17's Godot-chrome history
+was already fully covered in `DECISIONS.md` item 17 with nothing to migrate. Both sections in
+`CLAUDE.md` now state current status plus a pointer. Items 27 and 18/28 were checked too but left
+alone — already a tight status-plus-pointer, not narrative duplication, so cutting them further
+would have cost accuracy for little size. Result: 643 → 556 lines, ~11.9K → ~10.2K tokens.
+`check_doc_claims.py` and `check_decisions.py` both still pass.
+
 ---
 
 ## Session 44 — September 9, 2026 (CYM: PR #49 merged, the Sept8 playtest walked screen by screen, and the first real suspect icon set)

@@ -953,6 +953,40 @@ that the superseded text has become history and belongs here instead.
     `scripts/test_apf.py` and `scripts/check_godot_wiring.py` still pass; not run in Godot, same
     caveat as everything else in this item.
 
+    **[Session 41, eighth generation] The first accepted mystery.**
+    `the_neriin_in_the_pilchard_barrel` (Cornish tin-mine counting house, 1907) is in `generated/`:
+    coherence 0 blocking 0 warnings, 4 suspects, routes 3/3/4, feasibility clean, assigns on attempt
+    1, proof surviving 81 of 81 hoarding patterns. It generated with one violation — an exoneration
+    nothing revealed — closed by `scripts/wire_pointers.py` wiring E4 to the witness whose statement
+    already described the same man on the same cliff path. First CPAM: $0.7169, over four measured
+    generations.
+
+    **What it exposed: monopoly on proof is a property of the assignment, not the mystery.** At seed
+    7 exactly one player could prove it in 27 of 81 patterns — the same figure `totality` was
+    casefile-rejected for. Across 20 seeds, 13 give 0/81 and proof survives 81/81 on every one.
+    Re-running the assignment is free, so `best_assignment()` searches seeds and keeps the fairest
+    one rather than the first legal one — this is what the "two defects found by running it" note
+    above refers to.
+
+    **[Session 41, sixth generation] The two-routes problem is solved.** It was never a distribution
+    problem — counted over routes rather than evidence items, exactly one suspect had exactly one
+    route every time, and it was always the suspect whose clue nothing pointed at and whom no
+    witness mentioned. The prompt now assigns each witness a suspect before writing the statement.
+    `the_tide_waits_for_no_one` is the result: 0 blocking, 0 warnings, no single-route suspect, every
+    exoneration wired, no prose leak.
+
+    **It fails on one rule, and that rule is item 27 working.** A narrowing (two men tall enough to
+    reach a six-foot shelf) plus the exoneration clearing one of them names the culprit in two
+    findings — the glove, exactly as specified. But both halves landed on the same witness, so one
+    assigned finding carries the whole proof. No single witness, lead or area may reveal both a
+    narrowing and the exoneration that completes it — in the prompt, untested; one generation should
+    confirm it.
+
+    **[Session 44] The Sept8 playtest continued screen by screen** — MainMenu, Browse Saved
+    Mysteries, CaseDisplay, ResultScreen, Interrogation. Owner-driven UI fixes, no mechanic changes.
+    Full account in `SESSIONS.md` Session 44; not repeated here since none of it changed APF's
+    design. Headline result: `IconSet.SUSPECT` went from effectively empty of real art to 18 entries.
+
 24. **[DONE, Session 37 — August 26, 2026] One palette, three surfaces.** The client had no
     styling at all; the phone had a palette it invented; the brand documented a third and was
     rendered by nothing. Two of those brasses were `#c8a96e` and `#C9A227` — near enough to read

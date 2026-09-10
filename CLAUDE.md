@@ -433,105 +433,30 @@ Everything else is closed — see `docs/DECISIONS.md`.
 
 The playtest shape is agreed and written down: `docs/PLAYTEST_FLOW.md` → "APF (All Provided For)".
 Findings are **assigned, not gathered**; the only decision is which to share and which to keep, which
-is the mechanic this file's overview calls the point of the product.
+is the mechanic this file's overview calls the point of the product. All four build-order steps
+(schema, constrained assignment, the rhythm/board/reveal, the paced opening) are built. Full build
+history — the five rejected approaches, the accepted mystery and its CPAM, the seed-search/monopoly
+fix, the two-routes-problem resolution and its interaction with item 27 — is in `docs/DECISIONS.md`
+item 23; Session 44's screen-by-screen playtest is in `SESSIONS.md`. Neither is repeated here.
 
-Build order (`docs/INVESTIGATION_DESIGN.md` §7, already reduced by APF):
+**What is actually left is a table.** The accepted mystery, `the_neriin_in_the_pilchard_barrel`, has
+been played end to end, four rounds, at all three difficulties. Nothing on the critical path is
+unbuilt. What has never happened is a person other than the owner sitting down to it cold — see
+**Not verified** below, and `docs/F5_CHECKLIST.md`.
 
-1. ~~`exonerates` / `implicates` on evidence + the set-arithmetic solvability check~~ —
-   **the schema half landed in Session 38** with the backwards-writing reorder (item 26).
-   Untested against a real generation; that costs credits and is the next paid step.
-2. ~~The constrained assignment~~ — **built in Session 39** as `casefiles.py`, with `scripts/test_casefiles.py`.
-   The blocker (a finding carrying no evidence ID) was real but pointed at the gather routes APF
-   deletes. The gap that actually bit: APF's casefile is one witness statement, one crime-scene clue,
-   one lead result, and **only `evidence[]` carries `exonerates`** — so two of the three kinds
-   could not participate in the arithmetic at all. Closed with a `reveals` pointer on witnesses,
-   leads and areas, which keeps elimination data in one place. Untested against a real generation.
-3. ~~The share decision, the suspect board, the reveal~~ — **built in Session 42.** `apf.py` owns
-   the rhythm; six `/apf/` routes serve it; `ApfRound.tscn` puts the casefile, the board and the share
-   on one screen, and `ResultScreen` shows full disclosure with a name against every finding
-   somebody sat on. Verified two ways: `scripts/test_apf.py` (58 assertions) and
-   `scripts/walk_apf_game.py`, which plays a whole game over real HTTP **with no API key at all**.
-   Not yet run in Godot — no engine is reachable from a session (see Godot notes).
-4. ~~The paced text opening~~ — `_generate_opening_narration()` writes it, on by default
-   (Session 40). Pacing the five beats is client-side and free; the screen is unbuilt.
-
-**What is actually left is a table.** Step 3 was blocked on a mystery that passed everything;
-`the_neriin_in_the_pilchard_barrel` is that mystery and it has now been played end to end, four
-rounds, at all three difficulties. Nothing on the critical path is unbuilt. What has never happened
-is a person sitting in front of it — see **Not verified** below, and `docs/F5_CHECKLIST.md`.
-
-The five rejections that got here, and the rules each one earned, are in `docs/DECISIONS.md`
-item 23.
-
-**[Session 41, eighth generation] THE FIRST ACCEPTED MYSTERY.**
-`the_neriin_in_the_pilchard_barrel` (Cornish tin-mine counting house, 1907) is in `generated/`:
-coherence 0 blocking 0 warnings, 4 suspects, routes 3/3/4, feasibility clean, assigns on attempt 1,
-**proof surviving 81 of 81 hoarding patterns**. It generated with one violation — an exoneration
-nothing revealed — and `scripts/wire_pointers.py` closed it by wiring E4 to the witness whose
-statement already described the same man on the same cliff path (the evidence item itself said
-*"consistent with Tomas Blewett's statement"*). **First CPAM: $0.7169**, over four measured
-generations.
-
-**One thing it exposed: monopoly on proof is a property of the ASSIGNMENT, not the mystery.** At seed 7
-exactly one player could prove it in 27 of 81 patterns — the same figure `totality` was casefile-
-rejected for. Across 20 seeds, 13 give **0/81** and proof survives 81/81 on every one. Re-running the assignment
-is free, so `best_assignment()` searches seeds and keeps the fairest assignment rather than the first legal
-one. **Built in Session 41**; this section said "unbuilt" for a session after it landed.
-
-**[Session 42] It was selecting against the wrong hoarding model.** `best_assignment()` forwarded
-`hoard_allowance` into `assignment()` but not into the `prover_counts()` call it *chooses the seed with*,
-so a session whose rules permit a two-finding stash constrained proof-survival at two and then
-picked its assignment by a monopoly measured at one. Reachable only once something derived the
-allowance instead of taking the constant — which is what `apf.stash_allowance()` does. At allowance
-2 on the accepted mystery it now examines **1296 patterns instead of 256**, and picks a different
-seed.
-
-**[Session 41, sixth generation] The two-routes problem is solved.** It was never a distribution
-problem — counted over routes rather than evidence items, exactly one suspect had exactly one route
-every time, and it was always the suspect whose clue nothing pointed at and whom no witness
-mentioned (item 29). The prompt now assigns each witness a suspect before writing the statement.
-`the_tide_waits_for_no_one` is the result: **0 blocking, 0 warnings, no single-route suspect, every
-exoneration wired, no prose leak** — the cleanest generation to date.
-
-**It fails on one rule, and that rule is item 27 working.** A narrowing (two men tall enough to
-reach a six-foot shelf) plus the exoneration clearing one of them names the culprit in two findings
-— the glove, exactly as specified. But both halves landed on the same witness, so one assigned finding
-carries the whole proof. **No single witness, lead or area may reveal both a narrowing and the
-exoneration that completes it.** In the prompt, untested. One generation should confirm it.
-
-**Decided (Session 38): no crime-scene picture for the playtest** — a list of named findings. The
-map is deferred, not cancelled.
-
-**Not verified, and the list is shorter than it was.** (a) **Nothing here has been confirmed run
-through `VerifyScenes.gd` / `ApplyTheme.gd`.** The scene and scripts pass `scripts/check_godot_wiring.py`,
-which reads scene files rather than loading them — necessary, not sufficient. Those two checks use
-the engine's own loader and need the owner's machine; whether they were actually run during the
-Session 43 walkthrough is unconfirmed. (b) **[Session 43] Somebody played it — this is no longer
-open.** Ezra Greene ran the F5 checklist for real and played two mysteries through to the result
+**Not verified, and the list is shorter than it was.**
+(a) Nothing here has been confirmed run through `VerifyScenes.gd` / `ApplyTheme.gd` — those need the
+owner's machine, and whether they ran during the Session 43 walkthrough is unconfirmed.
+(b) **[Session 43] Closed — no longer open.** Ezra Greene played two mysteries through to the result
 screen, rating them 9 (`the_neriin_in_the_pilchard_barrel`) and, initially, 10
-(`whiteout_at_shackleton_base`) — revised to 8 the next day (Sept 9, `fix/whiteout-rating`).
-Committed as `_meta.viability_rating` on both files. Not yet known: which path each took —
-`whiteout_at_shackleton_base` was not `apf_ready` last this was checked, so that rating likely
-reflects the pre-APF gather loop, not the rhythm this item is actually about. Worth confirming
-before treating either number as evidence about the difficulty ladder specifically. (c) **APF needs
-at least two players** — constraint 2 is unsatisfiable at one, because the only casefile is the
-whole assignment. A solo walk-through has to add seats.
+(`whiteout_at_shackleton_base`) — revised to 8 the next day (`fix/whiteout-rating`). Which path each
+took is still unconfirmed — `whiteout_at_shackleton_base` was not `apf_ready` last checked, so that
+rating may reflect the pre-APF gather loop, not the rhythm this item is about.
+(c) APF needs at least two players — a solo walk-through needs `scripts/seat_players.py`.
 
-**The one play-time Claude call left on the critical path is the resolution narrative.** Session 42
-stopped it being fatal — a failed call now falls back to the mystery's own resolution prose — but
-build-order step 5 still has to remove it.
-
-**[Session 44] The Sept8 playtest continued screen by screen — MainMenu, Browse Saved Mysteries,
-CaseDisplay, ResultScreen, Interrogation — all owner-driven UI fixes, no mechanic changes.** Notable
-ones: CaseDisplay and ResultScreen both had a stale fixed-width container offset plus no
-`horizontal_scroll_mode` on their `ScrollContainer`, which is why body text was clipping at the
-right edge rather than wrapping — same root cause, same fix, on both screens. Interrogation's
-suspect dropdown became a clickable portrait grid (Godot `ButtonGroup` + `toggle_mode`, no manual
-selection bookkeeping). **`IconSet.SUSPECT` is no longer effectively empty of real art** — 15 flat,
-CC0-claimed silhouettes landed alongside the existing 3 PNGs (18 total); provenance, exclusions and
-a licensing re-check caveat are in `icons/suspect/README.md`, not repeated here. PR #49 (Session
-42+43's whole branch) was still unmerged into `main` at this session's start — merged now; the
-branch-tip-vs-`main` mismatch is worth checking early in future sessions rather than assumed clean.
+**The one play-time Claude call left on the critical path is the resolution narrative.** A failed
+call now falls back to the mystery's own resolution prose, but build-order step 5 still has to
+remove the call outright.
 
 ### 27. Incrimination as well as exculpation — the glove mechanic — **BUILT, Session 40**
 
@@ -597,28 +522,16 @@ The layout is built and tested (`background_field.py`) and wired to nothing, whi
 pre-prompt state. Outstanding: whether the field is strewn with the mystery's title, with something
 else, or both — do not assume.
 
-**(b) is decided, for the Godot client — Session 42/43, playtest StartPageSept7.** The negative
-mark, upper-left, on every screen: `Chrome.gd`, a new autoload. The phone half of (b) (organic
-monogram, top-centre) is still open and still stage 3 — `mobile.html` has no chrome pass at all.
-**The window icon is a SEPARATE, still-open question** — (b) was said to unblock it, but nobody has
-asked for it yet, and `project.godot`'s `config/icon` stays deliberately unset until someone does.
+**Resolved for the Godot client (Session 42/43).** The negative mark sits upper-left on every
+screen via `Chrome.gd`. The organic monogram's placement on `Lobby.tscn` was tried and then swapped
+for a temp placeholder (`logo_temp.svg`, not wired into `build_brand.py`) pending an artist — not
+contrast-checked either, and measured anyway: 66% of its ink is at or below 2.5:1 against
+`Palette.GROUND`. Whatever the artist delivers should go through `scripts/check_brand_contrast.py`
+before it's wired in for real. Full history: `docs/DECISIONS.md` item 17.
 
-**[Session 43] The organic mark also landed on Godot, top-centre, but on ONE screen, not every
-screen.** Owner, playtest WaitingSept7: the organic monogram (`brand/NEWorganic_cym.svg`, already
-mirrored to `godot/assets/brand/organic_mark.svg`) placed at the top of `Lobby.tscn`, scene-local
-rather than via `Chrome.gd`. This was not (b)'s phone answer arriving early — it is a second,
-narrower placement this item had not anticipated, and it does not resolve the phone half above,
-which is still stage 3 and still unbuilt.
-
-**[Session 43] The organic monogram is replaced on `Lobby.tscn` with a temp placeholder — `LogoMark`
-now shows `godot/assets/brand/logo_temp.svg`, a plain copy of the owner's own upload
-(`icons/new logo/CYM_temp-removebg-preview.svg`), not wired into the `build_brand.py` mirror
-pipeline since it is explicitly not the final mark.** Owner: "I don't love it here either. Need to
-get an artist on it." No contrast fix applied — measured anyway so it is not a surprise later:
-**66% of its ink is at or below 2.5:1** against `Palette.GROUND`, worse in the fully-invisible band
-than the organic mark it replaced. Whatever the artist delivers should be run through
-`scripts/check_brand_contrast.py` before it is wired in for real.
-Full history: `docs/DECISIONS.md` item 17.
+**Still open, both stage 3:** the phone half (organic monogram, top-centre — `mobile.html` has no
+chrome pass at all), and the window icon (`project.godot`'s `config/icon`, deliberately unset until
+someone actually asks for it).
 
 ### 19. Corpus P1→P1P2P3 upgrade — **ready, blocked on API credits**
 
