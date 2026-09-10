@@ -508,7 +508,8 @@ which reads scene files rather than loading them — necessary, not sufficient. 
 the engine's own loader and need the owner's machine; whether they were actually run during the
 Session 43 walkthrough is unconfirmed. (b) **[Session 43] Somebody played it — this is no longer
 open.** Ezra Greene ran the F5 checklist for real and played two mysteries through to the result
-screen, rating them 9 (`the_neriin_in_the_pilchard_barrel`) and 10 (`whiteout_at_shackleton_base`).
+screen, rating them 9 (`the_neriin_in_the_pilchard_barrel`) and, initially, 10
+(`whiteout_at_shackleton_base`) — revised to 8 the next day (Sept 9, `fix/whiteout-rating`).
 Committed as `_meta.viability_rating` on both files. Not yet known: which path each took —
 `whiteout_at_shackleton_base` was not `apf_ready` last this was checked, so that rating likely
 reflects the pre-APF gather loop, not the rhythm this item is actually about. Worth confirming

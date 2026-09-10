@@ -58,3 +58,56 @@ correlates a specific icon to a specific suspect's identity — assignment is
 seeded on name + game id, not on any trait of the character — but the set's
 *composition* is still worth a second pass if a more balanced cast look
 matters before this goes further than FPO.
+
+## The gender-skew follow-up batch (18 files, not added except one)
+
+The owner sent a second SVG Repo zip aimed at the skew flagged above. Of 18 files, only one was
+added: `woman-svgrepo-com.svg`, a flat single-fill (`#000000`-equivalent, one `<style>` block)
+full-body silhouette in the same visual language as the existing set. `woman-silhouette-svgrepo-com.svg`
+in this batch is **byte-identical** to the file already in this folder — not a new asset, skipped.
+
+**The other 16 were not added, on both the style ground this folder already applies and a license
+ground this session's re-check turned up:**
+
+- **Style:** each one carries `class="iconify iconify--twemoji"` and 4–12 distinct `fill="#..."`
+  values — the same "detailed, multi-colour, closer to a portrait than an anonymous placeholder"
+  shape that got the female-lawyer/programmer/worker trio excluded above, not the flat single-tone
+  silhouette the rest of this set (and `Icons.gd`'s tint-by-modulate mechanism) is built around.
+- **License (new finding, this is the re-check item 2 of the Sept-9 to-do asked for):** that
+  `iconify--twemoji` class name is not cosmetic — these are Twemoji, Twitter/X's emoji artwork,
+  which is licensed **CC-BY 4.0, not CC0**. CC-BY requires attribution; this whole set was pulled
+  on the assumption (SVG Repo's own per-page tag) that everything here is CC0 and needs none. SVG
+  Repo re-hosting a CC-BY work under its own CC0 badge does not change the original artist's
+  actual terms. None of the 15 files in the first batch showed this marker — this is specific to
+  the new batch. **Do not add any `iconify--twemoji`-tagged SVG Repo file to this set without
+  either attributing Twemoji explicitly or getting a license the game can ship under.**
+
+Excluded files (all Twemoji, all `-skin-tone` variants of the same handful of archetypes —
+detective, astronaut, elf, fairy, farmer, mage, vampire, one wearing a turban, one in a veil, one a
+zombie — plus one ungendered non-Twemoji `woman-dark-skin-tone` that turned out to carry the same
+marker):
+
+- woman-astronaut-light-skin-tone-svgrepo-com.svg
+- woman-dark-skin-tone-svgrepo-com.svg
+- woman-detective-light-skin-tone-svgrepo-com.svg
+- woman-detective-medium-light-skin-tone-svgrepo-com.svg
+- woman-detective-medium-skin-tone-svgrepo-com.svg
+- woman-elf-medium-dark-skin-tone-svgrepo-com.svg
+- woman-elf-medium-light-skin-tone-svgrepo-com.svg
+- woman-fairy-light-skin-tone-svgrepo-com.svg
+- woman-fairy-medium-light-skin-tone-svgrepo-com.svg
+- woman-farmer-medium-skin-tone-svgrepo-com.svg
+- woman-mage-medium-light-skin-tone-svgrepo-com.svg
+- woman-mage-svgrepo-com.svg
+- woman-svgrepo-com-2.svg
+- woman-vampire-medium-light-skin-tone-svgrepo-com.svg
+- woman-wearing-turban-light-skin-tone-svgrepo-com.svg
+- woman-with-veil-svgrepo-com.svg
+- woman-zombie-svgrepo-com.svg
+
+**Net effect on the skew:** one more flat feminine-presenting silhouette (2 of 19 now), not the
+larger rebalance the batch was hoping for. The skew this folder flagged is still real. Closing it
+properly likely means sourcing flat, CC0-or-clearly-permissive, non-costumed body/portrait
+silhouettes specifically — the same brief as the original set, filtered by gender presentation —
+rather than an emoji character pack, which is a different asset class (see the "upper-body"
+exclusions above) independent of its license.

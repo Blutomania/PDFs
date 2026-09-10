@@ -43,4 +43,5 @@ const SUSPECT: Array[String] = [
 	"res://assets/icons/suspect/suspect3.png",
 	"res://assets/icons/suspect/thief-svgrepo-com.svg",
 	"res://assets/icons/suspect/woman-silhouette-svgrepo-com.svg",
+	"res://assets/icons/suspect/woman-svgrepo-com.svg",
 ]

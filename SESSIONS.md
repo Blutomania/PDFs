@@ -5,6 +5,92 @@ Use this file to onboard any new session without losing context.
 
 ---
 
+## Session 45 — September 10, 2026 (CYM: the gender-skew follow-up batch turns out to be one file, not eighteen, and a real license flag with it)
+
+**Branch:** `claude/serene-ramanujan-f5svcd`, off `main` at `befe02f` (local `main` was 45 commits
+stale before this session fetched and fast-forwarded it — no drift on this session's own branch,
+but worth flagging per the standing-habit ask below). Picked up from the prior session's close-of-
+night to-do, working the items that didn't need the Godot engine or the owner's local machine.
+
+### The 18-file SVG batch meant to fix the suspect-icon gender skew — only 1 file added
+
+The owner pulled a second SVG Repo zip (network-blocked from this sandbox, same as before) aimed at
+Session 44's flagged skew. Inspection found:
+
+- `woman-silhouette-svgrepo-com.svg` in the batch is **byte-identical** to the file already in
+  `icons/suspect/` — not new, skipped.
+- 16 of the remaining 17 carry `class="iconify iconify--twemoji"` and 4–12 distinct fill colours —
+  **Twemoji**, Twitter/X's emoji artwork, licensed **CC-BY 4.0, not CC0**. This set's whole
+  provenance assumption (SVG Repo's CC0 tag, zero attribution) does not hold for these; SVG Repo
+  re-hosting someone else's CC-BY work under its own badge doesn't change the original terms. This
+  is also stylistically the same "detailed, multi-colour, portrait-like" shape Session 44 already
+  excluded three similar files for. None of the original 15 files carry this marker (spot-checked
+  this session — all read `Generator: SVG Repo Mixer Tools`, no `iconify`/`twemoji` string in any of
+  them), so this issue is specific to the new batch, not a retroactive problem with what shipped.
+- One file, `woman-svgrepo-com.svg`, is a genuine match: flat single-fill, no Twemoji marker, a new
+  full-body silhouette in the same visual language as the rest of the set. **Added.**
+  `icons/suspect/README.md` now documents the whole batch — what was added, what was excluded and
+  why, and the license flag — the same way Session 44 documented its own exclusions.
+
+Net effect on the skew: 2 of 19 icons are now feminine-presenting silhouettes, not the larger
+rebalance the batch was hoping for. **Still open** — closing it for real likely needs sourcing more
+flat, clearly-licensed, non-costumed silhouettes specifically, not an emoji character pack.
+
+Rebuilt via `scripts/build_icons.py` (needed `pip install pillow` first — the script's raster path
+imports `PIL` and nothing in the repo declares it as a dependency; not fixed here, flagging it since
+it'll bite the next fresh environment too) and reverified: `build_icons.py --check` in sync,
+`test_icons.py` all passed.
+
+### The rest of last night's to-do
+
+- **F5 pass (item 1):** still blocked, same reason as every prior session — no Godot binary
+  reachable from here. Top priority for whoever next has the owner's machine.
+- **Backup branches (item 5):** `backup-old-local-main` and `backup-old-local-main-2` do not exist
+  on `origin` — checked both via `git ls-remote` and the GitHub API directly. They're local-only
+  branches on the owner's machine; the "via the GitHub UI" framing in last night's note doesn't
+  apply to them. Nothing to delete from here.
+- **Stray untracked root files (item 6):** same story — `git status` on this fresh clone shows none
+  of the named files (`SocialGaming/` nested folder, `backfill_collided_stories.py`,
+  `compare_models.py`, `compare_output/`, `package-lock.json`). They were untracked on the owner's
+  machine, so they only exist there.
+- **Item 7 / corpus (item 4):** genuinely untouched, but worth a note — `mystery_database/new_sources/`
+  is `.gitignore`d yet **is** tracked in git (`git ls-files` lists all 10 files in it), holding the
+  three-novel-plus-Higashino-plus-one-`.html` set from `docs/DECISIONS.md` item 7 (not the 11
+  held-back anthology PDFs or the 4-file `_novels/` batch, which aren't present here). Didn't run
+  extraction against any of it — that spends API credits and item 7 is explicitly ongoing corpus
+  work, not a stage-1 blocker, so it stays for an explicit go-ahead rather than started speculatively.
+- **Standing habit (item 7 of the to-do, the `git log` one):** followed it this session — caught
+  local `main` 45 commits behind `origin/main` before doing anything else, fast-forwarded it. No
+  actual work was affected (this session's branch already matched `origin/main`'s tip), but the habit
+  paid for itself in confidence, not just this time's outcome.
+
+### Also fixed in passing
+
+`CLAUDE.md`'s Session 43 note still said Ezra rated `whiteout_at_shackleton_base` a 10 — true when
+written, stale since `fix/whiteout-rating` (merged, PR #51) revised it to 8 the next day. Updated the
+sentence to say both numbers and when the revision happened, rather than deleting the history.
+
+### Verification
+
+`check_doc_claims.py`, `check_godot_wiring.py`, `check_decisions.py`, `test_icons.py`,
+`build_icons.py --check` all pass. Nothing here touches Godot scenes or scripts directly (only the
+generated `IconSet.gd`, which the wiring checker also covers), so no new engine-side risk was added,
+but nothing was engine-verified either — same standing gap as every session before this one.
+
+### Next session
+
+1. F5 pass, still first — nothing since Session 40 has been seen by the actual engine loader.
+2. Suspect-icon gender skew is still open; the fix needs new sourcing, not just filtering what was
+   already sent.
+3. Item 7's 11 held-back anthology PDFs, 7 all-null extractions, and the 4-file `_novels/` batch are
+   still nowhere in this repo or this session — they need to come from the owner's machine before
+   any of that work can start.
+4. Consider declaring `pillow` as a dependency somewhere (`server/requirements.txt` or a new
+   dev-tools one) — three scripts (`build_icons.py`, `check_brand_contrast.py`,
+   `split_icon_sheet.py`) import `PIL` and nothing in the repo says so.
+
+---
+
 ## Session 44 — September 9, 2026 (CYM: PR #49 merged, the Sept8 playtest walked screen by screen, and the first real suspect icon set)
 
 **Branch:** `claude/compassionate-johnson-jye9vd`. Two threads: closing out Session 42/43's still-open
