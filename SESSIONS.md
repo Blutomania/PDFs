@@ -128,6 +128,48 @@ PR, and a fresh playtest walkthrough (owner's screenshots tagged `*Sept8`) in th
 43 established — one screen at a time, feedback implemented, checkers run, committed, reported back
 before moving on.
 
+### Addendum, same evening: the 34 still-unmerged branches, examined not elided
+
+After the merged-branch prune (above) and the CLAUDE.md trim, went back through every branch left
+that wasn't merged into `main` — 34 of them, beyond `dev/mind-your-friends` and `owner/godot-sidecars`
+which were already known-good. Session 18 (July 22) had already cleared 7 of these as zero-unique-
+commits-vs-`main`; the other 27 (plus godot-game-rendering-i29xsh, not seen by Session 18) got a real
+pass this time — not just name-pattern-matching, but checking whether each branch's distinctive commit
+messages survive anywhere in `main`'s actual log (they often do, under a different hash, when history
+was rewritten — same shape as the `dev/cryptic-challenge` case) and, for anything ambiguous, checking
+the current file content directly.
+
+**22 confirmed safe and deleted** (owner, via GitHub UI): the 7 from Session 18, 13 pre-Godot
+Streamlit-era planning/schema branches (Feb–Mar 2026, fully superseded by the Godot rebuild, zero
+trace in `main` under any hash, predecessor preserved in `deprecated/`), `godot-game-rendering-i29xsh`
+(confirmed landed under rewritten hashes — both its commit messages appear verbatim in `main`'s log),
+and `claude/verify-root-path-JyDSP` (found after the initial pass — early Phase 1/2 Godot scaffold
+work using manual `BgTexture`/`LogoTexture` scene nodes, an approach `main` has since replaced with
+the `Style.gd`/`Palette.gd`/`Chrome.gd` autoload theming system; no trace of either under any hash).
+Verified clean afterward: `git fetch --prune` + a fresh branch listing showed exactly those 22 gone
+and everything flagged to keep still present — no repeat of the `mind-your-friends` near-miss.
+
+**7 left alone on purpose** — `awesome-hopper-eb06zt`, `brave-bohr-45istr`, `compassionate-cray-pu5ieu`,
+`confident-franklin-250vxg`, `connection-check-lum47r`, `continuation-r0mhfq`, `inspiring-newton-luip6g`.
+All branch off the same MYF development line `dev/mind-your-friends` already carries forward to its
+July 22 tip (`continuation-r0mhfq` confirmed as a direct ancestor). Probably redundant, but Session 18
+ruled MYF branch hygiene out of scope for CYM cleanup entirely — that ruling should extend to its
+checkpoints, not just its main branch. Not cleared here.
+
+**3 genuine findings, not deleted, need the owner's call:**
+- **`claude/pdf-ingestion-checkpoint-71qwb3`** claims three fixes to `scripts/extract_from_pdfs.py`.
+  Checked the live file: the `max_tokens` fix landed (refactored into `EXTRACTION_MAX_TOKENS`), but
+  the anthology filename-collision fix and a `--model-for` per-protocol flag are **genuinely absent**
+  — `book_slug[:30]` is still truncating exactly the way this branch's commit says it shouldn't.
+- **`claude/upload-corpus-extraction-3uTq5`** — the owner's own branch (not a Claude session), added
+  a 14MB corpus parquet file. No `.parquet` file exists anywhere in `main`'s history; the corpus
+  pipeline clearly moved to the JSON-based `part_registry.py` approach instead, but nothing confirms
+  the parquet itself is safe to lose.
+- **`claude/myf-lobby-progress-state-zc3myh`** — Aug 12 MYF playtest work (brand bar, Rebus round
+  rule, Whoa Nellie chain spec), three weeks *after* `dev/mind-your-friends`'s own July 22 tip, with
+  zero commit-message overlap against it. Reads as real MYF progress that never got folded back into
+  the main MYF line — possibly the most current MYF checkpoint that exists, not a stale one.
+
 ### PR #49 was never merged
 
 Session 43 closed with the branch "in sync with `origin`, `main` already merged in" — true of the
